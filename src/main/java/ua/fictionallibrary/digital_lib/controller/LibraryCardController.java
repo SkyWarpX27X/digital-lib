@@ -26,7 +26,7 @@ public class LibraryCardController {
         libraryCards = new HashMap<>();
     }
 
-    @PostMapping("/{userId}")
+    @PostMapping
     public ResponseEntity<LibraryCardResponse> createLibraryCard(@PathVariable String userId, @Validated(OnCreate.class) @RequestBody LibraryCardRequest libraryCardRequest) {
         LibraryCardEntity entity = new LibraryCardEntity(UUID.fromString(userId), libraryCardRequest);
         libraryCards.put(UUID.fromString(userId), entity);
@@ -34,7 +34,7 @@ public class LibraryCardController {
         return ResponseEntity.created(location).body(new LibraryCardResponse(entity));
     }
 
-    @GetMapping("/{userId}")
+    @GetMapping
     public ResponseEntity<LibraryCardResponse> getLibraryCard(@PathVariable String userId) {
         LibraryCardEntity entity = libraryCards.get(UUID.fromString(userId));
         if (entity == null) {
@@ -43,7 +43,7 @@ public class LibraryCardController {
         return ResponseEntity.ok(new LibraryCardResponse(entity));
     }
 
-    @PutMapping("/{userId}")
+    @PutMapping
     public ResponseEntity<LibraryCardResponse> updateLibraryCard(@PathVariable String userId, @Validated(OnUpdate.class) @RequestBody LibraryCardRequest libraryCardRequest) {
         if (!libraryCards.containsKey(UUID.fromString(userId)))
             throw new DataNotFoundException("Failed to update, not found library card of user with id: " + userId);
