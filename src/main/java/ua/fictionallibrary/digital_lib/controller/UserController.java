@@ -30,7 +30,7 @@ public class UserController {
         UUID id = UUID.randomUUID();
         UserEntity entity = new UserEntity(userRequest);
         users.put(id, entity);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().buildAndExpand(id).toUri();
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(id).toUri();
         return ResponseEntity.created(location).body(new UserResponse(entity));
     }
 
