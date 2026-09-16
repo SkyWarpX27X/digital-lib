@@ -28,7 +28,7 @@ public class UserController {
     @PostMapping
     public ResponseEntity<UserResponse> createUser(@Validated(OnCreate.class) @RequestBody UserRequest userRequest) {
         UUID id = UUID.randomUUID();
-        UserEntity entity = new UserEntity(userRequest);
+        UserEntity entity = new UserEntity(id, userRequest);
         users.put(id, entity);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(id).toUri();
         return ResponseEntity.created(location).body(new UserResponse(entity));
@@ -53,7 +53,7 @@ public class UserController {
     public ResponseEntity<UserResponse> updateUser(@PathVariable UUID id, @Validated(OnUpdate.class) @RequestBody UserRequest userRequest) {
         if (!users.containsKey(id))
             throw new DataNotFoundException("Failed to update, not user found with id: " + id);
-        UserEntity newValue = new UserEntity(userRequest);
+        UserEntity newValue = new UserEntity(id, userRequest);
         users.put(id, newValue);
         return ResponseEntity.ok(new UserResponse(newValue));
     }

@@ -44,7 +44,7 @@ public class DigitizedBookController {
     @PostMapping
     public ResponseEntity<DigitizedBookResponse> createBook(@Validated(OnCreate.class) @RequestBody DigitizedBookRequest request) {
         UUID id = UUID.randomUUID();
-        DigitizedBookEntity entity = new DigitizedBookEntity(request);
+        DigitizedBookEntity entity = new DigitizedBookEntity(id, request);
         digitizedBooks.put(id, entity);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(id).toUri();
         return ResponseEntity.created(location).body(new DigitizedBookResponse(entity, id));
@@ -54,7 +54,7 @@ public class DigitizedBookController {
     public ResponseEntity<DigitizedBookResponse> updateBook(@PathVariable UUID id, @Validated(OnUpdate.class) DigitizedBookRequest request) {
         if (!digitizedBooks.containsKey(id))
             throw new DataNotFoundException("Failed to update, not found digitized book with id " + id);
-        DigitizedBookEntity newValue = new DigitizedBookEntity(request);
+        DigitizedBookEntity newValue = new DigitizedBookEntity(id, request);
         digitizedBooks.put(id, newValue);
         return ResponseEntity.ok(new DigitizedBookResponse(newValue));
     }

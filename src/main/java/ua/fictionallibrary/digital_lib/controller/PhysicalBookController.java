@@ -41,7 +41,7 @@ public class PhysicalBookController {
     @PostMapping
     public ResponseEntity<PhysicalBookResponse> createBook(@Validated(OnCreate.class) @RequestBody PhysicalBookRequest request) {
         UUID id = UUID.randomUUID();
-        PhysicalBookEntity entity = new PhysicalBookEntity(request);
+        PhysicalBookEntity entity = new PhysicalBookEntity(id, request);
         physicalBooks.put(id, entity);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(id).toUri();
         return ResponseEntity.created(location).body(new PhysicalBookResponse(entity, id));
@@ -51,7 +51,7 @@ public class PhysicalBookController {
     public ResponseEntity<PhysicalBookResponse> updateBook(@PathVariable UUID id, @Validated(OnUpdate.class) PhysicalBookRequest request) {
         if (!physicalBooks.containsKey(id))
             throw new DataNotFoundException("Failed to update, not found physical book with id " + id);
-        PhysicalBookEntity newValue = new PhysicalBookEntity(request);
+        PhysicalBookEntity newValue = new PhysicalBookEntity(id, request);
         physicalBooks.put(id, newValue);
         return ResponseEntity.ok(new PhysicalBookResponse(newValue));
     }

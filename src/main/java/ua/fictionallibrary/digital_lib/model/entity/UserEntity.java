@@ -15,8 +15,8 @@ public record UserEntity (
     UserRole role,
     boolean isActive
 ) {
-    public UserEntity(UserRequest request) {
-        this(request.id(), request.login(), request.password(), request.name(), request.surname(),
+    public UserEntity(UUID id, UserRequest request) {
+        this(id, request.login(), request.password(), request.name(), request.surname(),
                 request.patronymic(), request.role(), request.isActive());
     }
 }

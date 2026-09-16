@@ -21,8 +21,8 @@ public record DigitizedBookEntity (
         String fileUrl
 
 ) {
-    public DigitizedBookEntity(DigitizedBookRequest request){
-        this(request.id(), request.name(), request.authors(), request.description(), request.topic(),
+    public DigitizedBookEntity(UUID id, DigitizedBookRequest request){
+        this(id, request.name(), request.authors(), request.description(), request.topic(),
                 request.publishingYear(), request.language(), request.resourceType(), request.isCopyrighted(),
                 request.coverUrl(), request.fileUrl());
     }

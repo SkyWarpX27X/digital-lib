@@ -30,7 +30,7 @@ public class BookOrderController {
         BookOrderEntity entity = new BookOrderEntity(id, request);
         bookOrders.put(id, entity);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(id).toUri();
-        return ResponseEntity.created(location).build();
+        return ResponseEntity.created(location).body(new BookOrderResponse(entity));
     }
 
     @GetMapping

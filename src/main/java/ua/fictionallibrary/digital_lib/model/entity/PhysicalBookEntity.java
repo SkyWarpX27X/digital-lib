@@ -16,8 +16,8 @@ public record PhysicalBookEntity (
         String language,
         String resourceType
 ) {
-    public PhysicalBookEntity(PhysicalBookRequest request){
-        this(request.id(), request.name(), request.authors(), request.description(), request.topic(),
+    public PhysicalBookEntity(UUID id, PhysicalBookRequest request){
+        this(id, request.name(), request.authors(), request.description(), request.topic(),
                 request.publishingYear(), request.language(), request.resourceType());
     }
 }
