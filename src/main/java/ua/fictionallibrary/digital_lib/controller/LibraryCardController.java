@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/users/{userId}/library-card")
+@RequestMapping("/api/v1/users/{userId}/library-card")
 public class LibraryCardController {
 
     private final Map<UUID, LibraryCardEntity> libraryCards;

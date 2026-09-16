@@ -4,6 +4,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/digitized-books")
+@RequestMapping("/api/v1/digitized-books")
 public class DigitizedBookController {
 }

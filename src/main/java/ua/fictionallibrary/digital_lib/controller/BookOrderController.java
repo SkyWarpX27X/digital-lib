@@ -15,7 +15,7 @@ import java.net.URI;
 import java.util.*;
 
 @RestController
-@RequestMapping("/api/book-orders")
+@RequestMapping("/api/v1/book-orders")
 public class BookOrderController {
 
     private final Map<UUID, BookOrderEntity> bookOrders;

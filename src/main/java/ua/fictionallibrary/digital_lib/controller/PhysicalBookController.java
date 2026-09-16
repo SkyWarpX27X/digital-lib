@@ -15,7 +15,7 @@ import java.net.URI;
 import java.util.*;
 
 @RestController
-@RequestMapping("/api/physical-books")
+@RequestMapping("/api/v1/physical-books")
 public class PhysicalBookController {
     private Map<UUID, PhysicalBookEntity> physicalBooks;
 
