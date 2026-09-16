@@ -31,4 +31,7 @@ public record DigitizedBookResponse(
                 book.publishingYear(), book.language(), book.resourceType(), book.isCopyrighted(),
                 book.coverUrl(), book.fileUrl());
     }
+    public DigitizedBookResponse {
+        authors = (authors != null) ? List.copyOf(authors) : List.of();
+    }
 }

@@ -8,7 +8,6 @@ import java.util.UUID;
 public record UserResponse (
     UUID id,
     String login,
-    String password,
     String name,
     String surname,
     String patronymic,
@@ -16,7 +15,7 @@ public record UserResponse (
     boolean isActive
 ) {
     public UserResponse(UserEntity user) {
-        this(user.id(), user.login(), user.password(), user.name(), user.surname(), user.patronymic(),
+        this(user.id(), user.login(), user.name(), user.surname(), user.patronymic(),
                 user.role(), user.isActive());
     }
 }

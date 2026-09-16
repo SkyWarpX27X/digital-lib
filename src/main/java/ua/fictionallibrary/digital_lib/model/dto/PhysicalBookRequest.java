@@ -25,4 +25,7 @@ public record PhysicalBookRequest(
         @NotBlank(message = "Type of resource must be specified")
         String resourceType
 ) {
+        public PhysicalBookRequest {
+                authors = (authors != null) ? List.copyOf(authors) : List.of();
+        }
 }

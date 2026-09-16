@@ -26,4 +26,7 @@ public record PhysicalBookResponse(
         this(assignedId, book.name(), book.authors(), book.description(), book.topic(),
                 book.publishingYear(), book.language(), book.resourceType());
     }
+    public PhysicalBookResponse{
+        authors = (authors != null) ? List.copyOf(authors) : List.of();
+    }
 }
