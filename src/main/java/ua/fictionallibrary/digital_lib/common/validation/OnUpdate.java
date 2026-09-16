@@ -1,4 +1,6 @@
 package ua.fictionallibrary.digital_lib.common.validation;
 
-public interface OnUpdate {
+import jakarta.validation.groups.Default;
+
+public interface OnUpdate extends Default {
 }
