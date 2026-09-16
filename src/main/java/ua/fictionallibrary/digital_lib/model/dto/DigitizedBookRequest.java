@@ -2,19 +2,12 @@ package ua.fictionallibrary.digital_lib.model.dto;
 
 import java.time.Year;
 import java.util.List;
-import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
-import ua.fictionallibrary.digital_lib.common.validation.OnCreate;
-import ua.fictionallibrary.digital_lib.common.validation.OnUpdate;
+
 
 public record DigitizedBookRequest(
-        @Null(groups = OnCreate.class, message = "ID must be null when creating")
-        @NotNull(groups = OnUpdate.class, message = "ID must be specified when updating")
-        UUID id,
-
         @NotBlank(message = "Name must not be empty")
         String name,
 

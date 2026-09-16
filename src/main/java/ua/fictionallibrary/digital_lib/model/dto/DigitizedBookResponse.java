@@ -1,9 +1,7 @@
 package ua.fictionallibrary.digital_lib.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import ua.fictionallibrary.digital_lib.model.entity.DigitizedBookEntity;
-import ua.fictionallibrary.digital_lib.model.entity.PhysicalBookEntity;
 
 import java.time.Year;
 import java.util.List;

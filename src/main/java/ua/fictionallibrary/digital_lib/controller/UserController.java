@@ -35,8 +35,8 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable String id) {
-        UserEntity entity = users.get(UUID.fromString(id));
+    public ResponseEntity<UserResponse> getUserById(@PathVariable UUID id) {
+        UserEntity entity = users.get(id);
         if (entity == null) {
             return ResponseEntity.notFound().build();
         }
@@ -50,11 +50,11 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponse> updateUser(@PathVariable String id, @Validated(OnUpdate.class) @RequestBody UserRequest userRequest) {
-        if (!users.containsKey(UUID.fromString(id)))
+    public ResponseEntity<UserResponse> updateUser(@PathVariable UUID id, @Validated(OnUpdate.class) @RequestBody UserRequest userRequest) {
+        if (!users.containsKey(id))
             throw new DataNotFoundException("Failed to update, not user found with id: " + id);
         UserEntity newValue = new UserEntity(userRequest);
-        users.put(UUID.fromString(id), newValue);
+        users.put(id, newValue);
         return ResponseEntity.ok(new UserResponse(newValue));
     }
 }
