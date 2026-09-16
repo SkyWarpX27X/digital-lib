@@ -1,5 +1,6 @@
 package ua.fictionallibrary.digital_lib.model.entity;
 
+import ua.fictionallibrary.digital_lib.model.dto.UserRequest;
 import ua.fictionallibrary.digital_lib.model.enums.UserRole;
 
 import java.util.UUID;
@@ -14,4 +15,8 @@ public record UserEntity (
     UserRole role,
     boolean isActive
 ) {
+    public UserEntity(UserRequest request) {
+        this(request.id(), request.login(), request.password(), request.name(), request.surname(),
+                request.patronymic(), request.role(), request.isActive());
+    }
 }
