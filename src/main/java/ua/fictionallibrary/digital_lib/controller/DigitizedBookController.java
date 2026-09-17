@@ -4,7 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import ua.fictionallibrary.digital_lib.common.DataNotFoundException;
+import ua.fictionallibrary.digital_lib.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.common.validation.OnCreate;
 import ua.fictionallibrary.digital_lib.common.validation.OnUpdate;
 import ua.fictionallibrary.digital_lib.model.dto.DigitizedBookRequest;

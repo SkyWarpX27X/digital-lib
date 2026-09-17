@@ -1,6 +1,5 @@
-package ua.fictionallibrary.digital_lib.common;
+package ua.fictionallibrary.digital_lib.exception;
 
-import jakarta.validation.ValidationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
