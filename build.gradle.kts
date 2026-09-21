@@ -20,6 +20,7 @@ repositories {
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
+	testImplementation("org.springframework.modulith:spring-modulith-starter-test:2.2.0-M1")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

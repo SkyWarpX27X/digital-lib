@@ -1,4 +1,4 @@
-package ua.fictionallibrary.digital_lib.common.validation;
+package ua.fictionallibrary.digital_lib.common;
 
 import jakarta.validation.groups.Default;
 
