@@ -1,8 +1,10 @@
 package ua.fictionallibrary.digital_lib.physicalbook.implementations;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import ua.fictionallibrary.digital_lib.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.exception.DuplicateException;
+import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookAddedEvent;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookRepository;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookService;
 import ua.fictionallibrary.digital_lib.physicalbook.ResourceTypeValidationStrategy;
@@ -19,10 +21,12 @@ import java.util.stream.Collectors;
 public class PhysicalBookServiceImpl implements PhysicalBookService {
 
     private final PhysicalBookRepository repository;
+    private final ApplicationEventPublisher eventPublisher;
     private final Map<String, ResourceTypeValidationStrategy> strategies;
 
-    public PhysicalBookServiceImpl(PhysicalBookRepository repository, List<ResourceTypeValidationStrategy> strategies) {
+    public PhysicalBookServiceImpl(PhysicalBookRepository repository, List<ResourceTypeValidationStrategy> strategies, ApplicationEventPublisher eventPublisher) {
         this.repository = repository;
+        this.eventPublisher = eventPublisher;
         this.strategies = strategies.stream()
                 .collect(Collectors.toMap(ResourceTypeValidationStrategy::getResourceType, Function.identity()));
     }
@@ -36,7 +40,13 @@ public class PhysicalBookServiceImpl implements PhysicalBookService {
             strategies.get("Книга").validateResourceType(book);
         else
             strategy.validateResourceType(book);
-        return toResponse(repository.savePhysicalBook(book));
+        PhysicalBookEntity savedBook = repository.savePhysicalBook(book);
+        eventPublisher.publishEvent(new PhysicalBookAddedEvent(
+                savedBook.id(),
+                savedBook.name(),
+                savedBook.resourceType()
+        ));
+        return toResponse(savedBook);
     }
 
     @Override

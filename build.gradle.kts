@@ -18,9 +18,12 @@ repositories {
 }
 
 dependencies {
+	implementation(platform("org.springframework.modulith:spring-modulith-bom:2.1.1"))
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
-	testImplementation("org.springframework.modulith:spring-modulith-starter-test:2.2.0-M1")
+	implementation("org.springframework.modulith:spring-modulith-starter-core")
+	implementation("org.springframework.modulith:spring-modulith-events-api")
+	testImplementation("org.springframework.modulith:spring-modulith-starter-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

@@ -3,8 +3,11 @@ package ua.fictionallibrary.digital_lib.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
+import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookAddedEvent;
 import ua.fictionallibrary.digital_lib.physicalbook.implementations.ModernBookValidationStrategy;
 import ua.fictionallibrary.digital_lib.physicalbook.implementations.OldBookValidationStrategy;
 import ua.fictionallibrary.digital_lib.physicalbook.ResourceTypeValidationStrategy;
@@ -29,7 +32,8 @@ import static org.mockito.Mockito.*;
 class PhysicalBookServiceImplTest {
     @Mock
     PhysicalBookRepository repository;
-
+    @Mock
+    ApplicationEventPublisher eventPublisher;
     PhysicalBookServiceImpl service;
 
     @BeforeEach
@@ -38,7 +42,7 @@ class PhysicalBookServiceImplTest {
                 new OldBookValidationStrategy(),
                 new ModernBookValidationStrategy()
         );
-        service = new PhysicalBookServiceImpl(repository, strategies);
+        service = new PhysicalBookServiceImpl(repository, strategies, eventPublisher);
     }
 
     @Test
@@ -61,6 +65,9 @@ class PhysicalBookServiceImplTest {
         assertEquals("Стародрук", response.resourceType());
 
         verify(repository).savePhysicalBook(any(PhysicalBookEntity.class));
+        ArgumentCaptor<PhysicalBookAddedEvent> eventCaptor = ArgumentCaptor.forClass(PhysicalBookAddedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        assertEquals(bookId, eventCaptor.getValue().id());
     }
 
     @Test
