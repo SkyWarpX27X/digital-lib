@@ -13,6 +13,8 @@ import ua.fictionallibrary.digital_lib.exception.DuplicateException;
 import ua.fictionallibrary.digital_lib.exception.InvalidOrderUpdateException;
 import ua.fictionallibrary.digital_lib.bookorder.model.dto.BookOrderResponse;
 import ua.fictionallibrary.digital_lib.bookorder.model.BookOrderEntity;
+import ua.fictionallibrary.digital_lib.exception.LibraryCardNotFoundException;
+import ua.fictionallibrary.digital_lib.librarycard.LibraryCardService;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookService;
 
 import java.util.List;
@@ -24,20 +26,23 @@ public class BookOrderServiceImpl implements BookOrderService {
     private final BookOrderRepository repository;
     private final ApplicationEventPublisher eventPublisher;
     private final PhysicalBookService physicalBookService;
+    private final LibraryCardService libraryCardService;
 
     public BookOrderServiceImpl(BookOrderRepository repository, ApplicationEventPublisher eventPublisher,
-                                PhysicalBookService physicalBookService) {
+                                PhysicalBookService physicalBookService, LibraryCardService libraryCardService) {
         this.repository = repository;
         this.eventPublisher = eventPublisher;
         this.physicalBookService = physicalBookService;
+        this.libraryCardService = libraryCardService;
     }
 
     @Override
     public BookOrderResponse addBookOrder(BookOrderEntity order) {
-        /*TODO Check if creator has library card when user and library card services are ready
-               Add creators email if email is empty
-         */
-
+        if (!libraryCardService.exists(order.creatorId()))
+            throw new LibraryCardNotFoundException("User with id " + order.creatorId() + " do not have library card and cannot place book orders");
+        if (order.emailForDelivery() == null)
+            order = new BookOrderEntity(order.id(), order.creatorId(), libraryCardService.getEmail(order.creatorId()),
+                    order.book(), false);
         if (repository.existsById(order.id()))
             throw new DuplicateException("Order with id " + order.id() + " already exists");
         if (repository.existsByBook(order.book()))
