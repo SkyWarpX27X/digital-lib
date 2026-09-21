@@ -12,4 +12,5 @@ public interface PhysicalBookService {
     PhysicalBookResponse getPhysicalBook(UUID id);
     List<PhysicalBookResponse> getAllPhysicalBooks();
     void deletePhysicalBook(UUID id);
+    boolean exists(UUID id);
 }

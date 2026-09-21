@@ -24,6 +24,11 @@ public class InMemoryBookOrderRepository implements BookOrderRepository {
     }
 
     @Override
+    public Optional<BookOrderEntity> getBookOrderByBook(UUID bookId) {
+        return bookOrders.values().stream().filter(order -> order.book().equals(bookId)).findFirst();
+    }
+
+    @Override
     public List<BookOrderEntity> getBookOrders(boolean onlyOpen) {
         return bookOrders.values().stream()
                 .filter(order -> !onlyOpen || order.isOpen()).toList();

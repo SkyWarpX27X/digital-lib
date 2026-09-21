@@ -1,7 +1,9 @@
 package ua.fictionallibrary.digital_lib.physicalbook.implementations;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Service;
+import ua.fictionallibrary.digital_lib.digitizedbook.BookDigitizedEvent;
 import ua.fictionallibrary.digital_lib.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.exception.DuplicateException;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookAddedEvent;
@@ -78,6 +80,16 @@ public class PhysicalBookServiceImpl implements PhysicalBookService {
         if (!repository.exists(id))
             throw new DataNotFoundException("Failed to delete, not found physical book with id " + id);
         repository.deletePhysicalBook(id);
+    }
+
+    @Override
+    public boolean exists(UUID id) {
+        return repository.exists(id);
+    }
+
+    @ApplicationModuleListener
+    public void onBookDigitized(BookDigitizedEvent event) {
+        deletePhysicalBook(event.physicalId());
     }
 
     private PhysicalBookResponse toResponse(PhysicalBookEntity entity) {

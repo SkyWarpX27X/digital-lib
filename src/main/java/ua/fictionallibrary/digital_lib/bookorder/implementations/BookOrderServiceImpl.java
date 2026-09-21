@@ -1,16 +1,19 @@
 package ua.fictionallibrary.digital_lib.bookorder.implementations;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Service;
 import ua.fictionallibrary.digital_lib.bookorder.BookOrderCreatedEvent;
 import ua.fictionallibrary.digital_lib.bookorder.BookOrderRepository;
 import ua.fictionallibrary.digital_lib.bookorder.BookOrderService;
 import ua.fictionallibrary.digital_lib.bookorder.UpdateStatusCommand;
+import ua.fictionallibrary.digital_lib.digitizedbook.BookDigitizedEvent;
 import ua.fictionallibrary.digital_lib.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.exception.DuplicateException;
 import ua.fictionallibrary.digital_lib.exception.InvalidOrderUpdateException;
 import ua.fictionallibrary.digital_lib.bookorder.model.dto.BookOrderResponse;
 import ua.fictionallibrary.digital_lib.bookorder.model.BookOrderEntity;
+import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookService;
 
 import java.util.List;
 import java.util.UUID;
@@ -20,19 +23,27 @@ public class BookOrderServiceImpl implements BookOrderService {
 
     private final BookOrderRepository repository;
     private final ApplicationEventPublisher eventPublisher;
+    private final PhysicalBookService physicalBookService;
 
-    public BookOrderServiceImpl(BookOrderRepository repository, ApplicationEventPublisher eventPublisher) {
+    public BookOrderServiceImpl(BookOrderRepository repository, ApplicationEventPublisher eventPublisher,
+                                PhysicalBookService physicalBookService) {
         this.repository = repository;
         this.eventPublisher = eventPublisher;
+        this.physicalBookService = physicalBookService;
     }
 
     @Override
     public BookOrderResponse addBookOrder(BookOrderEntity order) {
-        //TODO Check if creator has library card and add creators email if email is empty when user and library card services are ready
+        /*TODO Check if creator has library card when user and library card services are ready
+               Add creators email if email is empty
+         */
+
         if (repository.existsById(order.id()))
             throw new DuplicateException("Order with id " + order.id() + " already exists");
         if (repository.existsByBook(order.book()))
             throw new DuplicateException("Book with id" + order.book() + " already ordered");
+        if (!physicalBookService.exists(order.book()))
+            throw new DataNotFoundException("Failed to create order, not found book with id " + order.book());
         BookOrderEntity savedOrder = repository.saveBookOrder(order);
         eventPublisher.publishEvent(new BookOrderCreatedEvent(
                 savedOrder.id(),
@@ -66,6 +77,12 @@ public class BookOrderServiceImpl implements BookOrderService {
                 order.book(), command.isOpen());
         repository.saveBookOrder(updatedOrder);
         return toResponse(updatedOrder);
+    }
+
+    @ApplicationModuleListener
+    public void onBookDigitized(BookDigitizedEvent event) {
+        repository.getBookOrderByBook(event.physicalId())
+                .ifPresent(order -> updateStatus(order.id(), new UpdateStatusCommand(false)));
     }
 
     private BookOrderResponse toResponse(BookOrderEntity order) {

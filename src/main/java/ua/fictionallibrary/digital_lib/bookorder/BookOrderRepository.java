@@ -9,6 +9,7 @@ import java.util.UUID;
 public interface BookOrderRepository {
     BookOrderEntity saveBookOrder(BookOrderEntity bookOrderEntity);
     Optional<BookOrderEntity> getBookOrder(UUID id);
+    Optional<BookOrderEntity> getBookOrderByBook(UUID bookId);
     List<BookOrderEntity> getBookOrders(boolean onlyOpen);
     boolean existsById(UUID id);
     boolean existsByBook(UUID bookId);
