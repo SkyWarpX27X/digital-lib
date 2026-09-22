@@ -1,4 +1,4 @@
-﻿package ua.fictionallibrary.digital_lib.digitizedbook.implementations;
+package ua.fictionallibrary.digital_lib.digitizedbook.implementations;
 
 import org.springframework.stereotype.Repository;
 import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBookRepository;

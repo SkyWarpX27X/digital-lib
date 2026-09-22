@@ -1,4 +1,4 @@
-﻿package ua.fictionallibrary.digital_lib.digitizedbook;
+package ua.fictionallibrary.digital_lib.digitizedbook;
 
 import ua.fictionallibrary.digital_lib.digitizedbook.model.DigitizedBookEntity;
 
