@@ -2,9 +2,12 @@ package ua.fictionallibrary.digital_lib.digitizedbook.model.dto;
 
 import java.time.Year;
 import java.util.List;
+import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
+import ua.fictionallibrary.digital_lib.common.OnCreate;
+import ua.fictionallibrary.digital_lib.common.OnUpdate;
 
 
 public record DigitizedBookRequest(
@@ -38,7 +41,11 @@ public record DigitizedBookRequest(
         String coverUrl,
 
         @NotBlank(message = "File URL must be specified")
-        String fileUrl
+        String fileUrl,
+
+        @NotNull(groups = OnCreate.class, message = "Physical book ID must not be null when creating")
+        @Null(groups = OnUpdate.class, message = "Physical book ID can only be null when updating")
+        UUID physicalBookId
 ) {
         public DigitizedBookRequest {
                 authors = (authors != null) ? List.copyOf(authors) : List.of();
