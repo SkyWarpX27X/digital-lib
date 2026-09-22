@@ -42,7 +42,7 @@ public class BookOrderServiceImpl implements BookOrderService {
             throw new LibraryCardNotFoundException("User with id " + order.creatorId() + " do not have library card and cannot place book orders");
         if (order.emailForDelivery() == null)
             order = new BookOrderEntity(order.id(), order.creatorId(), libraryCardService.getEmail(order.creatorId()),
-                    order.book(), false);
+                    order.book(), true);
         if (repository.existsById(order.id()))
             throw new DuplicateException("Order with id " + order.id() + " already exists");
         if (repository.existsByBook(order.book()))

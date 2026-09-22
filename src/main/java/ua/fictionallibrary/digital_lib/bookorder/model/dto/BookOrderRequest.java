@@ -1,6 +1,6 @@
 package ua.fictionallibrary.digital_lib.bookorder.model.dto;
 
-import jakarta.validation.constraints.AssertFalse;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import ua.fictionallibrary.digital_lib.common.OnCreate;
 
@@ -14,7 +14,7 @@ public record BookOrderRequest(
         String emailForDelivery,
         @NotNull(message = "Book must be specified")
         UUID book,
-        @AssertFalse(groups = OnCreate.class, message = "Order cannot be created already finished")
+        @AssertTrue(groups = OnCreate.class, message = "Order cannot be created already finished")
         boolean isOpen
 ) {
 }
