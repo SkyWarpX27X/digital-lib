@@ -10,6 +10,10 @@ import ua.fictionallibrary.digital_lib.common.OnUpdate;
 import ua.fictionallibrary.digital_lib.digitizedbook.model.dto.DigitizedBookRequest;
 import ua.fictionallibrary.digital_lib.digitizedbook.model.dto.DigitizedBookResponse;
 import ua.fictionallibrary.digital_lib.digitizedbook.model.DigitizedBookEntity;
+import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookService;
+import ua.fictionallibrary.digital_lib.physicalbook.model.PhysicalBookEntity;
+import ua.fictionallibrary.digital_lib.physicalbook.model.dto.PhysicalBookRequest;
+import ua.fictionallibrary.digital_lib.physicalbook.model.dto.PhysicalBookResponse;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -20,50 +24,40 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/digitized-books")
 public class DigitizedBookController {
-    private final Map<UUID, DigitizedBookEntity> digitizedBooks;
+    private final DigitizedBookService service;
 
-    public DigitizedBookController() {
-        digitizedBooks = new HashMap<>();
+    public DigitizedBookController(DigitizedBookService service) {
+        this.service = service;
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<DigitizedBookResponse> getBookById(@PathVariable UUID id) {
-        DigitizedBookEntity book = digitizedBooks.get(id);
-        if (book == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(new DigitizedBookResponse(book));
+        DigitizedBookResponse book = service.getDigitizedBook(id);
+        return ResponseEntity.ok(book);
     }
 
     @GetMapping
     public ResponseEntity<List<DigitizedBookResponse>> getBooks() {
-        List<DigitizedBookResponse> books = digitizedBooks.values().stream().map(DigitizedBookResponse::new).toList();
-        return ResponseEntity.ok(books);
+        return ResponseEntity.ok(service.getAllDigitizedBooks());
     }
 
     @PostMapping
     public ResponseEntity<DigitizedBookResponse> createBook(@Validated(OnCreate.class) @RequestBody DigitizedBookRequest request) {
         UUID id = UUID.randomUUID();
-        DigitizedBookEntity entity = new DigitizedBookEntity(id, request);
-        digitizedBooks.put(id, entity);
+        DigitizedBookResponse response = service.addDigitizedBook(new DigitizedBookEntity(id, request), request.physicalBookId());
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(id).toUri();
-        return ResponseEntity.created(location).body(new DigitizedBookResponse(entity, id));
+        return ResponseEntity.created(location).body(response);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<DigitizedBookResponse> updateBook(@PathVariable UUID id, @Validated(OnUpdate.class) DigitizedBookRequest request) {
-        if (!digitizedBooks.containsKey(id))
-            throw new DataNotFoundException("Failed to update, not found digitized book with id " + id);
-        DigitizedBookEntity newValue = new DigitizedBookEntity(id, request);
-        digitizedBooks.put(id, newValue);
-        return ResponseEntity.ok(new DigitizedBookResponse(newValue));
+        DigitizedBookResponse response = service.updateDigitizedBook(id, new DigitizedBookEntity(id, request));
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<DigitizedBookResponse> deleteBook(@PathVariable UUID id) {
-        if (!digitizedBooks.containsKey(id))
-            throw new DataNotFoundException("Failed to delete, not found digitized book with id " + id);
-        digitizedBooks.remove(id);
+        service.deleteDigitizedBook(id);
         return ResponseEntity.noContent().build();
     }
 }

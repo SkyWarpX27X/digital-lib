@@ -3,7 +3,6 @@ package ua.fictionallibrary.digital_lib.digitizedbook.implementations;
 import org.springframework.stereotype.Repository;
 import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBookRepository;
 import ua.fictionallibrary.digital_lib.digitizedbook.model.DigitizedBookEntity;
-import ua.fictionallibrary.digital_lib.physicalbook.model.PhysicalBookEntity;
 
 import java.util.List;
 import java.util.Map;
