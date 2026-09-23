@@ -46,4 +46,40 @@ public class GlobalExceptionHandler {
         problemDetail.setProperty("timestamp", Instant.now());
         return problemDetail;
     }
+
+    @ExceptionHandler(LibraryCardNotFoundException.class)
+    public ProblemDetail handleLibraryCardNotFound(LibraryCardNotFoundException e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, e.getMessage());
+        problemDetail.setTitle("Library card not exists");
+        problemDetail.setType(URI.create("urn:problem-type:data-not-found"));
+        problemDetail.setProperty("timestamp", Instant.now());
+        return problemDetail;
+    }
+
+    @ExceptionHandler(DuplicateException.class)
+    public ProblemDetail handleDuplicate(DuplicateException e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+        problemDetail.setTitle("Duplicate data");
+        problemDetail.setType(URI.create("urn:problem-type:duplicate-data"));
+        problemDetail.setProperty("timestamp", Instant.now());
+        return problemDetail;
+    }
+
+    @ExceptionHandler(InvalidOrderUpdateException.class)
+    public ProblemDetail handleInvalidOrder(InvalidOrderUpdateException e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, e.getMessage());
+        problemDetail.setTitle("Invalid order status");
+        problemDetail.setType(URI.create("urn:problem-type:business-rule-error"));
+        problemDetail.setProperty("timestamp", Instant.now());
+        return problemDetail;
+    }
+
+    @ExceptionHandler(IllegalResourceTypeException.class)
+    public ProblemDetail handleIllegalResourceType(IllegalResourceTypeException e) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, e.getMessage());
+        problemDetail.setTitle("Duplicate data");
+        problemDetail.setType(URI.create("urn:problem-type:business-rule-error"));
+        problemDetail.setProperty("timestamp", Instant.now());
+        return problemDetail;
+    }
 }
