@@ -1,8 +1,10 @@
 package ua.fictionallibrary.digital_lib.librarycard.implementation;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import ua.fictionallibrary.digital_lib.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.exception.DuplicateException;
+import ua.fictionallibrary.digital_lib.librarycard.LibraryCardAddedEvent;
 import ua.fictionallibrary.digital_lib.librarycard.LibraryCardRepository;
 import ua.fictionallibrary.digital_lib.librarycard.LibraryCardService;
 import ua.fictionallibrary.digital_lib.librarycard.model.LibraryCardEntity;
@@ -15,10 +17,12 @@ import java.util.UUID;
 public class LibraryCardServiceImpl implements LibraryCardService {
 
     private final LibraryCardRepository libraryCardRepository;
+    private final ApplicationEventPublisher eventPublisher;
     private final UserService userService;
 
-    public LibraryCardServiceImpl(LibraryCardRepository repository, UserService userService) {
+    public LibraryCardServiceImpl(LibraryCardRepository repository, ApplicationEventPublisher eventPublisher, UserService userService) {
         this.libraryCardRepository = repository;
+        this.eventPublisher = eventPublisher;
         this.userService = userService;
     }
 
@@ -36,6 +40,10 @@ public class LibraryCardServiceImpl implements LibraryCardService {
         if (libraryCardRepository.exists(userId))
             throw new DuplicateException("Digital card for user " + userId + " already exists");
 
+        eventPublisher.publishEvent(new LibraryCardAddedEvent(
+                card.ownerId(),
+                card.email()
+        ));
         return toResponse(libraryCardRepository.saveLibraryCard(card));
     }
 
