@@ -50,7 +50,7 @@ public class LibraryCardServiceImpl implements LibraryCardService {
     @Override
     public LibraryCardResponse updateLibraryCard(UUID userId, LibraryCardEntity card) {
         if (!libraryCardRepository.exists(userId))
-            throw new DuplicateException("Digital card for user " + userId + " doesn't exist");
+            throw new DataNotFoundException("Digital card for user " + userId + " doesn't exist");
         return toResponse(libraryCardRepository.saveLibraryCard(card));
     }
 

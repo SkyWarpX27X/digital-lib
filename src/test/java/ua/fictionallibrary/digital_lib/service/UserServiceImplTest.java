@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import ua.fictionallibrary.digital_lib.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.user.UserRepository;
 import ua.fictionallibrary.digital_lib.user.UserService;
@@ -24,12 +25,14 @@ public class UserServiceImplTest {
 
     @Mock
     private UserRepository userRepository;
+    @Mock
+    ApplicationEventPublisher eventPublisher;
 
     private UserService service;
 
     @BeforeEach
     public void setup() {
-        service = new UserServiceImpl(userRepository);
+        service = new UserServiceImpl(userRepository, eventPublisher);
     }
 
     @Test
