@@ -6,7 +6,6 @@ import ua.fictionallibrary.digital_lib.exception.DuplicateException;
 import ua.fictionallibrary.digital_lib.librarycard.LibraryCardRepository;
 import ua.fictionallibrary.digital_lib.librarycard.LibraryCardService;
 import ua.fictionallibrary.digital_lib.librarycard.model.LibraryCardEntity;
-import ua.fictionallibrary.digital_lib.librarycard.model.dto.LibraryCardRequest;
 import ua.fictionallibrary.digital_lib.librarycard.model.dto.LibraryCardResponse;
 import ua.fictionallibrary.digital_lib.user.UserService;
 
@@ -31,20 +30,20 @@ public class LibraryCardServiceImpl implements LibraryCardService {
     }
 
     @Override
-    public LibraryCardResponse addLibraryCard(UUID userId, LibraryCardRequest card) {
+    public LibraryCardResponse addLibraryCard(UUID userId, LibraryCardEntity card) {
         if (!userService.exists(userId))
             throw new DataNotFoundException("Invalid user " + userId + " doesn't exist");
         if (libraryCardRepository.exists(userId))
             throw new DuplicateException("Digital card for user " + userId + " already exists");
 
-        return toResponse(libraryCardRepository.saveLibraryCard(toEntity(userId, card)));
+        return toResponse(libraryCardRepository.saveLibraryCard(card));
     }
 
     @Override
-    public LibraryCardResponse updateLibraryCard(UUID userId, LibraryCardRequest card) {
+    public LibraryCardResponse updateLibraryCard(UUID userId, LibraryCardEntity card) {
         if (!libraryCardRepository.exists(userId))
             throw new DuplicateException("Digital card for user " + userId + " doesn't exist");
-        return toResponse(libraryCardRepository.saveLibraryCard(toEntity(userId, card)));
+        return toResponse(libraryCardRepository.saveLibraryCard(card));
     }
 
     @Override
@@ -64,10 +63,6 @@ public class LibraryCardServiceImpl implements LibraryCardService {
     @Override
     public boolean exists(UUID userId) {
         return libraryCardRepository.exists(userId);
-    }
-
-    private LibraryCardEntity toEntity(UUID userId, LibraryCardRequest request) {
-        return new LibraryCardEntity(userId, request);
     }
 
     private LibraryCardResponse toResponse(LibraryCardEntity entity) {

@@ -29,7 +29,7 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserResponse> createUser(@Validated(OnCreate.class) @RequestBody UserRequest userRequest) {
-        final var response = userService.addUser(userRequest);
+        final var response = userService.addUser(toEntity(UUID.randomUUID(), userRequest));
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(response.id()).toUri();
         return ResponseEntity.created(location).body(response);
     }
@@ -48,7 +48,11 @@ public class UserController {
 
     @PutMapping("/{id}")
     public ResponseEntity<UserResponse> updateUser(@PathVariable UUID id, @Validated(OnUpdate.class) @RequestBody UserRequest userRequest) {
-        final var response = userService.updateUser(id, userRequest);
+        final var response = userService.updateUser(id, toEntity(id, userRequest));
         return ResponseEntity.ok(response);
+    }
+
+    private UserEntity toEntity(UUID userId, UserRequest request) {
+        return new UserEntity(userId, request);
     }
 }

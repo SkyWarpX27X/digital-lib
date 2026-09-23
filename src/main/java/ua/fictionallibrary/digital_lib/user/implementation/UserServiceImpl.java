@@ -33,16 +33,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse addUser(UserRequest user) {
-        UUID uuid = UUID.randomUUID();
-        return toResponse(userRepository.saveUser(toEntity(uuid, user)));
+    public UserResponse addUser(UserEntity user) {
+        return toResponse(userRepository.saveUser(user));
     }
 
     @Override
-    public UserResponse updateUser(UUID userId, UserRequest user) {
+    public UserResponse updateUser(UUID userId, UserEntity user) {
         if (!userRepository.exists(userId))
             throw new DataNotFoundException("Can't update non-existent user " + userId);
-        return toResponse(userRepository.saveUser(toEntity(userId, user)));
+        return toResponse(userRepository.saveUser(user));
     }
 
     @Override
@@ -55,10 +54,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean exists(UUID userId) {
         return userRepository.exists(userId);
-    }
-
-    private UserEntity toEntity(UUID userId, UserRequest request) {
-        return new UserEntity(userId, request);
     }
 
     private UserResponse toResponse(UserEntity entity) {

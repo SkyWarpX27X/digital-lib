@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ua.fictionallibrary.digital_lib.common.OnCreate;
 import ua.fictionallibrary.digital_lib.common.OnUpdate;
+import ua.fictionallibrary.digital_lib.librarycard.model.LibraryCardEntity;
 import ua.fictionallibrary.digital_lib.librarycard.model.dto.LibraryCardRequest;
 import ua.fictionallibrary.digital_lib.librarycard.model.dto.LibraryCardResponse;
 
@@ -24,7 +25,7 @@ public class LibraryCardController {
 
     @PostMapping
     public ResponseEntity<LibraryCardResponse> createLibraryCard(@PathVariable UUID userId, @Validated(OnCreate.class) @RequestBody LibraryCardRequest libraryCardRequest) {
-        LibraryCardResponse response = libraryCardService.addLibraryCard(userId, libraryCardRequest);
+        LibraryCardResponse response = libraryCardService.addLibraryCard(userId, toEntity(userId, libraryCardRequest));
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().buildAndExpand(userId).toUri();
         return ResponseEntity.created(location).body(response);
     }
@@ -37,7 +38,11 @@ public class LibraryCardController {
 
     @PutMapping
     public ResponseEntity<LibraryCardResponse> updateLibraryCard(@PathVariable UUID userId, @Validated(OnUpdate.class) @RequestBody LibraryCardRequest libraryCardRequest) {
-        LibraryCardResponse response = libraryCardService.updateLibraryCard(userId, libraryCardRequest);
+        LibraryCardResponse response = libraryCardService.updateLibraryCard(userId, toEntity(userId, libraryCardRequest));
         return ResponseEntity.ok(response);
+    }
+
+    private LibraryCardEntity toEntity(UUID userId, LibraryCardRequest request) {
+        return new LibraryCardEntity(userId, request);
     }
 }
