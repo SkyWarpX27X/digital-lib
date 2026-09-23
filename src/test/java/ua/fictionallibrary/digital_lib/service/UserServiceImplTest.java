@@ -47,7 +47,7 @@ public class UserServiceImplTest {
                 true);
         final var user = new UserEntity(UUID.randomUUID(), userRequest);
         when(userRepository.saveUser(user)).thenReturn(user);
-        when(userRepository.exists(user.id())).thenReturn(true);
+        when(userRepository.exists(user.id())).thenReturn(false);
 
         final var response = service.addUser(user);
         assertNotNull(response);
