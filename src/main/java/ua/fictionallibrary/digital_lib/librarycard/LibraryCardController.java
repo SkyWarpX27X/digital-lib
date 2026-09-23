@@ -23,8 +23,8 @@ public class LibraryCardController {
     }
 
     @PostMapping
-    public ResponseEntity<LibraryCardResponse> createLibraryCard(@PathVariable String userId, @Validated(OnCreate.class) @RequestBody LibraryCardRequest libraryCardRequest) {
-        LibraryCardResponse response = libraryCardService.addLibraryCard(UUID.fromString(userId), libraryCardRequest);
+    public ResponseEntity<LibraryCardResponse> createLibraryCard(@PathVariable UUID userId, @Validated(OnCreate.class) @RequestBody LibraryCardRequest libraryCardRequest) {
+        LibraryCardResponse response = libraryCardService.addLibraryCard(userId, libraryCardRequest);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().buildAndExpand(userId).toUri();
         return ResponseEntity.created(location).body(response);
     }
