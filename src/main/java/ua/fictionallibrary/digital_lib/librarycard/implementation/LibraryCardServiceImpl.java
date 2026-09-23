@@ -1,6 +1,7 @@
-package ua.fictionallibrary.digital_lib.librarycard;
+package ua.fictionallibrary.digital_lib.librarycard.implementation;
 
 import org.springframework.stereotype.Service;
+import ua.fictionallibrary.digital_lib.librarycard.LibraryCardService;
 
 import java.util.UUID;
 
