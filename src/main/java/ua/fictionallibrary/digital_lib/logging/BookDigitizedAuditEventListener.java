@@ -1,4 +1,4 @@
-﻿package ua.fictionallibrary.digital_lib.logging;
+package ua.fictionallibrary.digital_lib.logging;
 
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
