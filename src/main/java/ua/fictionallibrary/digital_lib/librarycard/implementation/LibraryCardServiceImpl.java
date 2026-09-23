@@ -57,6 +57,8 @@ public class LibraryCardServiceImpl implements LibraryCardService {
 
     @Override
     public void deleteLibraryCard(UUID userId) {
+        if (!repository.exists(userId))
+            throw new DataNotFoundException("Can't delete non-existent library card for user " + userId);
         repository.deleteLibraryCard(userId);
     }
 
