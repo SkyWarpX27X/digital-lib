@@ -4,10 +4,7 @@ import org.springframework.stereotype.Repository;
 import ua.fictionallibrary.digital_lib.librarycard.LibraryCardRepository;
 import ua.fictionallibrary.digital_lib.librarycard.model.LibraryCardEntity;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
@@ -21,26 +18,27 @@ public class InMemoryLibraryCardRepository implements LibraryCardRepository {
 
     @Override
     public LibraryCardEntity saveLibraryCard(LibraryCardEntity entity) {
-        return null;
+        libraryCards.put(entity.ownerId(), entity);
+        return entity;
     }
 
     @Override
     public Optional<LibraryCardEntity> getLibraryCard(UUID userId) {
-        return Optional.empty();
+        return Optional.ofNullable(libraryCards.get(userId));
     }
 
     @Override
     public List<LibraryCardEntity> getAllLibraryCards() {
-        return List.of();
+        return new ArrayList<>(libraryCards.values());
     }
 
     @Override
     public void deleteLibraryCard(UUID userId) {
-
+        libraryCards.remove(userId);
     }
 
     @Override
     public boolean exists(UUID userId) {
-        return false;
+        return libraryCards.containsKey(userId);
     }
 }
