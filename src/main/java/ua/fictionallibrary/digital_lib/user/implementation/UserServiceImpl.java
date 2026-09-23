@@ -3,6 +3,7 @@ package ua.fictionallibrary.digital_lib.user.implementation;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import ua.fictionallibrary.digital_lib.exception.DataNotFoundException;
+import ua.fictionallibrary.digital_lib.exception.DuplicateException;
 import ua.fictionallibrary.digital_lib.user.UserAddedEvent;
 import ua.fictionallibrary.digital_lib.user.UserRepository;
 import ua.fictionallibrary.digital_lib.user.UserService;
@@ -37,6 +38,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse addUser(UserEntity user) {
+        if (userRepository.exists(user.id()))
+            throw new DuplicateException("User with id " + user.id() + " already exists");
         eventPublisher.publishEvent(new UserAddedEvent(
                 user.id(),
                 user.name(),
