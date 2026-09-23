@@ -13,5 +13,6 @@ public interface UserService {
     UserResponse addUser(UserEntity user);
     UserResponse updateUser(UUID userId, UserEntity user);
     void deleteUser(UUID userId);
-    boolean exists(UUID userId);
+    boolean existsById(UUID userId);
+    boolean existsByLogin(String login);
 }

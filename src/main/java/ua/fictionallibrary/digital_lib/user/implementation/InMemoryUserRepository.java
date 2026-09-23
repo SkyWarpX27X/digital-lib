@@ -37,7 +37,13 @@ public class InMemoryUserRepository implements UserRepository {
     }
 
     @Override
-    public boolean exists(UUID userId) {
+    public boolean existsById(UUID userId) {
         return users.containsKey(userId);
     }
+
+    @Override
+    public boolean existsByLogin(String login) {
+        return users.values().stream().anyMatch(userEntity -> userEntity.login().equals(login));
+    }
+
 }

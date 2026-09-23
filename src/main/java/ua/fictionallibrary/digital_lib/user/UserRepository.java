@@ -12,5 +12,6 @@ public interface UserRepository {
     Optional<UserEntity> getUser(UUID userId);
     List<UserEntity> getAllUsers();
     void deleteUser(UUID userId);
-    boolean exists(UUID userId);
+    boolean existsById(UUID userId);
+    boolean existsByLogin(String login);
 }

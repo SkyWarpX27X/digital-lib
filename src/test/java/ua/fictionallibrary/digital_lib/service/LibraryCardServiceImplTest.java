@@ -16,9 +16,6 @@ import ua.fictionallibrary.digital_lib.librarycard.model.dto.LibraryCardRequest;
 import ua.fictionallibrary.digital_lib.user.UserRepository;
 import ua.fictionallibrary.digital_lib.user.UserService;
 import ua.fictionallibrary.digital_lib.user.implementation.UserServiceImpl;
-import ua.fictionallibrary.digital_lib.user.model.UserEntity;
-import ua.fictionallibrary.digital_lib.user.model.UserRole;
-import ua.fictionallibrary.digital_lib.user.model.dto.UserRequest;
 
 import java.time.Year;
 import java.util.UUID;
@@ -59,7 +56,7 @@ public class LibraryCardServiceImplTest {
                 "Senior idiot"
         );
         final var libraryCard = new LibraryCardEntity(userId, request);
-        when(userRepository.exists(userId)).thenReturn(true);
+        when(userRepository.existsById(userId)).thenReturn(true);
         when(libraryCardRepository.exists(userId)).thenReturn(false);
         when(libraryCardRepository.saveLibraryCard(libraryCard)).thenReturn(libraryCard);
 
@@ -83,7 +80,7 @@ public class LibraryCardServiceImplTest {
                 "Senior idiot"
         );
         final var libraryCard = new LibraryCardEntity(userId, request);
-        when(userRepository.exists(userId)).thenReturn(false);
+        when(userRepository.existsById(userId)).thenReturn(false);
         assertThrows(DataNotFoundException.class, () -> libraryCardService.addLibraryCard(userId, libraryCard));
     }
 
@@ -100,7 +97,7 @@ public class LibraryCardServiceImplTest {
                 "Senior idiot"
         );
         final var libraryCard = new LibraryCardEntity(userId, request);
-        when(userRepository.exists(userId)).thenReturn(true);
+        when(userRepository.existsById(userId)).thenReturn(true);
         when(libraryCardService.exists(userId)).thenReturn(true);
         assertThrows(DuplicateException.class, () -> libraryCardService.addLibraryCard(userId, libraryCard));
     }

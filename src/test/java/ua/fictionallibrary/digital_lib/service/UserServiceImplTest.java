@@ -47,15 +47,16 @@ public class UserServiceImplTest {
                 true);
         final var user = new UserEntity(UUID.randomUUID(), userRequest);
         when(userRepository.saveUser(user)).thenReturn(user);
-        when(userRepository.exists(user.id())).thenReturn(false);
+        when(userRepository.existsById(user.id())).thenReturn(false);
 
         final var response = service.addUser(user);
+        when(userRepository.existsById(user.id())).thenReturn(true);
         assertNotNull(response);
         assertEquals(response.name(), user.name());
         assertEquals(response.surname(), user.surname());
         assertEquals(response.patronymic(), user.patronymic());
         assertEquals(response.role(), user.role());
-        assert(service.exists(response.id()));
+        assert(service.existsById(response.id()));
 
         verify(userRepository).saveUser(user);
     }
@@ -71,7 +72,7 @@ public class UserServiceImplTest {
                 UserRole.READER,
                 true);
         final var user = new UserEntity(UUID.randomUUID(), userRequest);
-        when(userRepository.exists(user.id())).thenReturn(false);
+        when(userRepository.existsById(user.id())).thenReturn(false);
 
         assertThrows(DataNotFoundException.class, () -> service.updateUser(user.id(), user));
     }
@@ -79,7 +80,7 @@ public class UserServiceImplTest {
     @Test
     void deletingNonExistentThrows() {
         final var uuid = UUID.randomUUID();
-        when(userRepository.exists(uuid)).thenReturn(false);
+        when(userRepository.existsById(uuid)).thenReturn(false);
 
         assertThrows(DataNotFoundException.class, () -> service.deleteUser(uuid));
     }

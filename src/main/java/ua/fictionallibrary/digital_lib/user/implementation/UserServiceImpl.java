@@ -38,7 +38,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse addUser(UserEntity user) {
-        if (userRepository.exists(user.id()))
+        if (userRepository.existsById(user.id()))
             throw new DuplicateException("User with id " + user.id() + " already exists");
         eventPublisher.publishEvent(new UserAddedEvent(
                 user.id(),
@@ -51,22 +51,28 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse updateUser(UUID userId, UserEntity user) {
-        if (!userRepository.exists(userId))
+        if (!userRepository.existsById(userId))
             throw new DataNotFoundException("Can't update non-existent user " + userId);
         return toResponse(userRepository.saveUser(user));
     }
 
     @Override
     public void deleteUser(UUID userId) {
-        if (!userRepository.exists(userId))
+        if (!userRepository.existsById(userId))
             throw new DataNotFoundException("Can't delete non-existent user " + userId);
         userRepository.deleteUser(userId);
     }
 
     @Override
-    public boolean exists(UUID userId) {
-        return userRepository.exists(userId);
+    public boolean existsById(UUID userId) {
+        return userRepository.existsById(userId);
     }
+
+    @Override
+    public boolean existsByLogin(String login) {
+        return userRepository.existsByLogin(login);
+    }
+
 
     private UserResponse toResponse(UserEntity entity) {
         return new UserResponse(entity);
