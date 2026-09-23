@@ -10,7 +10,6 @@ public interface LibraryCardRepository {
 
     LibraryCardEntity saveLibraryCard(LibraryCardEntity entity);
     Optional<LibraryCardEntity> getLibraryCard(UUID userId);
-    List<LibraryCardEntity> getAllLibraryCards();
     void deleteLibraryCard(UUID userId);
     boolean exists(UUID userId);
 }

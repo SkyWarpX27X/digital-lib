@@ -28,11 +28,6 @@ public class InMemoryLibraryCardRepository implements LibraryCardRepository {
     }
 
     @Override
-    public List<LibraryCardEntity> getAllLibraryCards() {
-        return new ArrayList<>(libraryCards.values());
-    }
-
-    @Override
     public void deleteLibraryCard(UUID userId) {
         libraryCards.remove(userId);
     }

@@ -32,12 +32,7 @@ public class LibraryCardServiceImpl implements LibraryCardService {
     }
 
     @Override
-    public List<LibraryCardResponse> getAllLibraryCards() {
-        return repository.getAllLibraryCards().stream().map(this::toResponse).toList();
-    }
-
-    @Override
-    public LibraryCardResponse addDigitalCard(UUID userId, LibraryCardRequest card) {
+    public LibraryCardResponse addLibraryCard(UUID userId, LibraryCardRequest card) {
         if (!userService.exists(userId))
             throw new DataNotFoundException("Invalid user " + userId + " doesn't exist");
         if (repository.exists(userId))
@@ -47,7 +42,7 @@ public class LibraryCardServiceImpl implements LibraryCardService {
     }
 
     @Override
-    public LibraryCardResponse updateDigitalCard(UUID userId, LibraryCardRequest card) {
+    public LibraryCardResponse updateLibraryCard(UUID userId, LibraryCardRequest card) {
         if (!repository.exists(userId))
             throw new DuplicateException("Digital card for user " + userId + " doesn't exist");
         return toResponse(repository.saveLibraryCard(toEntity(userId, card)));

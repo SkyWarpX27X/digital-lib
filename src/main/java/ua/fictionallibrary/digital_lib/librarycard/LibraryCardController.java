@@ -4,51 +4,40 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import ua.fictionallibrary.digital_lib.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.common.OnCreate;
 import ua.fictionallibrary.digital_lib.common.OnUpdate;
 import ua.fictionallibrary.digital_lib.librarycard.model.dto.LibraryCardRequest;
 import ua.fictionallibrary.digital_lib.librarycard.model.dto.LibraryCardResponse;
-import ua.fictionallibrary.digital_lib.librarycard.model.LibraryCardEntity;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/users/{userId}/library-card")
 public class LibraryCardController {
 
-    private final Map<UUID, LibraryCardEntity> libraryCards;
+    private final LibraryCardService libraryCardService;
 
-    public LibraryCardController() {
-        libraryCards = new HashMap<>();
+    public LibraryCardController(LibraryCardService libraryCardService) {
+        this.libraryCardService = libraryCardService;
     }
 
     @PostMapping
     public ResponseEntity<LibraryCardResponse> createLibraryCard(@PathVariable String userId, @Validated(OnCreate.class) @RequestBody LibraryCardRequest libraryCardRequest) {
-        LibraryCardEntity entity = new LibraryCardEntity(UUID.fromString(userId), libraryCardRequest);
-        libraryCards.put(UUID.fromString(userId), entity);
+        LibraryCardResponse response = libraryCardService.addLibraryCard(UUID.fromString(userId), libraryCardRequest);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().buildAndExpand(userId).toUri();
-        return ResponseEntity.created(location).body(new LibraryCardResponse(entity));
+        return ResponseEntity.created(location).body(response);
     }
 
     @GetMapping
     public ResponseEntity<LibraryCardResponse> getLibraryCard(@PathVariable UUID userId) {
-        LibraryCardEntity entity = libraryCards.get(userId);
-        if (entity == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(new LibraryCardResponse(entity));
+        LibraryCardResponse response = libraryCardService.getLibraryCard(userId);
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping
     public ResponseEntity<LibraryCardResponse> updateLibraryCard(@PathVariable UUID userId, @Validated(OnUpdate.class) @RequestBody LibraryCardRequest libraryCardRequest) {
-        if (!libraryCards.containsKey(userId))
-            throw new DataNotFoundException("Failed to update, not found library card of user with id: " + userId);
-        LibraryCardEntity newValue = new LibraryCardEntity(userId, libraryCardRequest);
-        libraryCards.put(userId, newValue);
-        return ResponseEntity.ok(new LibraryCardResponse(newValue));
+        LibraryCardResponse response = libraryCardService.updateLibraryCard(userId, libraryCardRequest);
+        return ResponseEntity.ok(response);
     }
 }
