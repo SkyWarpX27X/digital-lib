@@ -77,7 +77,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalResourceTypeException.class)
     public ProblemDetail handleIllegalResourceType(IllegalResourceTypeException e) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, e.getMessage());
-        problemDetail.setTitle("Duplicate data");
+        problemDetail.setTitle("Failed to validate resource type");
         problemDetail.setType(URI.create("urn:problem-type:business-rule-error"));
         problemDetail.setProperty("timestamp", Instant.now());
         return problemDetail;
