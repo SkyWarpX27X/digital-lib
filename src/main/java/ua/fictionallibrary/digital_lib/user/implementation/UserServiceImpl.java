@@ -1,11 +1,12 @@
 package ua.fictionallibrary.digital_lib.user.implementation;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import ua.fictionallibrary.digital_lib.exception.DataNotFoundException;
+import ua.fictionallibrary.digital_lib.user.UserAddedEvent;
 import ua.fictionallibrary.digital_lib.user.UserRepository;
 import ua.fictionallibrary.digital_lib.user.UserService;
 import ua.fictionallibrary.digital_lib.user.model.UserEntity;
-import ua.fictionallibrary.digital_lib.user.model.dto.UserRequest;
 import ua.fictionallibrary.digital_lib.user.model.dto.UserResponse;
 
 import java.util.List;
@@ -15,9 +16,11 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository, ApplicationEventPublisher eventPublisher) {
         this.userRepository = userRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -34,6 +37,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse addUser(UserEntity user) {
+        eventPublisher.publishEvent(new UserAddedEvent(
+                user.id(),
+                user.name(),
+                user.surname(),
+                user.patronymic()
+        ));
         return toResponse(userRepository.saveUser(user));
     }
 
