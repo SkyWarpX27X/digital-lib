@@ -1,6 +1,8 @@
 package ua.fictionallibrary.digital_lib.bookmark.implementation;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import ua.fictionallibrary.digital_lib.bookmark.BookmarkAddedEvent;
 import ua.fictionallibrary.digital_lib.bookmark.BookmarkRepository;
 import ua.fictionallibrary.digital_lib.bookmark.BookmarkService;
 import ua.fictionallibrary.digital_lib.bookmark.UpdatePageNumberCommand;
@@ -15,9 +17,11 @@ import java.util.UUID;
 public class BookmarkServiceImpl implements BookmarkService {
 
     private final BookmarkRepository repository;
+    private final ApplicationEventPublisher publisher;
 
-    public BookmarkServiceImpl(BookmarkRepository repository) {
+    public BookmarkServiceImpl(BookmarkRepository repository, ApplicationEventPublisher publisher) {
         this.repository = repository;
+        this.publisher = publisher;
     }
 
     @Override
@@ -25,6 +29,11 @@ public class BookmarkServiceImpl implements BookmarkService {
         if (repository.exists(bookmarkEntity.userId(), bookmarkEntity.bookId()))
             throw new DuplicateException("User " + bookmarkEntity.userId() + "'s bookmark for book "
                     + bookmarkEntity.bookId() + " already exists." );
+        publisher.publishEvent(new BookmarkAddedEvent(
+                bookmarkEntity.userId(),
+                bookmarkEntity.bookId(),
+                bookmarkEntity.pageNumber()
+        ));
         return toResponse(repository.saveBookmark(bookmarkEntity));
     }
 

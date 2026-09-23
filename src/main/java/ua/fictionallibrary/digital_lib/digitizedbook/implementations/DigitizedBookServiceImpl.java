@@ -50,7 +50,7 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
 
     @Override
     public DigitizedBookResponse updateDigitizedBook(UUID id, DigitizedBookEntity book) {
-        if (!repository.exists(book.id()))
+        if (!repository.exists(id))
             throw new DataNotFoundException("Failed to update, not found digitized book with id " + id);
         return toResponse(repository.saveDigitizedBook(book));
     }
