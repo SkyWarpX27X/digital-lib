@@ -9,7 +9,6 @@ import ua.fictionallibrary.digital_lib.common.OnUpdate;
 import ua.fictionallibrary.digital_lib.physicalbook.model.PhysicalBook;
 import ua.fictionallibrary.digital_lib.physicalbook.model.dto.PhysicalBookRequest;
 import ua.fictionallibrary.digital_lib.physicalbook.model.dto.PhysicalBookResponse;
-import ua.fictionallibrary.digital_lib.physicalbook.model.PhysicalBookEntity;
 
 import java.net.URI;
 import java.util.*;
