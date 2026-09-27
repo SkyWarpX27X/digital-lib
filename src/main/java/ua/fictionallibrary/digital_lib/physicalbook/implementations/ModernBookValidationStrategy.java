@@ -3,7 +3,7 @@ package ua.fictionallibrary.digital_lib.physicalbook.implementations;
 import org.springframework.stereotype.Component;
 import ua.fictionallibrary.digital_lib.exception.IllegalResourceTypeException;
 import ua.fictionallibrary.digital_lib.physicalbook.ResourceTypeValidationStrategy;
-import ua.fictionallibrary.digital_lib.physicalbook.model.PhysicalBookEntity;
+import ua.fictionallibrary.digital_lib.physicalbook.model.PhysicalBook;
 
 import java.time.Year;
 
@@ -15,8 +15,8 @@ public class ModernBookValidationStrategy implements ResourceTypeValidationStrat
     }
 
     @Override
-    public void validateResourceType(PhysicalBookEntity book) {
-        if (book.publishingYear().isBefore(Year.of(1830)) || book.publishingYear().equals(Year.of(1830)))
-            throw new IllegalResourceTypeException("Books published before or in 1830 must be classified as early printed books. This books year: " + book.publishingYear());
+    public void validateResourceType(PhysicalBook book) {
+        if (book.getPublishingYear().isBefore(Year.of(1830)) || book.getPublishingYear().equals(Year.of(1830)))
+            throw new IllegalResourceTypeException("Books published before or in 1830 must be classified as early printed books. This books year: " + book.getPublishingYear());
     }
 }

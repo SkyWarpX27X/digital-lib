@@ -14,8 +14,8 @@ import ua.fictionallibrary.digital_lib.physicalbook.ResourceTypeValidationStrate
 import ua.fictionallibrary.digital_lib.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.exception.DuplicateException;
 import ua.fictionallibrary.digital_lib.exception.IllegalResourceTypeException;
+import ua.fictionallibrary.digital_lib.physicalbook.model.PhysicalBook;
 import ua.fictionallibrary.digital_lib.physicalbook.model.dto.PhysicalBookResponse;
-import ua.fictionallibrary.digital_lib.physicalbook.model.PhysicalBookEntity;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookRepository;
 import ua.fictionallibrary.digital_lib.physicalbook.implementations.PhysicalBookServiceImpl;
 
@@ -47,11 +47,10 @@ class PhysicalBookServiceImplTest {
 
     @Test
     void successfullyCreateBook() {
-        UUID bookId = UUID.randomUUID();
-        PhysicalBookEntity book = new PhysicalBookEntity(bookId, "Idea medicinae philosophicae", List.of("Petro Severino"),
+        PhysicalBook book = new PhysicalBook("Idea medicinae philosophicae", List.of("Petro Severino"),
                 "description", "Історія медицини", Year.of(1660), "lat", "Стародрук");
-        when(repository.exists(bookId)).thenReturn(false);
-        when(repository.savePhysicalBook(any(PhysicalBookEntity.class))).thenAnswer(i -> i.getArgument(0));
+        UUID bookId = book.getId();
+        when(repository.save(any(PhysicalBook.class))).thenAnswer(i -> i.getArgument(0));
 
         PhysicalBookResponse response = service.addPhysicalBook(book);
         assertNotNull(response);
@@ -64,43 +63,29 @@ class PhysicalBookServiceImplTest {
         assertEquals("lat", response.language());
         assertEquals("Стародрук", response.resourceType());
 
-        verify(repository).savePhysicalBook(any(PhysicalBookEntity.class));
+        verify(repository).save(any(PhysicalBook.class));
         ArgumentCaptor<PhysicalBookAddedEvent> eventCaptor = ArgumentCaptor.forClass(PhysicalBookAddedEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());
         assertEquals(bookId, eventCaptor.getValue().id());
     }
 
     @Test
-    void tryToAddDuplicateIdBook() {
-        UUID bookId = UUID.randomUUID();
-        PhysicalBookEntity book = new PhysicalBookEntity(bookId, "Idea medicinae philosophicae", List.of("Petro Severino"),
-                "description", "Історія медицини", Year.of(1660), "lat", "Стародрук");
-        when(repository.exists(bookId)).thenReturn(true);
-
-        assertThrows(DuplicateException.class, () -> service.addPhysicalBook(book));
-        verify(repository, never()).savePhysicalBook(any());
-    }
-
-    @Test
     void tryToAddBookWithInvalidResourceType() {
-        UUID bookId = UUID.randomUUID();
-        PhysicalBookEntity book = new PhysicalBookEntity(bookId, "Idea medicinae philosophicae", List.of("Petro Severino"),
+        PhysicalBook book = new PhysicalBook("Idea medicinae philosophicae", List.of("Petro Severino"),
                 "description", "Історія медицини", Year.of(2013), "lat", "Стародрук");
-        when(repository.exists(bookId)).thenReturn(false);
 
         assertThrows(IllegalResourceTypeException.class, () -> service.addPhysicalBook(book));
-        verify(repository, never()).savePhysicalBook(any());
+        verify(repository, never()).save(any());
     }
 
     @Test
     void successfullyGetBook(){
         UUID bookId = UUID.randomUUID();
-        when(repository.getPhysicalBook(bookId)).thenReturn(Optional.of(new PhysicalBookEntity(bookId, "Idea medicinae philosophicae",
+        when(repository.findById(bookId)).thenReturn(Optional.of(new PhysicalBook("Idea medicinae philosophicae",
                 List.of("Petro Severino"), "description", "Історія медицини", Year.of(1660), "lat", "Стародрук")));
 
         PhysicalBookResponse response = service.getPhysicalBook(bookId);
         assertNotNull(response);
-        assertEquals(bookId, response.id());
         assertEquals("Idea medicinae philosophicae", response.name());
         assertEquals(List.of("Petro Severino"), response.authors());
         assertEquals("description", response.description());
@@ -109,15 +94,15 @@ class PhysicalBookServiceImplTest {
         assertEquals("lat", response.language());
         assertEquals("Стародрук", response.resourceType());
 
-        verify(repository).getPhysicalBook(bookId);
+        verify(repository).findById(bookId);
     }
 
     @Test
     void tryToGetNonExistentBook(){
-        when(repository.getPhysicalBook(any())).thenReturn(Optional.empty());
+        when(repository.findById(any())).thenReturn(Optional.empty());
 
         assertThrows(DataNotFoundException.class, () -> service.getPhysicalBook(UUID.randomUUID()));
 
-        verify(repository).getPhysicalBook(any());
+        verify(repository).findById(any());
     }
 }

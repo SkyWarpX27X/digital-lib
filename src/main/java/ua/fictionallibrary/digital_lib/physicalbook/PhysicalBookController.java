@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ua.fictionallibrary.digital_lib.common.OnCreate;
 import ua.fictionallibrary.digital_lib.common.OnUpdate;
+import ua.fictionallibrary.digital_lib.physicalbook.model.PhysicalBook;
 import ua.fictionallibrary.digital_lib.physicalbook.model.dto.PhysicalBookRequest;
 import ua.fictionallibrary.digital_lib.physicalbook.model.dto.PhysicalBookResponse;
 import ua.fictionallibrary.digital_lib.physicalbook.model.PhysicalBookEntity;
@@ -35,15 +36,14 @@ public class PhysicalBookController {
 
     @PostMapping
     public ResponseEntity<PhysicalBookResponse> createBook(@Validated(OnCreate.class) @RequestBody PhysicalBookRequest request) {
-        UUID id = UUID.randomUUID();
-        PhysicalBookResponse response = service.addPhysicalBook(new PhysicalBookEntity(id, request));
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(id).toUri();
+        PhysicalBookResponse response = service.addPhysicalBook(toEntity(request));
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(response.id()).toUri();
         return ResponseEntity.created(location).body(response);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<PhysicalBookResponse> updateBook(@PathVariable UUID id, @Validated(OnUpdate.class) PhysicalBookRequest request) {
-        PhysicalBookResponse response = service.updatePhysicalBook(id, new PhysicalBookEntity(id, request));
+        PhysicalBookResponse response = service.updatePhysicalBook(id, toEntity(request));
         return ResponseEntity.ok(response);
     }
 
@@ -51,5 +51,10 @@ public class PhysicalBookController {
     public ResponseEntity<PhysicalBookResponse> deleteBook(@PathVariable UUID id) {
         service.deletePhysicalBook(id);
         return ResponseEntity.noContent().build();
+    }
+
+    private PhysicalBook toEntity(PhysicalBookRequest request) {
+        return new PhysicalBook(request.name(), request.authors(), request.description(), request.topic(),
+                request.publishingYear(), request.language(), request.resourceType());
     }
 }

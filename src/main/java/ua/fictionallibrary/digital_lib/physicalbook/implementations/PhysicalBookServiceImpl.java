@@ -10,8 +10,8 @@ import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookAddedEvent;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookRepository;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookService;
 import ua.fictionallibrary.digital_lib.physicalbook.ResourceTypeValidationStrategy;
+import ua.fictionallibrary.digital_lib.physicalbook.model.PhysicalBook;
 import ua.fictionallibrary.digital_lib.physicalbook.model.dto.PhysicalBookResponse;
-import ua.fictionallibrary.digital_lib.physicalbook.model.PhysicalBookEntity;
 
 import java.util.List;
 import java.util.Map;
@@ -34,57 +34,55 @@ public class PhysicalBookServiceImpl implements PhysicalBookService {
     }
 
     @Override
-    public PhysicalBookResponse addPhysicalBook(PhysicalBookEntity book) {
-        if (repository.exists(book.id()))
-            throw new DuplicateException("Physical book with id " + book.id() + " already exists");
-        ResourceTypeValidationStrategy strategy = strategies.get(book.resourceType());
+    public PhysicalBookResponse addPhysicalBook(PhysicalBook book) {
+        ResourceTypeValidationStrategy strategy = strategies.get(book.getResourceType());
         if (strategy == null)
             strategies.get("Книга").validateResourceType(book);
         else
             strategy.validateResourceType(book);
-        PhysicalBookEntity savedBook = repository.savePhysicalBook(book);
+        PhysicalBook savedBook = repository.save(book);
         eventPublisher.publishEvent(new PhysicalBookAddedEvent(
-                savedBook.id(),
-                savedBook.name(),
-                savedBook.resourceType()
+                savedBook.getId(),
+                savedBook.getName(),
+                savedBook.getResourceType()
         ));
         return toResponse(savedBook);
     }
 
     @Override
-    public PhysicalBookResponse updatePhysicalBook(UUID id, PhysicalBookEntity book) {
-        if (!repository.exists(id))
+    public PhysicalBookResponse updatePhysicalBook(UUID id, PhysicalBook book) {
+        if (!repository.existsById(id))
             throw new DataNotFoundException("Failed to update, not found physical book with id " + id);
-        ResourceTypeValidationStrategy strategy = strategies.get(book.resourceType());
+        ResourceTypeValidationStrategy strategy = strategies.get(book.getResourceType());
         if (strategy == null)
             strategies.get("Книга").validateResourceType(book);
         else
             strategy.validateResourceType(book);
-        return toResponse(repository.savePhysicalBook(book));
+        return toResponse(repository.save(book));
     }
 
     @Override
     public PhysicalBookResponse getPhysicalBook(UUID id) {
-        return repository.getPhysicalBook(id)
+        return repository.findById(id)
                 .map(this::toResponse)
                 .orElseThrow(() -> new DataNotFoundException("Not found physical book with id " + id));
     }
 
     @Override
     public List<PhysicalBookResponse> getAllPhysicalBooks() {
-        return repository.getAllPhysicalBooks().stream().map(this::toResponse).toList();
+        return repository.findAll().stream().map(this::toResponse).toList();
     }
 
     @Override
     public void deletePhysicalBook(UUID id) {
-        if (!repository.exists(id))
+        if (!repository.existsById(id))
             throw new DataNotFoundException("Failed to delete, not found physical book with id " + id);
-        repository.deletePhysicalBook(id);
+        repository.deleteById(id);
     }
 
     @Override
     public boolean exists(UUID id) {
-        return repository.exists(id);
+        return repository.existsById(id);
     }
 
     @ApplicationModuleListener
@@ -92,7 +90,8 @@ public class PhysicalBookServiceImpl implements PhysicalBookService {
         deletePhysicalBook(event.physicalId());
     }
 
-    private PhysicalBookResponse toResponse(PhysicalBookEntity entity) {
-        return new PhysicalBookResponse(entity);
+    private PhysicalBookResponse toResponse(PhysicalBook entity) {
+        return new PhysicalBookResponse(entity.getId(), entity.getName(), entity.getAuthors(), entity.getDescription(),
+                entity.getTopic(), entity.getPublishingYear(), entity.getLanguage(), entity.getResourceType());
     }
 }
