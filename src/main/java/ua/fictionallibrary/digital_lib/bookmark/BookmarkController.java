@@ -4,9 +4,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import ua.fictionallibrary.digital_lib.bookmark.model.BookmarkEntity;
-import ua.fictionallibrary.digital_lib.bookmark.model.dto.BookmarkRequest;
-import ua.fictionallibrary.digital_lib.bookmark.model.dto.BookmarkResponse;
+import ua.fictionallibrary.digital_lib.bookmark.dto.BookmarkRequest;
+import ua.fictionallibrary.digital_lib.bookmark.dto.BookmarkResponse;
 import ua.fictionallibrary.digital_lib.common.OnCreate;
 
 import java.net.URI;
@@ -23,7 +22,7 @@ public class BookmarkController {
 
     @PostMapping
     public ResponseEntity<BookmarkResponse> createBookmark(@Validated(OnCreate.class) @RequestBody BookmarkRequest request){
-        BookmarkResponse response = service.addBookmark(new BookmarkEntity(request));
+        BookmarkResponse response = service.addBookmark(new Bookmark(request.userId(), request.bookId(), request.pageNumber()));
         UUID userId = request.userId();
         UUID bookId = request.bookId();
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{userId}/{bookId}").buildAndExpand(userId, bookId).toUri();

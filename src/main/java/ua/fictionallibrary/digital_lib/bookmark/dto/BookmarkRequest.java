@@ -1,4 +1,4 @@
-package ua.fictionallibrary.digital_lib.bookmark.model.dto;
+package ua.fictionallibrary.digital_lib.bookmark.dto;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
