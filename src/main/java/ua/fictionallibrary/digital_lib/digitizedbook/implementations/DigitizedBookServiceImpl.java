@@ -3,10 +3,10 @@ package ua.fictionallibrary.digital_lib.digitizedbook.implementations;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import ua.fictionallibrary.digital_lib.digitizedbook.BookDigitizedEvent;
+import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBook;
 import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBookRepository;
 import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBookService;
-import ua.fictionallibrary.digital_lib.digitizedbook.model.DigitizedBookEntity;
-import ua.fictionallibrary.digital_lib.digitizedbook.model.dto.DigitizedBookResponse;
+import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookResponse;
 import ua.fictionallibrary.digital_lib.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.exception.DuplicateException;
 
@@ -26,49 +26,51 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
 
     @Override
     public DigitizedBookResponse getDigitizedBook(UUID id) {
-        return repository.getDigitizedBook(id)
+        return repository.findById(id)
                 .map(this::toResponse)
                 .orElseThrow(() -> new DataNotFoundException("Not found digitized book with id " + id));
     }
 
     @Override
     public List<DigitizedBookResponse> getAllDigitizedBooks() {
-        return repository.getAllDigitizedBooks().stream().map(this::toResponse).toList();
+        return repository.findAll().stream().map(this::toResponse).toList();
     }
 
     @Override
-    public DigitizedBookResponse addDigitizedBook(DigitizedBookEntity book, UUID physicalBookId) {
-        if (repository.exists(book.id()))
-            throw new DuplicateException("Digitized book with id " + book.id() + " already exists");
-        DigitizedBookEntity digitizedBook = repository.saveDigitizedBook(book);
+    public DigitizedBookResponse addDigitizedBook(DigitizedBook book, UUID physicalBookId) {
+        if (repository.existsById(book.getId()))
+            throw new DuplicateException("Digitized book with id " + book.getId() + " already exists");
+        DigitizedBook digitizedBook = repository.save(book);
         publisher.publishEvent(new BookDigitizedEvent(
-                digitizedBook.id(),
+                digitizedBook.getId(),
                 physicalBookId
         ));
         return toResponse(digitizedBook);
     }
 
     @Override
-    public DigitizedBookResponse updateDigitizedBook(UUID id, DigitizedBookEntity book) {
-        if (!repository.exists(id))
+    public DigitizedBookResponse updateDigitizedBook(UUID id, DigitizedBook book) {
+        if (!repository.existsById(id))
             throw new DataNotFoundException("Failed to update, not found digitized book with id " + id);
-        return toResponse(repository.saveDigitizedBook(book));
+        return toResponse(repository.save(book));
     }
 
     @Override
     public void deleteDigitizedBook(UUID id) {
-        if (!repository.exists(id))
+        if (!repository.existsById(id))
             throw new DataNotFoundException("Failed to delete, not found digitized book with id " + id);
-        repository.deleteDigitizedBook(id);
+        repository.deleteById(id);
     }
 
     @Override
     public boolean exists(UUID id) {
-        return repository.exists(id);
+        return repository.existsById(id);
     }
 
-    private DigitizedBookResponse toResponse(DigitizedBookEntity entity) {
-        return new DigitizedBookResponse(entity);
+    private DigitizedBookResponse toResponse(DigitizedBook entity) {
+        return new DigitizedBookResponse(entity.getId(), entity.getName(), entity.getAuthors(), entity.getDescription(),
+                entity.getTopic(), entity.getPublishingYear(), entity.getLanguage(), entity.getResourceType(),
+                entity.isCopyrighted(), entity.getCoverUrl(), entity.getFileUrl());
     }
 
 }

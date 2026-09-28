@@ -7,13 +7,13 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBook;
 import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBookRepository;
 import ua.fictionallibrary.digital_lib.digitizedbook.implementations.DigitizedBookServiceImpl;
 import ua.fictionallibrary.digital_lib.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.exception.DuplicateException;
 import ua.fictionallibrary.digital_lib.digitizedbook.BookDigitizedEvent;
-import ua.fictionallibrary.digital_lib.digitizedbook.model.DigitizedBookEntity;
-import ua.fictionallibrary.digital_lib.digitizedbook.model.dto.DigitizedBookResponse;
+import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookResponse;
 
 import java.time.Year;
 import java.util.List;
@@ -41,8 +41,8 @@ public class DigitizedBookServiceImplTest {
         service = new DigitizedBookServiceImpl(repository, eventPublisher);
     }
 
-    private DigitizedBookEntity entity() {
-        return new DigitizedBookEntity(UUID.randomUUID(), "King Arthur in Cornwall", List.of("Dickinson W. Howship"),
+    private DigitizedBook entity() {
+        return new DigitizedBook("King Arthur in Cornwall", List.of("Dickinson W. Howship"),
                 "The book explores the existence and life of King Arthur", "Історична",
                 Year.of(1850), "eng", "Стародрук", false, "url", "url");
     }
@@ -50,13 +50,13 @@ public class DigitizedBookServiceImplTest {
     @Test
     void addDigitizedBook_successfullyAddsAndPublishesEvent() {
         UUID physicalBookId = UUID.randomUUID();
-        DigitizedBookEntity book = entity();
-        when(repository.exists(book.id())).thenReturn(false);
-        when(repository.saveDigitizedBook(any(DigitizedBookEntity.class))).thenAnswer(i -> i.getArgument(0));
+        DigitizedBook book = entity();
+        when(repository.existsById(book.getId())).thenReturn(false);
+        when(repository.save(any(DigitizedBook.class))).thenAnswer(i -> i.getArgument(0));
 
         DigitizedBookResponse response = service.addDigitizedBook(book, physicalBookId);
         assertNotNull(response);
-        assertEquals(book.id(), response.id());
+        assertEquals(book.getId(), response.id());
         assertEquals("King Arthur in Cornwall", response.name());
         assertEquals(List.of("Dickinson W. Howship"), response.authors());
         assertEquals("The book explores the existence and life of King Arthur", response.description());
@@ -68,32 +68,32 @@ public class DigitizedBookServiceImplTest {
         assertEquals("url", response.coverUrl());
         assertEquals("url", response.fileUrl());
 
-        verify(repository).saveDigitizedBook(any(DigitizedBookEntity.class));
+        verify(repository).save(any(DigitizedBook.class));
         ArgumentCaptor<BookDigitizedEvent> eventCaptor = ArgumentCaptor.forClass(BookDigitizedEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());
-        assertEquals(book.id(), eventCaptor.getValue().digitizedId());
+        assertEquals(book.getId(), eventCaptor.getValue().digitizedId());
         assertEquals(physicalBookId, eventCaptor.getValue().physicalId());
     }
 
     @Test
     void addDigitizedBook_throwsOnDuplicate() {
-        DigitizedBookEntity book = entity();
+        DigitizedBook book = entity();
         UUID physicalBookId = UUID.randomUUID();
-        when(repository.exists(book.id())).thenReturn(true);
+        when(repository.existsById(book.getId())).thenReturn(true);
 
         assertThrows(DuplicateException.class, () -> service.addDigitizedBook(book, physicalBookId));
-        verify(repository, never()).saveDigitizedBook(any());
+        verify(repository, never()).save(any());
         verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
     void getDigitizedBook_returnsCorrectDTO(){
-        DigitizedBookEntity book = entity();
-        when(repository.getDigitizedBook(book.id())).thenReturn(Optional.of(book));
+        DigitizedBook book = entity();
+        when(repository.findById(book.getId())).thenReturn(Optional.of(book));
 
-        DigitizedBookResponse response = service.getDigitizedBook(book.id());
+        DigitizedBookResponse response = service.getDigitizedBook(book.getId());
         assertNotNull(response);
-        assertEquals(book.id(), response.id());
+        assertEquals(book.getId(), response.id());
         assertEquals("King Arthur in Cornwall", response.name());
         assertEquals(List.of("Dickinson W. Howship"), response.authors());
         assertEquals("The book explores the existence and life of King Arthur", response.description());
@@ -105,58 +105,58 @@ public class DigitizedBookServiceImplTest {
         assertEquals("url", response.coverUrl());
         assertEquals("url", response.fileUrl());
 
-        verify(repository).getDigitizedBook(book.id());
+        verify(repository).findById(book.getId());
     }
 
     @Test
     void getDigitizedBook_throwsOnUnknownBook(){
-        when(repository.getDigitizedBook(any())).thenReturn(Optional.empty());
+        when(repository.findById(any())).thenReturn(Optional.empty());
 
         assertThrows(DataNotFoundException.class, () -> service.getDigitizedBook(UUID.randomUUID()));
 
-        verify(repository).getDigitizedBook(any());
+        verify(repository).findById(any());
     }
 
     @Test
     void getAllDigitizedBooks_returnsAllBooks() {
-        DigitizedBookEntity book1 = entity();
-        DigitizedBookEntity book2 = entity();
-        when(repository.getAllDigitizedBooks()).thenReturn(List.of(book1, book2));
+        DigitizedBook book1 = entity();
+        DigitizedBook book2 = entity();
+        when(repository.findAll()).thenReturn(List.of(book1, book2));
 
         List<DigitizedBookResponse> responses = service.getAllDigitizedBooks();
 
         assertNotNull(responses);
         assertEquals(2, responses.size());
-        assertEquals(book1.id(), responses.get(0).id());
-        assertEquals(book2.id(), responses.get(1).id());
-        assertEquals(book1.name(), responses.get(0).name());
-        assertEquals(book2.name(), responses.get(1).name());
+        assertEquals(book1.getId(), responses.get(0).id());
+        assertEquals(book2.getId(), responses.get(1).id());
+        assertEquals(book1.getName(), responses.get(0).name());
+        assertEquals(book2.getName(), responses.get(1).name());
 
-        verify(repository).getAllDigitizedBooks();
+        verify(repository).findAll();
     }
 
     @Test
     void getAllDigitizedBooks_returnsEmptyList() {
-        when(repository.getAllDigitizedBooks()).thenReturn(List.of());
+        when(repository.findAll()).thenReturn(List.of());
 
         List<DigitizedBookResponse> responses = service.getAllDigitizedBooks();
 
         assertNotNull(responses);
         assertTrue(responses.isEmpty());
 
-        verify(repository).getAllDigitizedBooks();
+        verify(repository).findAll();
     }
 
     @Test
     void updateDigitizedBook_successfullyUpdates() {
-        DigitizedBookEntity book = entity();
-        when(repository.exists(book.id())).thenReturn(true);
-        when(repository.saveDigitizedBook(book)).thenReturn(book);
+        DigitizedBook book = entity();
+        when(repository.existsById(book.getId())).thenReturn(true);
+        when(repository.save(book)).thenReturn(book);
 
-        DigitizedBookResponse response = service.updateDigitizedBook(book.id(), book);
+        DigitizedBookResponse response = service.updateDigitizedBook(book.getId(), book);
 
         assertNotNull(response);
-        assertEquals(book.id(), response.id());
+        assertEquals(book.getId(), response.id());
         assertEquals("King Arthur in Cornwall", response.name());
         assertEquals(List.of("Dickinson W. Howship"), response.authors());
         assertEquals("The book explores the existence and life of King Arthur", response.description());
@@ -168,48 +168,48 @@ public class DigitizedBookServiceImplTest {
         assertEquals("url", response.coverUrl());
         assertEquals("url", response.fileUrl());
 
-        verify(repository).exists(book.id());
-        verify(repository).saveDigitizedBook(book);
+        verify(repository).existsById(book.getId());
+        verify(repository).save(book);
     }
 
     @Test
     void updateDigitizedBook_throwsOnUnknownBook() {
-        DigitizedBookEntity book = entity();
-        when(repository.exists(book.id())).thenReturn(false);
+        DigitizedBook book = entity();
+        when(repository.existsById(book.getId())).thenReturn(false);
 
-        assertThrows(DataNotFoundException.class, () -> service.updateDigitizedBook(book.id(), book));
+        assertThrows(DataNotFoundException.class, () -> service.updateDigitizedBook(book.getId(), book));
 
-        verify(repository, never()).saveDigitizedBook(any());
+        verify(repository, never()).save(any());
     }
 
     @Test
     void deleteDigitizedBook_successfullyDeletesBook() {
         UUID id = UUID.randomUUID();
-        when(repository.exists(id)).thenReturn(true);
+        when(repository.existsById(id)).thenReturn(true);
 
         service.deleteDigitizedBook(id);
 
-        verify(repository).exists(id);
-        verify(repository).deleteDigitizedBook(id);
+        verify(repository).existsById(id);
+        verify(repository).deleteById(id);
     }
 
     @Test
     void deleteDigitizedBook_throwsOnUnknownBook() {
         UUID id = UUID.randomUUID();
-        when(repository.exists(id)).thenReturn(false);
+        when(repository.existsById(id)).thenReturn(false);
 
         assertThrows(DataNotFoundException.class, () -> service.deleteDigitizedBook(id));
 
-        verify(repository, never()).deleteDigitizedBook(any());
+        verify(repository, never()).deleteById(any());
     }
 
     @Test
     void exists_delegatesToRepository() {
         UUID id = UUID.randomUUID();
-        when(repository.exists(id)).thenReturn(true);
+        when(repository.existsById(id)).thenReturn(true);
 
         assertTrue(service.exists(id));
-        verify(repository).exists(id);
+        verify(repository).existsById(id);
     }
 
 }

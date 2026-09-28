@@ -1,4 +1,4 @@
-package ua.fictionallibrary.digital_lib.digitizedbook.model.dto;
+package ua.fictionallibrary.digital_lib.digitizedbook.dto;
 
 import java.time.Year;
 import java.util.List;

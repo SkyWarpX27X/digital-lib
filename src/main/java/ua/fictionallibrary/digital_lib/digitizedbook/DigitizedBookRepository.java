@@ -1,15 +1,9 @@
 package ua.fictionallibrary.digital_lib.digitizedbook;
 
-import ua.fictionallibrary.digital_lib.digitizedbook.model.DigitizedBookEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
-public interface DigitizedBookRepository {
-    DigitizedBookEntity saveDigitizedBook(DigitizedBookEntity digitizedBookEntity);
-    Optional<DigitizedBookEntity> getDigitizedBook(UUID id);
-    List<DigitizedBookEntity> getAllDigitizedBooks();
-    void deleteDigitizedBook(UUID id);
-    boolean exists(UUID id);
+public interface DigitizedBookRepository extends JpaRepository<DigitizedBook, UUID> {
+
 }
