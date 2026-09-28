@@ -91,6 +91,7 @@ public class BookOrderServiceImplTest {
     void successfullyCloseOrder() {
         UUID orderId = UUID.randomUUID();
         when(repository.findById(orderId)).thenReturn(Optional.of(new BookOrder(UUID.randomUUID(), "123@gmail.com", UUID.randomUUID(), true)));
+        when(repository.save(any(BookOrder.class))).thenAnswer(i -> i.getArgument(0));
 
         BookOrderResponse response = service.updateStatus(orderId, new UpdateStatusCommand(false));
         assertNotNull(response);
