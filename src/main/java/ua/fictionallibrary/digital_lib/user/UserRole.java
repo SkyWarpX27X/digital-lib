@@ -1,4 +1,4 @@
-package ua.fictionallibrary.digital_lib.user.model;
+package ua.fictionallibrary.digital_lib.user;
 
 public enum UserRole {
     READER,

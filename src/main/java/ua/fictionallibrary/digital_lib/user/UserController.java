@@ -4,17 +4,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import ua.fictionallibrary.digital_lib.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.common.OnCreate;
 import ua.fictionallibrary.digital_lib.common.OnUpdate;
-import ua.fictionallibrary.digital_lib.user.model.UserEntity;
-import ua.fictionallibrary.digital_lib.user.model.dto.UserRequest;
-import ua.fictionallibrary.digital_lib.user.model.dto.UserResponse;
+import ua.fictionallibrary.digital_lib.user.dto.UserRequest;
+import ua.fictionallibrary.digital_lib.user.dto.UserResponse;
 
 import java.net.URI;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -29,7 +25,7 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserResponse> createUser(@Validated(OnCreate.class) @RequestBody UserRequest userRequest) {
-        final var response = userService.addUser(toEntity(UUID.randomUUID(), userRequest));
+        final var response = userService.addUser(toEntity(userRequest));
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(response.id()).toUri();
         return ResponseEntity.created(location).body(response);
     }
@@ -48,11 +44,11 @@ public class UserController {
 
     @PutMapping("/{id}")
     public ResponseEntity<UserResponse> updateUser(@PathVariable UUID id, @Validated(OnUpdate.class) @RequestBody UserRequest userRequest) {
-        final var response = userService.updateUser(id, toEntity(id, userRequest));
+        final var response = userService.updateUser(id, toEntity(userRequest));
         return ResponseEntity.ok(response);
     }
-
-    private UserEntity toEntity(UUID userId, UserRequest request) {
-        return new UserEntity(userId, request);
+    private User toEntity(UserRequest request) {
+        return new User(request.login(), request.password(), request.name(), request.surname(),
+                request.patronymic(), request.role(), request.isActive());
     }
 }

@@ -1,8 +1,8 @@
-package ua.fictionallibrary.digital_lib.user.model.dto;
+package ua.fictionallibrary.digital_lib.user.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import ua.fictionallibrary.digital_lib.user.model.UserRole;
+import ua.fictionallibrary.digital_lib.user.UserRole;
 
 
 public record UserRequest(

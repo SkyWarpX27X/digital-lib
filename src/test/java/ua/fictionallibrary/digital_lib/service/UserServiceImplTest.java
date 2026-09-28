@@ -7,12 +7,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import ua.fictionallibrary.digital_lib.exception.DataNotFoundException;
+import ua.fictionallibrary.digital_lib.user.User;
 import ua.fictionallibrary.digital_lib.user.UserRepository;
 import ua.fictionallibrary.digital_lib.user.UserService;
 import ua.fictionallibrary.digital_lib.user.implementation.UserServiceImpl;
-import ua.fictionallibrary.digital_lib.user.model.UserEntity;
-import ua.fictionallibrary.digital_lib.user.model.UserRole;
-import ua.fictionallibrary.digital_lib.user.model.dto.UserRequest;
+import ua.fictionallibrary.digital_lib.user.UserRole;
+import ua.fictionallibrary.digital_lib.user.dto.UserRequest;
 
 import java.util.UUID;
 
@@ -45,20 +45,21 @@ public class UserServiceImplTest {
                 "Illiovych",
                 UserRole.READER,
                 true);
-        final var user = new UserEntity(UUID.randomUUID(), userRequest);
-        when(userRepository.saveUser(user)).thenReturn(user);
-        when(userRepository.existsById(user.id())).thenReturn(false);
+        final var user = new User(userRequest.login(), userRequest.password(), userRequest.name(), userRequest.surname(),
+                userRequest.patronymic(), userRequest.role(), userRequest.isActive());
+        when(userRepository.save(user)).thenReturn(user);
+        when(userRepository.existsById(user.getId())).thenReturn(false);
 
         final var response = service.addUser(user);
-        when(userRepository.existsById(user.id())).thenReturn(true);
+        when(userRepository.existsById(user.getId())).thenReturn(true);
         assertNotNull(response);
-        assertEquals(response.name(), user.name());
-        assertEquals(response.surname(), user.surname());
-        assertEquals(response.patronymic(), user.patronymic());
-        assertEquals(response.role(), user.role());
+        assertEquals(response.name(), user.getName());
+        assertEquals(response.surname(), user.getSurname());
+        assertEquals(response.patronymic(), user.getPatronymic());
+        assertEquals(response.role(), user.getRole());
         assert(service.existsById(response.id()));
 
-        verify(userRepository).saveUser(user);
+        verify(userRepository).save(user);
     }
 
     @Test
@@ -71,10 +72,11 @@ public class UserServiceImplTest {
                 "Illiovych",
                 UserRole.READER,
                 true);
-        final var user = new UserEntity(UUID.randomUUID(), userRequest);
-        when(userRepository.existsById(user.id())).thenReturn(false);
+        final var user = new User(userRequest.login(), userRequest.password(), userRequest.name(), userRequest.surname(),
+                userRequest.patronymic(), userRequest.role(), userRequest.isActive());
+        when(userRepository.existsById(user.getId())).thenReturn(false);
 
-        assertThrows(DataNotFoundException.class, () -> service.updateUser(user.id(), user));
+        assertThrows(DataNotFoundException.class, () -> service.updateUser(user.getId(), user));
     }
 
     @Test
