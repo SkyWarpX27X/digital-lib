@@ -4,10 +4,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import ua.fictionallibrary.digital_lib.bookorder.model.BookOrder;
 import ua.fictionallibrary.digital_lib.common.OnCreate;
-import ua.fictionallibrary.digital_lib.bookorder.model.dto.BookOrderRequest;
-import ua.fictionallibrary.digital_lib.bookorder.model.dto.BookOrderResponse;
+import ua.fictionallibrary.digital_lib.bookorder.dto.BookOrderRequest;
+import ua.fictionallibrary.digital_lib.bookorder.dto.BookOrderResponse;
 
 import java.net.URI;
 import java.util.*;

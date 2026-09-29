@@ -1,4 +1,4 @@
-package ua.fictionallibrary.digital_lib.physicalbook.model.dto;
+package ua.fictionallibrary.digital_lib.physicalbook.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;

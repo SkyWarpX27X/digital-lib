@@ -1,4 +1,4 @@
-package ua.fictionallibrary.digital_lib.bookorder.model;
+package ua.fictionallibrary.digital_lib.bookorder;
 
 import jakarta.persistence.*;
 

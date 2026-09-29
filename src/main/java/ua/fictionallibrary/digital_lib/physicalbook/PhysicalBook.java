@@ -1,4 +1,4 @@
-package ua.fictionallibrary.digital_lib.physicalbook.model;
+package ua.fictionallibrary.digital_lib.physicalbook;
 
 import jakarta.persistence.*;
 

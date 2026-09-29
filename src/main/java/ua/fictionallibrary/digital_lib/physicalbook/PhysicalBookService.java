@@ -1,7 +1,6 @@
 package ua.fictionallibrary.digital_lib.physicalbook;
 
-import ua.fictionallibrary.digital_lib.physicalbook.model.PhysicalBook;
-import ua.fictionallibrary.digital_lib.physicalbook.model.dto.PhysicalBookResponse;
+import ua.fictionallibrary.digital_lib.physicalbook.dto.PhysicalBookResponse;
 
 import java.util.List;
 import java.util.UUID;

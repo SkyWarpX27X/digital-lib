@@ -2,7 +2,6 @@ package ua.fictionallibrary.digital_lib.bookorder;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import ua.fictionallibrary.digital_lib.bookorder.model.BookOrder;
 
 import java.util.List;
 import java.util.Optional;

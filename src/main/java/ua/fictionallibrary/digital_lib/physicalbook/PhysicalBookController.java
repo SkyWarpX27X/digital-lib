@@ -6,9 +6,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ua.fictionallibrary.digital_lib.common.OnCreate;
 import ua.fictionallibrary.digital_lib.common.OnUpdate;
-import ua.fictionallibrary.digital_lib.physicalbook.model.PhysicalBook;
-import ua.fictionallibrary.digital_lib.physicalbook.model.dto.PhysicalBookRequest;
-import ua.fictionallibrary.digital_lib.physicalbook.model.dto.PhysicalBookResponse;
+import ua.fictionallibrary.digital_lib.physicalbook.dto.PhysicalBookRequest;
+import ua.fictionallibrary.digital_lib.physicalbook.dto.PhysicalBookResponse;
 
 import java.net.URI;
 import java.util.*;

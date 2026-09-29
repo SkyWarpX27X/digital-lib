@@ -9,8 +9,8 @@ import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookAddedEvent;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookRepository;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookService;
 import ua.fictionallibrary.digital_lib.physicalbook.ResourceTypeValidationStrategy;
-import ua.fictionallibrary.digital_lib.physicalbook.model.PhysicalBook;
-import ua.fictionallibrary.digital_lib.physicalbook.model.dto.PhysicalBookResponse;
+import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBook;
+import ua.fictionallibrary.digital_lib.physicalbook.dto.PhysicalBookResponse;
 
 import java.util.List;
 import java.util.Map;

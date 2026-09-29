@@ -1,7 +1,6 @@
 package ua.fictionallibrary.digital_lib.bookorder;
 
-import ua.fictionallibrary.digital_lib.bookorder.model.BookOrder;
-import ua.fictionallibrary.digital_lib.bookorder.model.dto.BookOrderResponse;
+import ua.fictionallibrary.digital_lib.bookorder.dto.BookOrderResponse;
 
 import java.util.List;
 import java.util.UUID;

@@ -13,8 +13,8 @@ import ua.fictionallibrary.digital_lib.physicalbook.implementations.OldBookValid
 import ua.fictionallibrary.digital_lib.physicalbook.ResourceTypeValidationStrategy;
 import ua.fictionallibrary.digital_lib.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.exception.IllegalResourceTypeException;
-import ua.fictionallibrary.digital_lib.physicalbook.model.PhysicalBook;
-import ua.fictionallibrary.digital_lib.physicalbook.model.dto.PhysicalBookResponse;
+import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBook;
+import ua.fictionallibrary.digital_lib.physicalbook.dto.PhysicalBookResponse;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookRepository;
 import ua.fictionallibrary.digital_lib.physicalbook.implementations.PhysicalBookServiceImpl;
 
