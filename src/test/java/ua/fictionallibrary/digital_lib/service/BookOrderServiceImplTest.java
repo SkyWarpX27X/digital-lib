@@ -22,6 +22,7 @@ import ua.fictionallibrary.digital_lib.librarycard.LibraryCardService;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookService;
 import ua.fictionallibrary.digital_lib.user.User;
 import ua.fictionallibrary.digital_lib.user.UserRepository;
+import ua.fictionallibrary.digital_lib.user.UserRole;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -42,13 +43,13 @@ public class BookOrderServiceImplTest {
     LibraryCardService libraryCardService;
     @Mock
     UserRepository userRepository;
-    @Mock
     User user;
     BookOrderService service;
 
     @BeforeEach
     public void setUp() {
         service = new BookOrderServiceImpl(repository, userRepository, eventPublisher, physicalBookService, libraryCardService);
+        user = new User("john", "123", "John", "Doe", null, UserRole.READER, true);
     }
 
     @Test
@@ -59,7 +60,7 @@ public class BookOrderServiceImplTest {
         when(repository.existsByBook(bookId)).thenReturn(false);
         when(libraryCardService.exists(userId)).thenReturn(true);
         when(physicalBookService.exists(bookId)).thenReturn(true);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.getReferenceById(userId)).thenReturn(user);
         when(repository.save(any(BookOrder.class))).thenAnswer(i -> i.getArgument(0));
 
         BookOrderResponse response = service.addBookOrder(request);

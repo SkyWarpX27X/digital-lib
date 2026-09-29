@@ -43,16 +43,17 @@ public class BookOrderServiceImpl implements BookOrderService {
 
     @Override
     public BookOrderResponse addBookOrder(BookOrderRequest request) {
-        User user = userRepository.getReferenceById(request.creatorId());
+        UUID creatorId = request.creatorId();
+        if (!libraryCardService.exists(creatorId))
+            throw new LibraryCardNotFoundException("User with id " + creatorId + " do not have library card and cannot place book orders");
+        if (bookOrderRepository.existsByBook(request.book()))
+            throw new DuplicateException("Book with id" + request.book() + " already ordered");
+        if (!physicalBookService.exists(request.book()))
+            throw new DataNotFoundException("Failed to create order, not found book with id " + request.book());
+        User user = userRepository.getReferenceById(creatorId);
         BookOrder order = toEntity(request, user);
-        if (!libraryCardService.exists(user.getId()))
-            throw new LibraryCardNotFoundException("User with id " + user.getId() + " do not have library card and cannot place book orders");
         if (order.getEmailForDeliver() == null)
-            order.setEmailForDeliver(libraryCardService.getEmail(user.getId()));
-        if (bookOrderRepository.existsByBook(order.getBook()))
-            throw new DuplicateException("Book with id" + order.getBook() + " already ordered");
-        if (!physicalBookService.exists(order.getBook()))
-            throw new DataNotFoundException("Failed to create order, not found book with id " + order.getBook());
+            order.setEmailForDeliver(libraryCardService.getEmail(creatorId));
         BookOrder savedOrder = bookOrderRepository.save(order);
         eventPublisher.publishEvent(new BookOrderCreatedEvent(
                 savedOrder.getId(),
