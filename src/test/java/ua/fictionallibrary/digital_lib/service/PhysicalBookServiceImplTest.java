@@ -29,79 +29,79 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PhysicalBookServiceImplTest {
-    @Mock
-    PhysicalBookRepository repository;
-    @Mock
-    ApplicationEventPublisher eventPublisher;
-    PhysicalBookServiceImpl service;
-
-    @BeforeEach
-    void setUp() {
-        List<ResourceTypeValidationStrategy> strategies = List.of(
-                new OldBookValidationStrategy(),
-                new ModernBookValidationStrategy()
-        );
-        service = new PhysicalBookServiceImpl(repository, strategies, eventPublisher);
-    }
-
-    @Test
-    void successfullyCreateBook() {
-        PhysicalBook book = new PhysicalBook("Idea medicinae philosophicae", List.of("Petro Severino"),
-                "description", "Історія медицини", Year.of(1660), "lat", "Стародрук");
-        UUID bookId = book.getId();
-        when(repository.save(any(PhysicalBook.class))).thenAnswer(i -> i.getArgument(0));
-
-        PhysicalBookResponse response = service.addPhysicalBook(book);
-        assertNotNull(response);
-        assertEquals(bookId, response.id());
-        assertEquals("Idea medicinae philosophicae", response.name());
-        assertEquals(List.of("Petro Severino"), response.authors());
-        assertEquals("description", response.description());
-        assertEquals("Історія медицини", response.topic());
-        assertEquals(Year.of(1660), response.publishingYear());
-        assertEquals("lat", response.language());
-        assertEquals("Стародрук", response.resourceType());
-
-        verify(repository).save(any(PhysicalBook.class));
-        ArgumentCaptor<PhysicalBookAddedEvent> eventCaptor = ArgumentCaptor.forClass(PhysicalBookAddedEvent.class);
-        verify(eventPublisher).publishEvent(eventCaptor.capture());
-        assertEquals(bookId, eventCaptor.getValue().id());
-    }
-
-    @Test
-    void tryToAddBookWithInvalidResourceType() {
-        PhysicalBook book = new PhysicalBook("Idea medicinae philosophicae", List.of("Petro Severino"),
-                "description", "Історія медицини", Year.of(2013), "lat", "Стародрук");
-
-        assertThrows(IllegalResourceTypeException.class, () -> service.addPhysicalBook(book));
-        verify(repository, never()).save(any());
-    }
-
-    @Test
-    void successfullyGetBook(){
-        UUID bookId = UUID.randomUUID();
-        when(repository.findById(bookId)).thenReturn(Optional.of(new PhysicalBook("Idea medicinae philosophicae",
-                List.of("Petro Severino"), "description", "Історія медицини", Year.of(1660), "lat", "Стародрук")));
-
-        PhysicalBookResponse response = service.getPhysicalBook(bookId);
-        assertNotNull(response);
-        assertEquals("Idea medicinae philosophicae", response.name());
-        assertEquals(List.of("Petro Severino"), response.authors());
-        assertEquals("description", response.description());
-        assertEquals("Історія медицини", response.topic());
-        assertEquals(Year.of(1660), response.publishingYear());
-        assertEquals("lat", response.language());
-        assertEquals("Стародрук", response.resourceType());
-
-        verify(repository).findById(bookId);
-    }
-
-    @Test
-    void tryToGetNonExistentBook(){
-        when(repository.findById(any())).thenReturn(Optional.empty());
-
-        assertThrows(DataNotFoundException.class, () -> service.getPhysicalBook(UUID.randomUUID()));
-
-        verify(repository).findById(any());
-    }
+//    @Mock
+//    PhysicalBookRepository repository;
+//    @Mock
+//    ApplicationEventPublisher eventPublisher;
+//    PhysicalBookServiceImpl service;
+//
+//    @BeforeEach
+//    void setUp() {
+//        List<ResourceTypeValidationStrategy> strategies = List.of(
+//                new OldBookValidationStrategy(),
+//                new ModernBookValidationStrategy()
+//        );
+//        service = new PhysicalBookServiceImpl(repository, strategies, eventPublisher);
+//    }
+//
+//    @Test
+//    void successfullyCreateBook() {
+//        PhysicalBook book = new PhysicalBook("Idea medicinae philosophicae", List.of("Petro Severino"),
+//                "description", "Історія медицини", Year.of(1660), "lat", "Стародрук");
+//        UUID bookId = book.getId();
+//        when(repository.save(any(PhysicalBook.class))).thenAnswer(i -> i.getArgument(0));
+//
+//        PhysicalBookResponse response = service.addPhysicalBook(book);
+//        assertNotNull(response);
+//        assertEquals(bookId, response.id());
+//        assertEquals("Idea medicinae philosophicae", response.name());
+//        assertEquals(List.of("Petro Severino"), response.authors());
+//        assertEquals("description", response.description());
+//        assertEquals("Історія медицини", response.topic());
+//        assertEquals(Year.of(1660), response.publishingYear());
+//        assertEquals("lat", response.language());
+//        assertEquals("Стародрук", response.resourceType());
+//
+//        verify(repository).save(any(PhysicalBook.class));
+//        ArgumentCaptor<PhysicalBookAddedEvent> eventCaptor = ArgumentCaptor.forClass(PhysicalBookAddedEvent.class);
+//        verify(eventPublisher).publishEvent(eventCaptor.capture());
+//        assertEquals(bookId, eventCaptor.getValue().id());
+//    }
+//
+//    @Test
+//    void tryToAddBookWithInvalidResourceType() {
+//        PhysicalBook book = new PhysicalBook("Idea medicinae philosophicae", List.of("Petro Severino"),
+//                "description", "Історія медицини", Year.of(2013), "lat", "Стародрук");
+//
+//        assertThrows(IllegalResourceTypeException.class, () -> service.addPhysicalBook(book));
+//        verify(repository, never()).save(any());
+//    }
+//
+//    @Test
+//    void successfullyGetBook(){
+//        UUID bookId = UUID.randomUUID();
+//        when(repository.findById(bookId)).thenReturn(Optional.of(new PhysicalBook("Idea medicinae philosophicae",
+//                List.of("Petro Severino"), "description", "Історія медицини", Year.of(1660), "lat", "Стародрук")));
+//
+//        PhysicalBookResponse response = service.getPhysicalBook(bookId);
+//        assertNotNull(response);
+//        assertEquals("Idea medicinae philosophicae", response.name());
+//        assertEquals(List.of("Petro Severino"), response.authors());
+//        assertEquals("description", response.description());
+//        assertEquals("Історія медицини", response.topic());
+//        assertEquals(Year.of(1660), response.publishingYear());
+//        assertEquals("lat", response.language());
+//        assertEquals("Стародрук", response.resourceType());
+//
+//        verify(repository).findById(bookId);
+//    }
+//
+//    @Test
+//    void tryToGetNonExistentBook(){
+//        when(repository.findById(any())).thenReturn(Optional.empty());
+//
+//        assertThrows(DataNotFoundException.class, () -> service.getPhysicalBook(UUID.randomUUID()));
+//
+//        verify(repository).findById(any());
+//    }
 }

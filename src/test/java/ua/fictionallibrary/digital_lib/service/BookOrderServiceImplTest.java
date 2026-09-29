@@ -7,6 +7,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import ua.fictionallibrary.digital_lib.author.Author;
 import ua.fictionallibrary.digital_lib.bookorder.BookOrderCreatedEvent;
 import ua.fictionallibrary.digital_lib.bookorder.BookOrderRepository;
 import ua.fictionallibrary.digital_lib.bookorder.BookOrderService;
@@ -29,6 +30,7 @@ import ua.fictionallibrary.digital_lib.user.UserRole;
 import java.time.Year;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -57,7 +59,7 @@ public class BookOrderServiceImplTest {
     public void setUp() {
         service = new BookOrderServiceImpl(repository, userRepository, bookRepository, eventPublisher, physicalBookService, libraryCardService);
         user = new User("john", "123", "John", "Doe", null, UserRole.READER, true);
-        book = new PhysicalBook("Book", List.of("John"), "Desc", "topic", Year.of(2020), "eng", "resourceType");
+        book = new PhysicalBook("Book", Set.of(new Author(UUID.randomUUID(), "John")), "Desc", "topic", Year.of(2020), "eng", "resourceType");
     }
 
     @Test

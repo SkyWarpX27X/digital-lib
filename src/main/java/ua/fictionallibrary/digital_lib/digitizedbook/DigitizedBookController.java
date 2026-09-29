@@ -35,14 +35,14 @@ public class DigitizedBookController {
 
     @PostMapping
     public ResponseEntity<DigitizedBookResponse> createBook(@Validated(OnCreate.class) @RequestBody DigitizedBookRequest request) {
-        DigitizedBookResponse response = service.addDigitizedBook(toEntity(request), request.physicalBookId());
+        DigitizedBookResponse response = service.addDigitizedBook (request, request.physicalBookId());
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(response.id()).toUri();
         return ResponseEntity.created(location).body(response);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<DigitizedBookResponse> updateBook(@PathVariable UUID id, @Validated(OnUpdate.class) DigitizedBookRequest request) {
-        DigitizedBookResponse response = service.updateDigitizedBook(id, toEntity(request));
+        DigitizedBookResponse response = service.updateDigitizedBook(id, request);
         return ResponseEntity.ok(response);
     }
 
@@ -50,11 +50,5 @@ public class DigitizedBookController {
     public ResponseEntity<DigitizedBookResponse> deleteBook(@PathVariable UUID id) {
         service.deleteDigitizedBook(id);
         return ResponseEntity.noContent().build();
-    }
-
-    private DigitizedBook toEntity(DigitizedBookRequest request) {
-        return new DigitizedBook(request.name(), request.authors(), request.description(), request.topic(),
-                request.publishingYear(), request.language(), request.resourceType(), request.isCopyrighted(),
-                request.coverUrl(), request.fileUrl());
     }
 }

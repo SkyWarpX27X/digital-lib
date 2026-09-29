@@ -1,9 +1,11 @@
 package ua.fictionallibrary.digital_lib.physicalbook;
 
 import jakarta.persistence.*;
+import ua.fictionallibrary.digital_lib.author.Author;
 
 import java.time.Year;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -14,8 +16,13 @@ public class PhysicalBook {
     private UUID id;
     @Column(nullable = false, length = 100)
     private String name;
-    @ElementCollection
-    private List<String> authors;
+    @ManyToMany
+    @JoinTable(
+            name = "physical_book_author",
+            joinColumns = @JoinColumn(name = "book_id"),
+            inverseJoinColumns = @JoinColumn(name = "author_id")
+    )
+    private Set<Author> authors;
     @Column(nullable = false, length = 250)
     private String description;
     @Column(nullable = false, length = 100)
@@ -29,7 +36,7 @@ public class PhysicalBook {
 
     public PhysicalBook() {}
 
-    public PhysicalBook(String name, List<String> authors, String description, String topic, Year publishingYear, String language, String resourceType) {
+    public PhysicalBook(String name, Set<Author> authors, String description, String topic, Year publishingYear, String language, String resourceType) {
         this.name = name;
         this.authors = authors;
         this.description = description;
@@ -51,11 +58,11 @@ public class PhysicalBook {
         this.name = name;
     }
 
-    public List<String> getAuthors() {
+    public Set<Author> getAuthors() {
         return authors;
     }
 
-    public void setAuthors(List<String> authors) {
+    public void setAuthors(Set<Author> authors) {
         this.authors = authors;
     }
 

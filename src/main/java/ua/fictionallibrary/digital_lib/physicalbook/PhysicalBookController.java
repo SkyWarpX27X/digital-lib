@@ -34,14 +34,14 @@ public class PhysicalBookController {
 
     @PostMapping
     public ResponseEntity<PhysicalBookResponse> createBook(@Validated(OnCreate.class) @RequestBody PhysicalBookRequest request) {
-        PhysicalBookResponse response = service.addPhysicalBook(toEntity(request));
+        PhysicalBookResponse response = service.addPhysicalBook(request);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(response.id()).toUri();
         return ResponseEntity.created(location).body(response);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<PhysicalBookResponse> updateBook(@PathVariable UUID id, @Validated(OnUpdate.class) PhysicalBookRequest request) {
-        PhysicalBookResponse response = service.updatePhysicalBook(id, toEntity(request));
+        PhysicalBookResponse response = service.updatePhysicalBook(id, request);
         return ResponseEntity.ok(response);
     }
 
@@ -51,8 +51,4 @@ public class PhysicalBookController {
         return ResponseEntity.noContent().build();
     }
 
-    private PhysicalBook toEntity(PhysicalBookRequest request) {
-        return new PhysicalBook(request.name(), request.authors(), request.description(), request.topic(),
-                request.publishingYear(), request.language(), request.resourceType());
-    }
 }

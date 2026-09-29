@@ -3,6 +3,8 @@ package ua.fictionallibrary.digital_lib.physicalbook.implementations;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Service;
+import ua.fictionallibrary.digital_lib.author.Author;
+import ua.fictionallibrary.digital_lib.author.AuthorService;
 import ua.fictionallibrary.digital_lib.digitizedbook.BookDigitizedEvent;
 import ua.fictionallibrary.digital_lib.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookAddedEvent;
@@ -10,6 +12,7 @@ import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookRepository;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookService;
 import ua.fictionallibrary.digital_lib.physicalbook.ResourceTypeValidationStrategy;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBook;
+import ua.fictionallibrary.digital_lib.physicalbook.dto.PhysicalBookRequest;
 import ua.fictionallibrary.digital_lib.physicalbook.dto.PhysicalBookResponse;
 
 import java.util.List;
@@ -23,17 +26,20 @@ public class PhysicalBookServiceImpl implements PhysicalBookService {
 
     private final PhysicalBookRepository repository;
     private final ApplicationEventPublisher eventPublisher;
+    private final AuthorService authorService;
     private final Map<String, ResourceTypeValidationStrategy> strategies;
 
-    public PhysicalBookServiceImpl(PhysicalBookRepository repository, List<ResourceTypeValidationStrategy> strategies, ApplicationEventPublisher eventPublisher) {
+    public PhysicalBookServiceImpl(PhysicalBookRepository repository, List<ResourceTypeValidationStrategy> strategies, ApplicationEventPublisher eventPublisher, AuthorService authorService) {
         this.repository = repository;
         this.eventPublisher = eventPublisher;
         this.strategies = strategies.stream()
                 .collect(Collectors.toMap(ResourceTypeValidationStrategy::getResourceType, Function.identity()));
+        this.authorService = authorService;
     }
 
     @Override
-    public PhysicalBookResponse addPhysicalBook(PhysicalBook book) {
+    public PhysicalBookResponse addPhysicalBook(PhysicalBookRequest request) {
+        PhysicalBook book = toEntity(request);
         ResourceTypeValidationStrategy strategy = strategies.get(book.getResourceType());
         if (strategy == null)
             strategies.get("Книга").validateResourceType(book);
@@ -49,9 +55,10 @@ public class PhysicalBookServiceImpl implements PhysicalBookService {
     }
 
     @Override
-    public PhysicalBookResponse updatePhysicalBook(UUID id, PhysicalBook book) {
+    public PhysicalBookResponse updatePhysicalBook(UUID id, PhysicalBookRequest request) {
         if (!repository.existsById(id))
             throw new DataNotFoundException("Failed to update, not found physical book with id " + id);
+        PhysicalBook book = toEntity(request);
         ResourceTypeValidationStrategy strategy = strategies.get(book.getResourceType());
         if (strategy == null)
             strategies.get("Книга").validateResourceType(book);
@@ -89,8 +96,14 @@ public class PhysicalBookServiceImpl implements PhysicalBookService {
         deletePhysicalBook(event.physicalId());
     }
 
+    private PhysicalBook toEntity(PhysicalBookRequest request) {
+        return new PhysicalBook(request.name(), authorService.findOrCreate(request.authors()), request.description(),
+                request.topic(), request.publishingYear(), request.language(), request.resourceType());
+    }
+
     private PhysicalBookResponse toResponse(PhysicalBook entity) {
-        return new PhysicalBookResponse(entity.getId(), entity.getName(), entity.getAuthors(), entity.getDescription(),
+        List<String> authors = entity.getAuthors().stream().map(Author::getName).toList();
+        return new PhysicalBookResponse(entity.getId(), entity.getName(), authors, entity.getDescription(),
                 entity.getTopic(), entity.getPublishingYear(), entity.getLanguage(), entity.getResourceType());
     }
 }

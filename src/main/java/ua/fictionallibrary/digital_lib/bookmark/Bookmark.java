@@ -11,8 +11,8 @@ public class Bookmark {
     @Id
     private UUID userId;
     @Id
-
     private UUID bookId;
+    @Column
     private int pageNumber;
 
     protected Bookmark() {}

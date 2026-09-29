@@ -1,11 +1,13 @@
 package ua.fictionallibrary.digital_lib.digitizedbook;
 
 import jakarta.persistence.*;
+import ua.fictionallibrary.digital_lib.author.Author;
 import ua.fictionallibrary.digital_lib.bookmark.Bookmark;
 
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -13,20 +15,36 @@ public class DigitizedBook {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+    @Column(nullable = false, length = 100)
     private String name;
-    private List<String> authors;
+    @ManyToMany
+    @JoinTable(
+            name = "digitized_book_author",
+            joinColumns = @JoinColumn(name = "book_id"),
+            inverseJoinColumns = @JoinColumn(name = "author_id")
+    )
+    private Set<Author> authors;
+    @Column(nullable = false, length = 250)
     private String description;
+    @Column(nullable = false, length = 100)
     private String topic;
+    @Column(nullable = false)
     private Year publishingYear;
+    @Column(nullable = false, length = 30)
     private String language;
+    @Column(nullable = false, length = 20)
     private String resourceType;
+    @Column(nullable = false)
     private boolean isCopyrighted;
+    @Column(nullable = false)
     private String coverUrl;
+    @Column(nullable = false)
     private String fileUrl;
+
 
     protected DigitizedBook() {}
 
-    public DigitizedBook(String name, List<String> authors, String description, String topic, Year publishingYear, String language, String resourceType, boolean isCopyrighted, String coverUrl, String fileUrl) {
+    public DigitizedBook(String name, Set<Author> authors, String description, String topic, Year publishingYear, String language, String resourceType, boolean isCopyrighted, String coverUrl, String fileUrl) {
         this.name = name;
         this.authors = authors;
         this.description = description;
@@ -51,11 +69,11 @@ public class DigitizedBook {
         this.name = name;
     }
 
-    public List<String> getAuthors() {
+    public Set<Author> getAuthors() {
         return authors;
     }
 
-    public void setAuthors(List<String> authors) {
+    public void setAuthors(Set<Author> authors) {
         this.authors = authors;
     }
 
