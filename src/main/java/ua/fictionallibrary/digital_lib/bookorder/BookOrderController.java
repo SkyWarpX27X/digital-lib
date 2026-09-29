@@ -22,7 +22,7 @@ public class BookOrderController {
 
     @PostMapping
     public ResponseEntity<BookOrderResponse> createBookOrder(@Validated(OnCreate.class) @RequestBody BookOrderRequest request){
-        BookOrderResponse response = service.addBookOrder(toEntity(request));
+        BookOrderResponse response = service.addBookOrder(request);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(response.id()).toUri();
         return ResponseEntity.created(location).body(response);
     }
@@ -41,9 +41,5 @@ public class BookOrderController {
     public ResponseEntity<BookOrderResponse> updateOrderStatus(@PathVariable UUID id, @RequestBody UpdateStatusCommand command){
         BookOrderResponse response = service.updateStatus(id, command);
         return ResponseEntity.ok(response);
-    }
-
-    private BookOrder toEntity(BookOrderRequest request){
-        return new BookOrder(request.creatorId(), request.emailForDelivery(), request.book(), request.isOpen());
     }
 }

@@ -1,6 +1,7 @@
 package ua.fictionallibrary.digital_lib.bookorder;
 
 import jakarta.persistence.*;
+import ua.fictionallibrary.digital_lib.user.User;
 
 import java.util.UUID;
 
@@ -10,8 +11,9 @@ public class BookOrder {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    @Column(nullable = false)
-    private UUID creatorId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
     @Column(nullable = false)
     private String emailForDeliver;
     @Column(nullable = false, unique = true)
@@ -21,8 +23,8 @@ public class BookOrder {
 
     public BookOrder() {}
 
-    public BookOrder(UUID creatorId, String emailForDeliver, UUID book, boolean isOpen) {
-        this.creatorId = creatorId;
+    public BookOrder(User user, String emailForDeliver, UUID book, boolean isOpen) {
+        this.user = user;
         this.emailForDeliver = emailForDeliver;
         this.book = book;
         this.isOpen = isOpen;
@@ -32,8 +34,8 @@ public class BookOrder {
         return id;
     }
 
-    public UUID getCreatorId() {
-        return creatorId;
+    public User getUser() {
+        return user;
     }
 
     public String getEmailForDeliver() {

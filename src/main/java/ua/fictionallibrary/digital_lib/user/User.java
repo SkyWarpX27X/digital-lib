@@ -1,7 +1,11 @@
 package ua.fictionallibrary.digital_lib.user;
 
 import jakarta.persistence.*;
+import ua.fictionallibrary.digital_lib.bookorder.BookOrder;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -16,6 +20,8 @@ public class User {
     private String patronymic;
     private UserRole role;
     private boolean isActive;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BookOrder> bookOrders = new ArrayList<>();
 
     protected User() {}
 
@@ -91,5 +97,9 @@ public class User {
 
     public void setActive(boolean active) {
         isActive = active;
+    }
+
+    public List<BookOrder> getBookOrders() {
+        return Collections.unmodifiableList(bookOrders);
     }
 }
