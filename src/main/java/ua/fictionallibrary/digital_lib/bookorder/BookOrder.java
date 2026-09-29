@@ -1,6 +1,7 @@
 package ua.fictionallibrary.digital_lib.bookorder;
 
 import jakarta.persistence.*;
+import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBook;
 import ua.fictionallibrary.digital_lib.user.User;
 
 import java.util.UUID;
@@ -16,14 +17,15 @@ public class BookOrder {
     private User user;
     @Column(nullable = false)
     private String emailForDeliver;
-    @Column(nullable = false, unique = true)
-    private UUID book;
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "book_id", nullable = false)
+    private PhysicalBook book;
     @Column
     private boolean isOpen;
 
     public BookOrder() {}
 
-    public BookOrder(User user, String emailForDeliver, UUID book, boolean isOpen) {
+    public BookOrder(User user, String emailForDeliver, PhysicalBook book, boolean isOpen) {
         this.user = user;
         this.emailForDeliver = emailForDeliver;
         this.book = book;
@@ -46,7 +48,7 @@ public class BookOrder {
         this.emailForDeliver = emailForDeliver;
     }
 
-    public UUID getBook() {
+    public PhysicalBook getBook() {
         return book;
     }
 

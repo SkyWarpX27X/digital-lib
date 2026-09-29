@@ -19,11 +19,15 @@ import ua.fictionallibrary.digital_lib.exception.DuplicateException;
 import ua.fictionallibrary.digital_lib.exception.InvalidOrderUpdateException;
 import ua.fictionallibrary.digital_lib.exception.LibraryCardNotFoundException;
 import ua.fictionallibrary.digital_lib.librarycard.LibraryCardService;
+import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBook;
+import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookRepository;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookService;
 import ua.fictionallibrary.digital_lib.user.User;
 import ua.fictionallibrary.digital_lib.user.UserRepository;
 import ua.fictionallibrary.digital_lib.user.UserRole;
 
+import java.time.Year;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -43,13 +47,17 @@ public class BookOrderServiceImplTest {
     LibraryCardService libraryCardService;
     @Mock
     UserRepository userRepository;
+    @Mock
+    PhysicalBookRepository bookRepository;
     User user;
+    PhysicalBook book;
     BookOrderService service;
 
     @BeforeEach
     public void setUp() {
-        service = new BookOrderServiceImpl(repository, userRepository, eventPublisher, physicalBookService, libraryCardService);
+        service = new BookOrderServiceImpl(repository, userRepository, bookRepository, eventPublisher, physicalBookService, libraryCardService);
         user = new User("john", "123", "John", "Doe", null, UserRole.READER, true);
+        book = new PhysicalBook("Book", List.of("John"), "Desc", "topic", Year.of(2020), "eng", "resourceType");
     }
 
     @Test
@@ -57,10 +65,11 @@ public class BookOrderServiceImplTest {
         UUID bookId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
         BookOrderRequest request = new BookOrderRequest(userId, "123@gmail.com", bookId, true);
-        when(repository.existsByBook(bookId)).thenReturn(false);
+        when(repository.existsByBookId(bookId)).thenReturn(false);
         when(libraryCardService.exists(userId)).thenReturn(true);
         when(physicalBookService.exists(bookId)).thenReturn(true);
         when(userRepository.getReferenceById(userId)).thenReturn(user);
+        when(bookRepository.getReferenceById(bookId)).thenReturn(book);
         when(repository.save(any(BookOrder.class))).thenAnswer(i -> i.getArgument(0));
 
         BookOrderResponse response = service.addBookOrder(request);
@@ -68,8 +77,9 @@ public class BookOrderServiceImplTest {
         ArgumentCaptor<BookOrder> orderCaptor = ArgumentCaptor.forClass(BookOrder.class);
         verify(repository).save(orderCaptor.capture());
         BookOrder saved = orderCaptor.getValue();
-        assertEquals(bookId, saved.getBook());
+        assertEquals(book, saved.getBook());
         assertSame(user, saved.getUser());
+        assertSame(book, saved.getBook());
         assertEquals("123@gmail.com", saved.getEmailForDeliver());
         assertTrue(saved.isOpen());
 
@@ -83,7 +93,7 @@ public class BookOrderServiceImplTest {
         UUID userId = UUID.randomUUID();
         BookOrderRequest request = new BookOrderRequest(userId, "123@gmail.com", bookId, true);
         when(libraryCardService.exists(userId)).thenReturn(true);
-        when(repository.existsByBook(bookId)).thenReturn(true);
+        when(repository.existsByBookId(bookId)).thenReturn(true);
 
         assertThrows(DuplicateException.class, () -> service.addBookOrder(request));
         verify(repository, never()).save(any(BookOrder.class));
@@ -101,7 +111,7 @@ public class BookOrderServiceImplTest {
     @Test
     void successfullyCloseOrder() {
         UUID orderId = UUID.randomUUID();
-        when(repository.findById(orderId)).thenReturn(Optional.of(new BookOrder(user, "123@gmail.com", UUID.randomUUID(), true)));
+        when(repository.findById(orderId)).thenReturn(Optional.of(new BookOrder(user, "123@gmail.com", book, true)));
         when(repository.save(any(BookOrder.class))).thenAnswer(i -> i.getArgument(0));
 
         BookOrderResponse response = service.updateStatus(orderId, new UpdateStatusCommand(false));
@@ -112,7 +122,7 @@ public class BookOrderServiceImplTest {
     @Test
     void tryToOpenClosedOrder() {
         UUID orderId = UUID.randomUUID();
-        when(repository.findById(orderId)).thenReturn(Optional.of(new BookOrder(user, "123@gmail.com", UUID.randomUUID(), false)));
+        when(repository.findById(orderId)).thenReturn(Optional.of(new BookOrder(user, "123@gmail.com", book, false)));
 
         assertThrows(InvalidOrderUpdateException.class, () -> service.updateStatus(orderId, new UpdateStatusCommand(true)));
     }

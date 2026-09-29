@@ -16,6 +16,8 @@ import ua.fictionallibrary.digital_lib.exception.InvalidOrderUpdateException;
 import ua.fictionallibrary.digital_lib.bookorder.dto.BookOrderResponse;
 import ua.fictionallibrary.digital_lib.exception.LibraryCardNotFoundException;
 import ua.fictionallibrary.digital_lib.librarycard.LibraryCardService;
+import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBook;
+import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookRepository;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookService;
 import ua.fictionallibrary.digital_lib.user.User;
 import ua.fictionallibrary.digital_lib.user.UserRepository;
@@ -28,14 +30,16 @@ public class BookOrderServiceImpl implements BookOrderService {
 
     private final BookOrderRepository bookOrderRepository;
     private final UserRepository userRepository;
+    private final PhysicalBookRepository physicalBookRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final PhysicalBookService physicalBookService;
     private final LibraryCardService libraryCardService;
 
-    public BookOrderServiceImpl(BookOrderRepository repository, UserRepository userRepository, ApplicationEventPublisher eventPublisher,
+    public BookOrderServiceImpl(BookOrderRepository repository, UserRepository userRepository, PhysicalBookRepository physicalBookRepository, ApplicationEventPublisher eventPublisher,
                                 PhysicalBookService physicalBookService, LibraryCardService libraryCardService) {
         this.bookOrderRepository = repository;
         this.userRepository = userRepository;
+        this.physicalBookRepository = physicalBookRepository;
         this.eventPublisher = eventPublisher;
         this.physicalBookService = physicalBookService;
         this.libraryCardService = libraryCardService;
@@ -46,12 +50,14 @@ public class BookOrderServiceImpl implements BookOrderService {
         UUID creatorId = request.creatorId();
         if (!libraryCardService.exists(creatorId))
             throw new LibraryCardNotFoundException("User with id " + creatorId + " do not have library card and cannot place book orders");
-        if (bookOrderRepository.existsByBook(request.book()))
+        if (bookOrderRepository.existsByBookId(request.book()))
             throw new DuplicateException("Book with id" + request.book() + " already ordered");
+        // This is probably bad because it's redundant but my brain isn't functioning enough to think about this right now
         if (!physicalBookService.exists(request.book()))
             throw new DataNotFoundException("Failed to create order, not found book with id " + request.book());
         User user = userRepository.getReferenceById(creatorId);
-        BookOrder order = toEntity(request, user);
+        PhysicalBook book = physicalBookRepository.getReferenceById(request.book());
+        BookOrder order = toEntity(request, user, book);
         if (order.getEmailForDeliver() == null)
             order.setEmailForDeliver(libraryCardService.getEmail(creatorId));
         BookOrder savedOrder = bookOrderRepository.save(order);
@@ -59,7 +65,7 @@ public class BookOrderServiceImpl implements BookOrderService {
                 savedOrder.getId(),
                 user.getId(),
                 savedOrder.getEmailForDeliver(),
-                savedOrder.getBook()
+                book.getId()
         ));
         return toResponse(savedOrder);
     }
@@ -89,15 +95,15 @@ public class BookOrderServiceImpl implements BookOrderService {
 
     @ApplicationModuleListener
     public void onBookDigitized(BookDigitizedEvent event) {
-        bookOrderRepository.findByBook(event.physicalId())
+        bookOrderRepository.findByBookId(event.physicalId())
                 .ifPresent(order -> updateStatus(order.getId(), new UpdateStatusCommand(false)));
     }
 
     private BookOrderResponse toResponse(BookOrder order) {
-        return new BookOrderResponse(order.getId(), order.getUser().getId(), order.getEmailForDeliver(), order.getBook(), order.isOpen());
+        return new BookOrderResponse(order.getId(), order.getUser().getId(), order.getEmailForDeliver(), order.getBook().getId(), order.isOpen());
     }
 
-    private BookOrder toEntity(BookOrderRequest request, User user){
-        return new BookOrder(user, request.emailForDelivery(), request.book(), request.isOpen());
+    private BookOrder toEntity(BookOrderRequest request, User user, PhysicalBook book){
+        return new BookOrder(user, request.emailForDelivery(), book, request.isOpen());
     }
 }
