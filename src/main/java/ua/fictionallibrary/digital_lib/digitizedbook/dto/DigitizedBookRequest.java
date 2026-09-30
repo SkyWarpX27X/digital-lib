@@ -46,6 +46,7 @@ public record DigitizedBookRequest(
         @NotNull(groups = OnCreate.class, message = "Physical book ID must not be null when creating")
         @Null(groups = OnUpdate.class, message = "Physical book ID can only be null when updating")
         UUID physicalBookId
+
 ) {
         public DigitizedBookRequest {
                 authors = (authors != null) ? List.copyOf(authors) : List.of();
