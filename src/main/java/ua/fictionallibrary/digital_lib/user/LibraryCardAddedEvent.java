@@ -1,4 +1,4 @@
-package ua.fictionallibrary.digital_lib.librarycard;
+package ua.fictionallibrary.digital_lib.user;
 
 import java.util.UUID;
 

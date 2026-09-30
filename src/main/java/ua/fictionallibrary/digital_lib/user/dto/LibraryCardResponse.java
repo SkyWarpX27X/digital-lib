@@ -1,7 +1,6 @@
-package ua.fictionallibrary.digital_lib.librarycard.model.dto;
+package ua.fictionallibrary.digital_lib.user.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import ua.fictionallibrary.digital_lib.librarycard.model.LibraryCardEntity;
 
 import java.time.Year;
 import java.util.UUID;
@@ -17,8 +16,4 @@ public record LibraryCardResponse(
         String organisation,
         String workPosition
 ) {
-    public LibraryCardResponse(LibraryCardEntity card){
-        this(card.ownerId(), card.email(), card.postcode(), card.birthYear(), card.livingAddress(),
-                card.workOrStudyAddress(), card.organisation(), card.workPosition());
-    }
 }

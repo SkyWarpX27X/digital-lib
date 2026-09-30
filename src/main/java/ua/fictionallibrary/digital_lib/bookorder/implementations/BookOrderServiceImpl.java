@@ -15,7 +15,7 @@ import ua.fictionallibrary.digital_lib.exception.DuplicateException;
 import ua.fictionallibrary.digital_lib.exception.InvalidOrderUpdateException;
 import ua.fictionallibrary.digital_lib.bookorder.dto.BookOrderResponse;
 import ua.fictionallibrary.digital_lib.exception.LibraryCardNotFoundException;
-import ua.fictionallibrary.digital_lib.librarycard.LibraryCardService;
+import ua.fictionallibrary.digital_lib.user.LibraryCardService;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBook;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookRepository;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookService;
@@ -32,7 +32,6 @@ public class BookOrderServiceImpl implements BookOrderService {
     private final UserRepository userRepository;
     private final PhysicalBookRepository physicalBookRepository;
     private final ApplicationEventPublisher eventPublisher;
-    private final PhysicalBookService physicalBookService;
     private final LibraryCardService libraryCardService;
 
     public BookOrderServiceImpl(BookOrderRepository repository, UserRepository userRepository, PhysicalBookRepository physicalBookRepository, ApplicationEventPublisher eventPublisher,
@@ -41,7 +40,6 @@ public class BookOrderServiceImpl implements BookOrderService {
         this.userRepository = userRepository;
         this.physicalBookRepository = physicalBookRepository;
         this.eventPublisher = eventPublisher;
-        this.physicalBookService = physicalBookService;
         this.libraryCardService = libraryCardService;
     }
 
@@ -52,11 +50,10 @@ public class BookOrderServiceImpl implements BookOrderService {
             throw new LibraryCardNotFoundException("User with id " + creatorId + " do not have library card and cannot place book orders");
         if (bookOrderRepository.existsByBookId(request.book()))
             throw new DuplicateException("Book with id" + request.book() + " already ordered");
-        // This is probably bad because it's redundant but my brain isn't functioning enough to think about this right now
-        if (!physicalBookService.exists(request.book()))
-            throw new DataNotFoundException("Failed to create order, not found book with id " + request.book());
+        PhysicalBook book = physicalBookRepository.findById(request.book())
+                .orElseThrow(() -> new DataNotFoundException(
+                        "Failed to create order, not found book with id " + request.book()));
         User user = userRepository.getReferenceById(creatorId);
-        PhysicalBook book = physicalBookRepository.getReferenceById(request.book());
         BookOrder order = toEntity(request, user, book);
         if (order.getEmailForDeliver() == null)
             order.setEmailForDeliver(libraryCardService.getEmail(creatorId));

@@ -1,4 +1,4 @@
-package ua.fictionallibrary.digital_lib.librarycard.model.dto;
+package ua.fictionallibrary.digital_lib.user.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
