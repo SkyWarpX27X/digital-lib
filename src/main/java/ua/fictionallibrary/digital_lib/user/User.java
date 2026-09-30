@@ -10,13 +10,20 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+    @Column(nullable = false, length = 50)
     private String login;
+    @Column(nullable = false, length = 50)
     private String password;
+    @Column(nullable = false, length = 30)
     private String name;
+    @Column(nullable = false, length = 30)
     private String surname;
+    @Column(nullable = false, length = 30)
     private String patronymic;
+    @Column(nullable = false)
     private UserRole role;
     private boolean isActive;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private LibraryCard libraryCard;
 
@@ -95,5 +102,17 @@ public class User {
 
     public void setActive(boolean active) {
         isActive = active;
+    }
+
+    public LibraryCard getLibraryCard() {
+        return libraryCard;
+    }
+
+    public void setLibraryCard(LibraryCard libraryCard) {
+        this.libraryCard = libraryCard;
+    }
+
+    public void removeLibraryCard(LibraryCard libraryCard) {
+        this.libraryCard = null;
     }
 }
