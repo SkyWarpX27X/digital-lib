@@ -35,7 +35,7 @@ public class BookmarkController {
     }
 
     @PatchMapping("/{userId}/{bookId}")
-    public ResponseEntity<BookmarkResponse> updatePageNumber(@PathVariable UUID userId, @PathVariable UUID bookId,
+    public ResponseEntity<BookmarkResponse> updatePageNumber(@Validated(OnCreate.class) @PathVariable UUID userId, @PathVariable UUID bookId,
                                                              @RequestBody UpdatePageNumberCommand command){
         BookmarkResponse response = service.updatePageNumber(userId, bookId, command);
         return ResponseEntity.ok(response);

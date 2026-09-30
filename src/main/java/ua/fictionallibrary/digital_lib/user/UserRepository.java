@@ -11,11 +11,11 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<User, UUID> {
     @Override
     @NullMarked
-    @Query("SELECT DISTINCT u FROM User u JOIN FETCH u.libraryCard")
+    @Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.libraryCard")
     List<User> findAll();
     @Override
     @NullMarked
-    @Query("SELECT u FROM User u JOIN FETCH u.libraryCard WHERE u.id = :userId")
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.libraryCard WHERE u.id = :userId")
     Optional<User> findById(UUID userId);
     boolean existsByLogin(String login);
 }
