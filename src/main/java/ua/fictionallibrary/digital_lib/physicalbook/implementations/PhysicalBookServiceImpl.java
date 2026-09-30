@@ -3,6 +3,7 @@ package ua.fictionallibrary.digital_lib.physicalbook.implementations;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ua.fictionallibrary.digital_lib.author.Author;
 import ua.fictionallibrary.digital_lib.author.AuthorService;
 import ua.fictionallibrary.digital_lib.digitizedbook.BookDigitizedEvent;
@@ -38,6 +39,7 @@ public class PhysicalBookServiceImpl implements PhysicalBookService {
     }
 
     @Override
+    @Transactional
     public PhysicalBookResponse addPhysicalBook(PhysicalBookRequest request) {
         PhysicalBook book = toEntity(request);
         ResourceTypeValidationStrategy strategy = strategies.get(book.getResourceType());
@@ -55,19 +57,23 @@ public class PhysicalBookServiceImpl implements PhysicalBookService {
     }
 
     @Override
+    @Transactional
     public PhysicalBookResponse updatePhysicalBook(UUID id, PhysicalBookRequest request) {
-        if (!repository.existsById(id))
-            throw new DataNotFoundException("Failed to update, not found physical book with id " + id);
-        PhysicalBook book = toEntity(request);
-        ResourceTypeValidationStrategy strategy = strategies.get(book.getResourceType());
-        if (strategy == null)
-            strategies.get("Книга").validateResourceType(book);
-        else
-            strategy.validateResourceType(book);
+        PhysicalBook book = repository.findById(id)
+                .orElseThrow(() -> new DataNotFoundException("Failed to update, not found physical book with id " + id));
+        book.setName(request.name());
+        book.setAuthors(authorService.findOrCreate(request.authors()));
+        book.setDescription(request.description());
+        book.setTopic(request.topic());
+        book.setPublishingYear(request.publishingYear());
+        book.setLanguage(request.language());
+        book.setResourceType(request.resourceType());
+        validateResourceType(book);
         return toResponse(repository.save(book));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PhysicalBookResponse getPhysicalBook(UUID id) {
         return repository.findById(id)
                 .map(this::toResponse)
@@ -75,11 +81,13 @@ public class PhysicalBookServiceImpl implements PhysicalBookService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<PhysicalBookResponse> getAllPhysicalBooks() {
         return repository.findAll().stream().map(this::toResponse).toList();
     }
 
     @Override
+    @Transactional
     public void deletePhysicalBook(UUID id) {
         if (!repository.existsById(id))
             throw new DataNotFoundException("Failed to delete, not found physical book with id " + id);
@@ -105,5 +113,13 @@ public class PhysicalBookServiceImpl implements PhysicalBookService {
         List<String> authors = entity.getAuthors().stream().map(Author::getName).toList();
         return new PhysicalBookResponse(entity.getId(), entity.getName(), authors, entity.getDescription(),
                 entity.getTopic(), entity.getPublishingYear(), entity.getLanguage(), entity.getResourceType());
+    }
+
+    private void validateResourceType(PhysicalBook book) {
+        ResourceTypeValidationStrategy strategy = strategies.get(book.getResourceType());
+        if (strategy == null)
+            strategies.get("Книга").validateResourceType(book);
+        else
+            strategy.validateResourceType(book);
     }
 }

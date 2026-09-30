@@ -18,7 +18,7 @@ public class User {
     private String name;
     @Column(nullable = false, length = 30)
     private String surname;
-    @Column(nullable = false, length = 30)
+    @Column(length = 30)
     private String patronymic;
     @Column(nullable = false)
     private UserRole role;
