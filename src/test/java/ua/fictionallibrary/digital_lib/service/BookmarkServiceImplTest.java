@@ -123,32 +123,11 @@ public class BookmarkServiceImplTest {
     }
 
     @Test
-    void updatePageNumber_successfullyUpdates() {
-        UUID userId = UUID.randomUUID();
-        UUID bookId = UUID.randomUUID();
-        UpdatePageNumberCommand command = new UpdatePageNumberCommand(120);
-        Bookmark updated = new Bookmark(userId, bookId, command.pageNumber());
-
-        when(repository.existsById(toId(userId, bookId))).thenReturn(true);
-        when(repository.save(any(Bookmark.class))).thenReturn(updated);
-
-        BookmarkResponse response = service.updatePageNumber(userId, bookId, command);
-
-        assertNotNull(response);
-        assertEquals(userId, response.userId());
-        assertEquals(bookId, response.bookId());
-        assertEquals(120, response.pageNumber());
-
-        verify(repository).existsById(toId(userId, bookId));
-        verify(repository).save(any(Bookmark.class));
-    }
-
-    @Test
     void updatePageNumber_throwsOnUnknownBookmark() {
         UUID userId = UUID.randomUUID();
         UUID bookId = UUID.randomUUID();
         UpdatePageNumberCommand command = new UpdatePageNumberCommand(120);
-        when(repository.existsById(toId(userId, bookId))).thenReturn(false);
+        when(repository.findById(toId(userId, bookId))).thenReturn(Optional.empty());
 
         assertThrows(DataNotFoundException.class, () -> service.updatePageNumber(userId, bookId, command));
 

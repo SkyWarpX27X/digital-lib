@@ -14,6 +14,7 @@ import ua.fictionallibrary.digital_lib.user.implementation.UserServiceImpl;
 import ua.fictionallibrary.digital_lib.user.UserRole;
 import ua.fictionallibrary.digital_lib.user.dto.UserRequest;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -74,7 +75,7 @@ public class UserServiceImplTest {
                 true);
         final var user = new User(userRequest.login(), userRequest.password(), userRequest.name(), userRequest.surname(),
                 userRequest.patronymic(), userRequest.role(), userRequest.isActive());
-        when(userRepository.existsById(user.getId())).thenReturn(false);
+        when(userRepository.findById(user.getId())).thenReturn(Optional.empty());
 
         assertThrows(DataNotFoundException.class, () -> service.updateUser(user.getId(), user));
     }

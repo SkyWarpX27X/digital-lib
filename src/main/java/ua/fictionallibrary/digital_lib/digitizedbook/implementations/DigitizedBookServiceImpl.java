@@ -24,13 +24,11 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
     private final DigitizedBookRepository repository;
     private final ApplicationEventPublisher publisher;
     private final AuthorService authorService;
-    private final PhysicalBookService physicalBookService;
 
-    public DigitizedBookServiceImpl(DigitizedBookRepository repository, ApplicationEventPublisher publisher, AuthorService authorService, PhysicalBookService physicalBookService) {
+    public DigitizedBookServiceImpl(DigitizedBookRepository repository, ApplicationEventPublisher publisher, AuthorService authorService) {
         this.repository = repository;
         this.publisher = publisher;
         this.authorService = authorService;
-        this.physicalBookService = physicalBookService;
     }
 
     @Override
@@ -56,8 +54,6 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
     @Override
     @Transactional
     public DigitizedBookResponse addDigitizedBook(DigitizedBookRequest request, UUID physicalBookId) {
-        if (!physicalBookService.exists(physicalBookId))
-            throw new DataNotFoundException("Physical book with ID " + physicalBookId + " does not exist.");
         DigitizedBook digitizedBook = repository.save(toEntity(request));
         publisher.publishEvent(new BookDigitizedEvent(
                 digitizedBook.getId(),

@@ -58,7 +58,7 @@ public class BookOrderServiceImplTest {
     public void setUp() {
         service = new BookOrderServiceImpl(repository, userRepository, bookRepository, eventPublisher, physicalBookService, libraryCardService);
         user = new User("john", "123", "John", "Doe", null, UserRole.READER, true);
-        book = new PhysicalBook("Book", Set.of(new Author(UUID.randomUUID(), "John")), "Desc", "topic", Year.of(2020), "eng", "resourceType");
+        book = new PhysicalBook("Book", Set.of(new Author("John")), "Desc", "topic", Year.of(2020), "eng", "resourceType");
     }
 
     @Test

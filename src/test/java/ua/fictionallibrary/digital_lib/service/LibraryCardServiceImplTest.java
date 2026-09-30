@@ -56,11 +56,10 @@ public class LibraryCardServiceImplTest {
     void successfullyAddedLibraryCardForExistentUser() {
         final var userId = UUID.randomUUID();
         final var user = mock(User.class);
-        when(user.getId()).thenReturn(userId);
         final var libraryCard = new LibraryCard(userId, "wwww@wwww.com", "04210", Year.of(2006),
                 "Hahahahahaha", "AAAAA", "Meme org", "Senior idiot", user);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(libraryCardRepository.existsById(userId)).thenReturn(false);
+        when(libraryCardRepository.existsByOwnerId(userId)).thenReturn(false);
         when(libraryCardRepository.save(any(LibraryCard.class))).thenReturn(libraryCard);
 
 
@@ -88,7 +87,7 @@ public class LibraryCardServiceImplTest {
         final var userId = UUID.randomUUID();
         final var user = mock(User.class);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(libraryCardRepository.existsById(userId)).thenReturn(true);
+        when(libraryCardRepository.existsByOwnerId(userId)).thenReturn(true);
         assertThrows(DuplicateException.class, () -> libraryCardService.addLibraryCard(userId, request()));
         verify(libraryCardRepository, never()).save(any());
         verify(eventPublisher, never()).publishEvent(any(LibraryCardAddedEvent.class));
@@ -97,7 +96,7 @@ public class LibraryCardServiceImplTest {
     @Test
     void updatingNonExistentLibraryCardThrows() {
         final var userId = UUID.randomUUID();
-        when(libraryCardRepository.existsById(userId)).thenReturn(false);
+        when(libraryCardRepository.findByOwnerId(userId)).thenReturn(Optional.empty());
         assertThrows(DataNotFoundException.class, () -> libraryCardService.updateLibraryCard(userId, request()));
         verify(libraryCardRepository, never()).save(any());
     }
