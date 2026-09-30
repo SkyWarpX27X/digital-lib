@@ -13,8 +13,12 @@ public interface DigitizedBookRepository extends JpaRepository<DigitizedBook, UU
     @NullMarked
     @Query("SELECT DISTINCT b FROM DigitizedBook b JOIN FETCH b.authors")
     List<DigitizedBook> findAll();
+
     @Override
     @NullMarked
     @Query("SELECT DISTINCT b FROM DigitizedBook b JOIN FETCH b.authors WHERE b.id = :physicalBookId")
     Optional<DigitizedBook> findById(UUID physicalBooKId);
+
+    @Query("SELECT DISTINCT b FROM DigitizedBook b JOIN FETCH b.authors WHERE LOWER(b.name) LIKE LOWER(CONCAT('%', :name, '%'))")
+    List<DigitizedBook> findByName(String name);
 }

@@ -42,6 +42,12 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
     }
 
     @Override
+    public List<DigitizedBookResponse> findDigitizedBooksByName(String name) {
+        final var books = (name != null && !name.isBlank()) ? repository.findByName(name) : repository.findAll();
+        return books.stream().map(this::toResponse).toList();
+    }
+
+    @Override
     public DigitizedBookResponse addDigitizedBook(DigitizedBookRequest request, UUID physicalBookId) {
         DigitizedBook book = toEntity(request);
         if (repository.existsById(book.getId()))

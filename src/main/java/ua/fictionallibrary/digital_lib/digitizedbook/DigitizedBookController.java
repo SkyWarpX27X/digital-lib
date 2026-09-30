@@ -33,6 +33,11 @@ public class DigitizedBookController {
         return ResponseEntity.ok(service.getAllDigitizedBooks());
     }
 
+    @GetMapping
+    public ResponseEntity<List<DigitizedBookResponse>> searchBooks(@RequestParam(required = false) String name) {
+        return ResponseEntity.ok(service.findDigitizedBooksByName(name));
+    }
+
     @PostMapping
     public ResponseEntity<DigitizedBookResponse> createBook(@Validated(OnCreate.class) @RequestBody DigitizedBookRequest request) {
         DigitizedBookResponse response = service.addDigitizedBook (request, request.physicalBookId());

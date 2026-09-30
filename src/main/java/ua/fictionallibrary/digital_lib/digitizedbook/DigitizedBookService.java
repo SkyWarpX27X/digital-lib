@@ -9,6 +9,7 @@ import java.util.UUID;
 public interface DigitizedBookService {
     DigitizedBookResponse getDigitizedBook(UUID id);
     List<DigitizedBookResponse> getAllDigitizedBooks();
+    List<DigitizedBookResponse> findDigitizedBooksByName(String name);
     DigitizedBookResponse addDigitizedBook(DigitizedBookRequest request, UUID physicalBookId);
     DigitizedBookResponse updateDigitizedBook(UUID id, DigitizedBookRequest request);
     void deleteDigitizedBook(UUID id);
