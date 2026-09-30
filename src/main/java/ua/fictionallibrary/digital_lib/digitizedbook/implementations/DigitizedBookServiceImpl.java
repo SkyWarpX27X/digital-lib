@@ -2,6 +2,7 @@ package ua.fictionallibrary.digital_lib.digitizedbook.implementations;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ua.fictionallibrary.digital_lib.author.Author;
 import ua.fictionallibrary.digital_lib.author.AuthorService;
 import ua.fictionallibrary.digital_lib.digitizedbook.BookDigitizedEvent;
@@ -12,6 +13,7 @@ import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookRequest;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookResponse;
 import ua.fictionallibrary.digital_lib.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.exception.DuplicateException;
+import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookService;
 
 import java.util.List;
 import java.util.UUID;
@@ -22,14 +24,17 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
     private final DigitizedBookRepository repository;
     private final ApplicationEventPublisher publisher;
     private final AuthorService authorService;
+    private final PhysicalBookService physicalBookService;
 
-    public DigitizedBookServiceImpl(DigitizedBookRepository repository, ApplicationEventPublisher publisher, AuthorService authorService) {
+    public DigitizedBookServiceImpl(DigitizedBookRepository repository, ApplicationEventPublisher publisher, AuthorService authorService, PhysicalBookService physicalBookService) {
         this.repository = repository;
         this.publisher = publisher;
         this.authorService = authorService;
+        this.physicalBookService = physicalBookService;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DigitizedBookResponse getDigitizedBook(UUID id) {
         return repository.findById(id)
                 .map(this::toResponse)
@@ -37,16 +42,17 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<DigitizedBookResponse> getAllDigitizedBooks() {
         return repository.findAll().stream().map(this::toResponse).toList();
     }
 
     @Override
+    @Transactional
     public DigitizedBookResponse addDigitizedBook(DigitizedBookRequest request, UUID physicalBookId) {
-        DigitizedBook book = toEntity(request);
-        if (repository.existsById(book.getId()))
-            throw new DuplicateException("Digitized book with id " + book.getId() + " already exists");
-        DigitizedBook digitizedBook = repository.save(book);
+        if (!physicalBookService.exists(physicalBookId))
+            throw new DataNotFoundException("Physical book with ID " + physicalBookId + " does not exist.");
+        DigitizedBook digitizedBook = repository.save(toEntity(request));
         publisher.publishEvent(new BookDigitizedEvent(
                 digitizedBook.getId(),
                 physicalBookId
@@ -55,14 +61,25 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
     }
 
     @Override
+    @Transactional
     public DigitizedBookResponse updateDigitizedBook(UUID id, DigitizedBookRequest request) {
-        if (!repository.existsById(id))
-            throw new DataNotFoundException("Failed to update, not found digitized book with id " + id);
-        DigitizedBook book = toEntity(request);
+        DigitizedBook book = repository.findById(id)
+                .orElseThrow(() -> new DataNotFoundException("Failed to update, not found digitized book with id " + id));
+        book.setName(request.name());
+        book.setAuthors(authorService.findOrCreate(request.authors()));
+        book.setDescription(request.description());
+        book.setTopic(request.topic());
+        book.setPublishingYear(request.publishingYear());
+        book.setLanguage(request.language());
+        book.setResourceType(request.resourceType());
+        book.setCopyrighted(request.isCopyrighted());
+        book.setCoverUrl(request.coverUrl());
+        book.setFileUrl(request.fileUrl());
         return toResponse(repository.save(book));
     }
 
     @Override
+    @Transactional
     public void deleteDigitizedBook(UUID id) {
         if (!repository.existsById(id))
             throw new DataNotFoundException("Failed to delete, not found digitized book with id " + id);

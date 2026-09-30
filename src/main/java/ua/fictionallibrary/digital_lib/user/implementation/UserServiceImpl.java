@@ -2,6 +2,7 @@ package ua.fictionallibrary.digital_lib.user.implementation;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ua.fictionallibrary.digital_lib.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.exception.DuplicateException;
 import ua.fictionallibrary.digital_lib.user.*;
@@ -22,6 +23,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserResponse getUser(UUID userId) {
         return userRepository.findById(userId)
                 .map(this::toResponse)
@@ -29,31 +31,45 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll().stream().map(this::toResponse).toList();
     }
 
     @Override
+    @Transactional
     public UserResponse addUser(User user) {
-        if (userRepository.existsById(user.getId()))
-            throw new DuplicateException("User with id " + user.getId() + " already exists");
+        if (userRepository.existsByLogin(user.getLogin()))
+            throw new DuplicateException("User with login " + user.getLogin() + " already exists");
+        User saved = userRepository.save(user);
         eventPublisher.publishEvent(new UserAddedEvent(
-                user.getId(),
-                user.getName(),
-                user.getSurname(),
-                user.getPatronymic()
+                saved.getId(),
+                saved.getName(),
+                saved.getSurname(),
+                saved.getPatronymic()
         ));
-        return toResponse(userRepository.save(user));
+        return toResponse(saved);
     }
 
     @Override
+    @Transactional
     public UserResponse updateUser(UUID userId, User user) {
-        if (!userRepository.existsById(userId))
-            throw new DataNotFoundException("Can't update non-existent user " + userId);
-        return toResponse(userRepository.save(user));
+        User existing = userRepository.findById(userId)
+                .orElseThrow(() -> new DataNotFoundException("Can't update non-existent user " + userId));
+        if (!existing.getLogin().equals(user.getLogin()) && userRepository.existsByLogin(user.getLogin()))
+            throw new DuplicateException("User with login " + user.getLogin() + " already exists");
+        existing.setLogin(user.getLogin());
+        existing.setPassword(user.getPassword());
+        existing.setName(user.getName());
+        existing.setSurname(user.getSurname());
+        existing.setPatronymic(user.getPatronymic());
+        existing.setRole(user.getRole());
+        existing.setActive(user.isActive());
+        return toResponse(userRepository.save(existing));
     }
 
     @Override
+    @Transactional
     public void deleteUser(UUID userId) {
         if (!userRepository.existsById(userId))
             throw new DataNotFoundException("Can't delete non-existent user " + userId);

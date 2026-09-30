@@ -40,7 +40,7 @@ public class PhysicalBookController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PhysicalBookResponse> updateBook(@PathVariable UUID id, @Validated(OnUpdate.class) PhysicalBookRequest request) {
+    public ResponseEntity<PhysicalBookResponse> updateBook(@PathVariable UUID id, @Validated(OnUpdate.class) @RequestBody PhysicalBookRequest request) {
         PhysicalBookResponse response = service.updatePhysicalBook(id, request);
         return ResponseEntity.ok(response);
     }

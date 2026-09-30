@@ -41,7 +41,8 @@ public class DigitizedBookController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DigitizedBookResponse> updateBook(@PathVariable UUID id, @Validated(OnUpdate.class) DigitizedBookRequest request) {
+    public ResponseEntity<DigitizedBookResponse> updateBook(@PathVariable UUID id, @Validated(OnUpdate.class)
+    @RequestBody DigitizedBookRequest request) {
         DigitizedBookResponse response = service.updateDigitizedBook(id, request);
         return ResponseEntity.ok(response);
     }

@@ -11,10 +11,10 @@ import java.util.UUID;
 public interface PhysicalBookRepository extends JpaRepository<PhysicalBook, UUID> {
     @Override
     @NullMarked
-    @Query("SELECT DISTINCT b FROM PhysicalBook b JOIN FETCH b.authors")
+    @Query("SELECT DISTINCT b FROM PhysicalBook b LEFT JOIN FETCH b.authors")
     List<PhysicalBook> findAll();
     @Override
     @NullMarked
-    @Query("SELECT DISTINCT b FROM PhysicalBook b JOIN FETCH b.authors WHERE b.id = :physicalBookId")
-    Optional<PhysicalBook> findById(UUID physicalBooKId);
+    @Query("SELECT DISTINCT b FROM PhysicalBook b LEFT JOIN FETCH b.authors WHERE b.id = :physicalBookId")
+    Optional<PhysicalBook> findById(UUID physicalBookId);
 }

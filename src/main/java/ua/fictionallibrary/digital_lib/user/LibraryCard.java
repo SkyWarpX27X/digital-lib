@@ -18,14 +18,14 @@ public class LibraryCard {
     Year birthYear;
     @Column(nullable = false)
     String livingAddress;
-    @Column(nullable = false)
+    @Column
     String workOrStudyAddress;
     @Column
     String organisation;
     @Column
     String workPosition;
     @OneToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "owner_id")
     @MapsId
     private User user;
 

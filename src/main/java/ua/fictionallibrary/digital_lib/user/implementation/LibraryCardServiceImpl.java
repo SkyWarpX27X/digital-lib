@@ -2,6 +2,7 @@ package ua.fictionallibrary.digital_lib.user.implementation;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ua.fictionallibrary.digital_lib.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.exception.DuplicateException;
 import ua.fictionallibrary.digital_lib.user.*;
@@ -26,6 +27,7 @@ public class LibraryCardServiceImpl implements LibraryCardService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public LibraryCardResponse getLibraryCard(UUID userId) {
         return libraryCardRepository.findByOwnerId(userId)
                 .map(this::toResponse)
@@ -33,30 +35,41 @@ public class LibraryCardServiceImpl implements LibraryCardService {
     }
 
     @Override
+    @Transactional
     public LibraryCardResponse addLibraryCard(UUID userId, LibraryCardRequest card) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new DataNotFoundException(
                         "Invalid user " + userId + " doesn't exist"
                 ));
-        if (libraryCardRepository.existsById(userId))
+        if (libraryCardRepository.existsByOwnerId(userId))
             throw new DuplicateException("Digital card for user " + userId + " already exists");
 
+        LibraryCard saved = libraryCardRepository.save(toEntity(card, user));
+        user.setLibraryCard(saved);
         eventPublisher.publishEvent(new LibraryCardAddedEvent(
                 userId,
                 card.email()
         ));
-        return toResponse(libraryCardRepository.save(toEntity(card, user)));
+        return toResponse(saved);
     }
 
     @Override
+    @Transactional
     public LibraryCardResponse updateLibraryCard(UUID userId, LibraryCardRequest card) {
-        if (!libraryCardRepository.existsById(userId))
-            throw new DataNotFoundException("Digital card for user " + userId + " doesn't exist");
-        User user = userRepository.getReferenceById(userId);
-        return toResponse(libraryCardRepository.save(toEntity(card, user)));
+        LibraryCard existing = libraryCardRepository.findByOwnerId(userId)
+                .orElseThrow(() -> new DataNotFoundException("Digital card for user " + userId + " doesn't exist"));
+        existing.setEmail(card.email());
+        existing.setPostCode(card.postcode());
+        existing.setBirthYear(card.birthYear());
+        existing.setLivingAddress(card.livingAddress());
+        existing.setWorkOrStudyAddress(card.workOrStudyAddress());
+        existing.setOrganisation(card.organisation());
+        existing.setWorkPosition(card.workPosition());
+        return toResponse(libraryCardRepository.save(existing));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public String getEmail(UUID userId) {
         return libraryCardRepository.findByOwnerId(userId)
                 .map(LibraryCard::getEmail)
@@ -64,6 +77,7 @@ public class LibraryCardServiceImpl implements LibraryCardService {
     }
 
     @Override
+    @Transactional
     public void deleteLibraryCard(UUID userId) {
         if (!libraryCardRepository.existsByOwnerId(userId))
             throw new DataNotFoundException("Can't delete non-existent library card for user " + userId);
@@ -80,7 +94,7 @@ public class LibraryCardServiceImpl implements LibraryCardService {
                 entity.getLivingAddress(), entity.getWorkOrStudyAddress(), entity.getOrganisation(), entity.getWorkPosition());
     }
     private LibraryCard toEntity(LibraryCardRequest request, User user) {
-        return new LibraryCard(user.getId(), request.email(), request.postcode(), request.birthYear(),
+        return new LibraryCard(null, request.email(), request.postcode(), request.birthYear(),
                 request.livingAddress(), request.workOrStudyAddress(), request.organisation(), request.workPosition(),
                 user);
     }

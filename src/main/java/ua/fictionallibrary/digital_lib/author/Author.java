@@ -1,11 +1,8 @@
 package ua.fictionallibrary.digital_lib.author;
 
 import jakarta.persistence.*;
-import ua.fictionallibrary.digital_lib.bookmark.BookmarkId;
-import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBook;
-import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBook;
 
-import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -14,17 +11,13 @@ public class Author {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID authorId;
-    @Column(nullable = false)
+
+    @Column(nullable = false, unique = true)
     private String name;
 
     protected Author() {}
-    public Author(UUID id, String name) {
-        this.authorId = id;
-        this.name = name;
-    }
 
     public Author(String name) {
-        this.authorId = UUID.randomUUID();
         this.name = name;
     }
 
@@ -38,6 +31,18 @@ public class Author {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Author other)) return false;
+        return Objects.equals(name, other.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(name);
     }
 }
 

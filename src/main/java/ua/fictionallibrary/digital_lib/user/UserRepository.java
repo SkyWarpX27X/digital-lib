@@ -9,12 +9,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
-
-    //UserEntity saveUser(UserEntity entity);
-    //Optional<UserEntity> getUser(UUID userId);
-    //List<UserEntity> getAllUsers();
-    //void deleteUser(UUID userId);
-    //boolean existsById(UUID userId);
     @Override
     @NullMarked
     @Query("SELECT DISTINCT u FROM User u JOIN FETCH u.libraryCard")
