@@ -38,8 +38,6 @@ public class LibraryCardServiceImpl implements LibraryCardService {
                 .orElseThrow(() -> new DataNotFoundException(
                         "Invalid user " + userId + " doesn't exist"
                 ));
-        if (!libraryCardRepository.existsById(userId))
-            throw new DataNotFoundException("User with id " + userId + " does not have a library card and cannot place book orders");
         if (libraryCardRepository.existsById(userId))
             throw new DuplicateException("Digital card for user " + userId + " already exists");
 
