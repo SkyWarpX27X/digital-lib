@@ -43,6 +43,17 @@ public class LibraryCard {
 
     protected LibraryCard() {}
 
+    public String toString() {
+        String maskedEmail = email.replaceAll("(^.).*(@.*$)", "$1***$2");
+        String maskedPostCode = postCode.replaceAll("\\S", "*");
+        String maskedLivingAddress = livingAddress.split(" ")[0] + "*****";
+        String workAddress = workOrStudyAddress == null ? "" : ", адреса роботи/навчання: " + workOrStudyAddress.split(" ")[0] + "*****";
+        String organisationInfo = organisation == null ? "" : ", організація: " + organisation;
+        String workPositionInfo = workPosition == null ? "" : ", посада: " + workPosition;
+        return "Id власника: "+ownerId+", email: "+maskedEmail+", індекс: "+maskedPostCode+", рік народження: "+birthYear
+                +", адреса проживання: "+maskedLivingAddress+workAddress+organisationInfo+workPositionInfo;
+    }
+
     public UUID getOwnerId() {
         return ownerId;
     }

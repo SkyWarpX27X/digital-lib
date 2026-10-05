@@ -12,6 +12,6 @@ public class LibraryCardAuditEventListener {
 
     @ApplicationModuleListener
     public void onLibraryCardCreated(LibraryCardAddedEvent event) {
-        log.info("Створено бібліотечну картку для користувача {} з поштою {}", event.userId(), event.email());
+        log.info("Створено бібліотечну картку ({})", event.message());
     }
 }

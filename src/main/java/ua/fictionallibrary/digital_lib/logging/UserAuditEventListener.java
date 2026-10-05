@@ -12,6 +12,6 @@ public class UserAuditEventListener {
 
     @ApplicationModuleListener
     public void onUserAdded(UserAddedEvent event) {
-        log.info("Створено користувача {}: {} {} {}", event.id(), event.surname(), event.name(), event.patronymic());
+        log.info("Створено користувача ({})", event.message());
     }
 }

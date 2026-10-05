@@ -27,7 +27,6 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private LibraryCard libraryCard;
 
-
     protected User() {}
 
     public User(String login, String password, String name, String surname, String patronymic, UserRole role, boolean isActive) {
@@ -38,6 +37,11 @@ public class User {
         this.patronymic = patronymic;
         this.role = role;
         this.isActive = isActive;
+    }
+
+    public String toString() {
+        return "Id: "+id+", логін: "+login+", пароль: "+password.replaceAll("\\S", "*")
+                +", ім'я: "+name+", прізвище: "+surname+", по-батькові: "+patronymic+", роль: "+role;
     }
 
     public UUID getId(){

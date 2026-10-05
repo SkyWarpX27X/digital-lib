@@ -47,8 +47,7 @@ public class LibraryCardServiceImpl implements LibraryCardService {
         LibraryCard saved = libraryCardRepository.save(toEntity(card, user));
         user.setLibraryCard(saved);
         eventPublisher.publishEvent(new LibraryCardAddedEvent(
-                userId,
-                card.email()
+                saved.toString()
         ));
         return toResponse(saved);
     }

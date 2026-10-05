@@ -43,10 +43,7 @@ public class UserServiceImpl implements UserService {
             throw new DuplicateException("User with login " + user.getLogin() + " already exists");
         User saved = userRepository.save(user);
         eventPublisher.publishEvent(new UserAddedEvent(
-                saved.getId(),
-                saved.getName(),
-                saved.getSurname(),
-                saved.getPatronymic()
+                saved.toString()
         ));
         return toResponse(saved);
     }
