@@ -73,7 +73,7 @@ public class DigitizedBookController {
     @PutMapping("/{id}")
     @Operation(summary = "Оновити дані оцифрованої книги")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Книгу успішно створено"),
+            @ApiResponse(responseCode = "200", description = "Книгу успішно оновлено"),
             @ApiResponse(responseCode = "400", description = "Некоректні вхідні дані запиту", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "404", description = "Оцифровану книгу не знайдено", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })

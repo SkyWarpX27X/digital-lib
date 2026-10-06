@@ -62,7 +62,7 @@ public class PhysicalBookController {
     @PutMapping("/{id}")
     @Operation(summary = "Оновити дані фізичної книги")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Книгу успішно створено"),
+            @ApiResponse(responseCode = "200", description = "Книгу успішно оновлено"),
             @ApiResponse(responseCode = "400", description = "Некоректні вхідні дані запиту", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "404", description = "Фізичну книгу не знайдено", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
