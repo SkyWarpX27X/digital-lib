@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -19,6 +20,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/v1/book-orders")
+@Tag(name = "Замовлення книги на оцифрування", description = "Керування створенням, редагуванням та отриманням замовлень (видалення не підтримується)")
 public class BookOrderController {
     private final BookOrderService service;
 
