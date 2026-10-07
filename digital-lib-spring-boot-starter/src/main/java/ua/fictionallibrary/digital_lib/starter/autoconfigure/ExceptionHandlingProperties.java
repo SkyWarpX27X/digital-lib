@@ -1,4 +1,4 @@
-package ua.fictionallibrary.digital_lib.starter;
+package ua.fictionallibrary.digital_lib.starter.autoconfigure;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

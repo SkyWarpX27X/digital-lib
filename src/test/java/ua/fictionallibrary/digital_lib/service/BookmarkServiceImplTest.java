@@ -10,8 +10,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import ua.fictionallibrary.digital_lib.bookmark.*;
 import ua.fictionallibrary.digital_lib.bookmark.implementation.BookmarkServiceImpl;
 import ua.fictionallibrary.digital_lib.bookmark.dto.BookmarkResponse;
-import ua.fictionallibrary.digital_lib.starter.DataNotFoundException;
-import ua.fictionallibrary.digital_lib.starter.DuplicateException;
+import ua.fictionallibrary.digital_lib.starter.exception.DataNotFoundException;
+import ua.fictionallibrary.digital_lib.starter.exception.DuplicateException;
 
 import java.util.Optional;
 import java.util.UUID;
