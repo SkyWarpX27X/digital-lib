@@ -1,0 +1,958 @@
+{
+  "info": {
+    "name": "User + LibraryCard API Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get all users (initial state)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 200 OK\", function() {\r\n    pm.response.to.have.status(200)\r\n});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create a new user",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 201 Created\", function() {\r\n    pm.response.to.have.status(201);\r\n})\r\nconst json = pm.response.json();\r\npm.test(\"Response body contains the correct user details\", function () {\r\n    pm.expect(json.id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i);\r\n    pm.expect(json.name).to.eql(\"John\");\r\n    pm.expect(json.surname).to.eql(\"Doe\");\r\n    pm.expect(json.patronymic).to.eql(\"Johnsonovych\");\r\n    pm.expect(json.role).to.eql(\"READER\")\r\n    pm.expect(json.isActive).to.eql(true);\r\n    pm.environment.set('createdUserId', json.id);\r\n})\r\n\r\n            \r\n"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n\t\"login\" : \"john_doe\",\r\n    \"password\" : \"superSecretPassword\",\r\n    \"name\": \"John\",\r\n    \"surname\" : \"Doe\",\r\n    \"patronymic\" : \"Johnsonovych\",\r\n    \"role\" : \"READER\",\r\n    \"isActive\" : true\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get user by ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 200 OK\", function() {\r\n    pm.response.to.have.status(200)\r\n});\r\nconst json = pm.response.json();\r\npm.test(\"Response body contains details of requested user\", function() {\r\n    pm.expect(json.id).to.eql(pm.environment.get(\"createdUserId\"));\r\n    pm.expect(json.name).to.eql(\"John\");\r\n    pm.expect(json.surname).to.eql(\"Doe\");\r\n    pm.expect(json.patronymic).to.eql(\"Johnsonovych\");\r\n    pm.expect(json.role).to.eql(\"READER\")\r\n    pm.expect(json.isActive).to.eql(true);\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users/{{createdUserId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users",
+            "{{createdUserId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update user by ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 200 OK\", function() {\r\n    pm.response.to.have.status(200);\r\n})\r\nconst json = pm.response.json();\r\npm.test(\"Response body contains the correct user details\", function () {\r\n    pm.expect(json.id).to.eql(pm.environment.get(\"createdUserId\"));\r\n    pm.expect(json.name).to.eql(\"Jane\");\r\n    pm.expect(json.surname).to.eql(\"Doe\");\r\n    pm.expect(json.patronymic).to.eql(\"Johnsonovych\");\r\n    pm.expect(json.role).to.eql(\"ADMIN\")\r\n    pm.expect(json.isActive).to.eql(true);\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n\t\"login\" : \"john_doe\",\r\n    \"password\" : \"superSecretPassword\",\r\n    \"name\": \"Jane\",\r\n    \"surname\" : \"Doe\",\r\n    \"patronymic\" : \"Johnsonovych\",\r\n    \"role\" : \"ADMIN\",\r\n    \"isActive\" : true\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users/{{createdUserId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users",
+            "{{createdUserId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create another user",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 201 Created\", function() {\r\n    pm.response.to.have.status(201);\r\n})\r\nconst json = pm.response.json();\r\npm.test(\"Response body contains the correct user details\", function () {\r\n    pm.expect(json.id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i);\r\n    pm.expect(json.name).to.eql(\"Dummy\");\r\n    pm.expect(json.surname).to.eql(\"Dummy\");\r\n    pm.expect(json.role).to.eql(\"READER\")\r\n    pm.expect(json.isActive).to.eql(true);\r\n    pm.environment.set('createdUserId2', json.id);\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n\t\"login\" : \"dummy\",\r\n    \"password\" : \"passwordForDummies\",\r\n    \"name\": \"Dummy\",\r\n    \"surname\" : \"Dummy\",\r\n    \"role\" : \"READER\",\r\n    \"isActive\" : true\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get all users again",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 200 OK\", function() {\r\n    pm.response.to.have.status(200)\r\n});\r\nconst json = pm.response.json();\r\npm.test(\"Response body length is 2\", function() {\r\n    pm.expect(json.length).to.eql(2)\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Attempt to create user with validation errors",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 400 Bad Request\", function() {\r\n    pm.response.to.have.status(400);\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"login\": \"\",\r\n  \"password\": \"\",\r\n  \"name\": \"\",\r\n  \"surname\": \"\",\r\n  \"isActive\": true\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Attempt to create user with invalid role value",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 400 Bad Request\", function() {\r\n    pm.response.to.have.status(400);\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n\t\"login\" : \"dummy\",\r\n    \"password\" : \"passwordForDummies\",\r\n    \"name\": \"Dummy\",\r\n    \"surname\" : \"Dummy\",\r\n    \"role\" : \"WHATS_A_ROLE\",\r\n    \"isActive\" : true\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get user with non-existent ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 404 Not Found\", function() {\r\n    pm.response.to.have.status(404);\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n\t\"login\" : \"john_doe\",\r\n    \"password\" : \"superSecretPassword\",\r\n    \"name\": \"John\",\r\n    \"surname\" : \"Doe\",\r\n    \"patronymic\" : \"Johnsonovych\",\r\n    \"role\" : \"READER\",\r\n    \"isActive\" : true\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users/bdb70cd0-84bc-47b9-8772-94cfc607c1e6",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users",
+            "bdb70cd0-84bc-47b9-8772-94cfc607c1e6"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update user with validation errors",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 400 Bad Request\", function() {\r\n    pm.response.to.have.status(400);\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n\t\"login\" : \"\",\r\n    \"password\" : \"\",\r\n    \"name\": \"\",\r\n    \"surname\" : \"\",\r\n    \"role\" : \"\",\r\n    \"isActive\" : true\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users/{{createdUserId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users",
+            "{{createdUserId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update user with non-existent ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 404 Not Found\", function() {\r\n    pm.response.to.have.status(404);\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n\t\"login\" : \"dummy\",\r\n    \"password\" : \"passwordForDummies\",\r\n    \"name\": \"Dummy\",\r\n    \"surname\" : \"Dummy\",\r\n    \"role\" : \"READER\",\r\n    \"isActive\" : true\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users/bdb70cd0-84bc-47b9-8772-94cfc607c1e6",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users",
+            "bdb70cd0-84bc-47b9-8772-94cfc607c1e6"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Attempt to create user with existing login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 409 Conflict\", function() {\r\n    pm.response.to.have.status(409);\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n\t\"login\" : \"john_doe\",\r\n    \"password\" : \"superSecretPassword\",\r\n    \"name\": \"John\",\r\n    \"surname\" : \"Doe\",\r\n    \"patronymic\" : \"Johnsonovych\",\r\n    \"role\" : \"READER\",\r\n    \"isActive\" : true\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get library card of user without a card",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 404 Not Found\", function() {\r\n    pm.response.to.have.status(404);\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users/{{createdUserId2}}/library-card",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users",
+            "{{createdUserId2}}",
+            "library-card"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create a library card",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 201 Created\", function() {\r\n    pm.response.to.have.status(201);\r\n})\r\nconst json = pm.response.json();\r\npm.test(\"Response body contains the correct library card details\", function () {\r\n    pm.expect(json.ownerId).to.eql(pm.environment.get(\"createdUserId\"));\r\n    pm.expect(json.email).to.eql(\"john.doe@gmail.com\");\r\n    pm.expect(json.postcode).to.eql(\"010101\");\r\n    pm.expect(json.birthYear).to.eql(\"2000\");\r\n    pm.expect(json.livingAddress).to.eql(\"Joshing Around Ave., Brighton\");\r\n    pm.expect(json.workOrStudyAddress).to.eql(\"Serious Mode Blvd., Brighton\");\r\n    pm.expect(json.organisation).to.eql(\"Serious Factory\");\r\n    pm.expect(json.workPosition).to.eql(\"Serious Manufacturer\");\r\n})\r\npm.test(\"Location header is present\", function () {\r\n    pm.response.to.have.header(\"Location\");\r\n    pm.expect(pm.response.headers.get(\"Location\")).to.include(\"/library-card\");\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"john.doe@gmail.com\",\r\n    \"postcode\": \"010101\",\r\n    \"birthYear\": 2000,\r\n    \"livingAddress\": \"Joshing Around Ave., Brighton\",\r\n    \"workOrStudyAddress\": \"Serious Mode Blvd., Brighton\",\r\n    \"organisation\": \"Serious Factory\",\r\n    \"workPosition\": \"Serious Manufacturer\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users/{{createdUserId}}/library-card",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users",
+            "{{createdUserId}}",
+            "library-card"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get library card by user ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 200 OK\", function() {\r\n    pm.response.to.have.status(200)\r\n});\r\nconst json = pm.response.json();\r\npm.test(\"Response body contains details of requested library card\", function() {\r\n    pm.expect(json.ownerId).to.eql(pm.environment.get(\"createdUserId\"));\r\n    pm.expect(json.email).to.eql(\"john.doe@gmail.com\");\r\n    pm.expect(json.postcode).to.eql(\"010101\");\r\n    pm.expect(json.birthYear).to.eql(\"2000\");\r\n    pm.expect(json.livingAddress).to.eql(\"Joshing Around Ave., Brighton\");\r\n    pm.expect(json.workOrStudyAddress).to.eql(\"Serious Mode Blvd., Brighton\");\r\n    pm.expect(json.organisation).to.eql(\"Serious Factory\");\r\n    pm.expect(json.workPosition).to.eql(\"Serious Manufacturer\");\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users/{{createdUserId}}/library-card",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users",
+            "{{createdUserId}}",
+            "library-card"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update library card by user ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 200 OK\", function() {\r\n    pm.response.to.have.status(200);\r\n})\r\nconst json = pm.response.json();\r\npm.test(\"Response body contains the updated library card details\", function () {\r\n    pm.expect(json.ownerId).to.eql(pm.environment.get(\"createdUserId\"));\r\n    pm.expect(json.email).to.eql(\"jane.doe@gmail.com\");\r\n    pm.expect(json.postcode).to.eql(\"011011\");\r\n    pm.expect(json.birthYear).to.eql(\"1999\");\r\n    pm.expect(json.livingAddress).to.eql(\"living Address 2\");\r\n    pm.expect(json.workOrStudyAddress).to.eql(\"Electric Boogaloo\");\r\n    pm.expect(json.organisation).to.eql(\"Transition Factory\");\r\n    pm.expect(json.workPosition).to.eql(\"The Transer TM\");\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"jane.doe@gmail.com\",\r\n    \"postcode\": \"011011\",\r\n    \"birthYear\": 1999,\r\n    \"livingAddress\": \"living Address 2\",\r\n    \"workOrStudyAddress\": \"Electric Boogaloo\",\r\n    \"organisation\": \"Transition Factory\",\r\n    \"workPosition\": \"The Transer TM\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users/{{createdUserId}}/library-card",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users",
+            "{{createdUserId}}",
+            "library-card"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create a library card without optional fields",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 201 Created\", function() {\r\n    pm.response.to.have.status(201);\r\n})\r\nconst json = pm.response.json();\r\npm.test(\"Response body contains required fields and null optional fields\", function () {\r\n    pm.expect(json.ownerId).to.eql(pm.environment.get(\"createdUserId2\"));\r\n    pm.expect(json.email).to.eql(\"dummy@gmail.com\");\r\n    pm.expect(json.postcode).to.eql(\"8008135\");\r\n    pm.expect(json.birthYear).to.eql(\"2007\");\r\n    pm.expect(json.livingAddress).to.eql(\"Muda, Muda, Muda\");\r\n    pm.expect(json).to.not.have.property(\"workOrStudyAddress\");\r\n    pm.expect(json).to.not.have.property(\"organisation\");\r\n    pm.expect(json).to.not.have.property(\"workPosition\");\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"dummy@gmail.com\",\r\n    \"postcode\": \"8008135\",\r\n    \"birthYear\": 2007,\r\n    \"livingAddress\": \"Muda, Muda, Muda\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users/{{createdUserId2}}/library-card",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users",
+            "{{createdUserId2}}",
+            "library-card"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Attempt to create a library card that already exists",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 409 Conflict\", function() {\r\n    pm.response.to.have.status(409);\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"john.doe@gmail.com\",\r\n    \"postcode\": \"010101\",\r\n    \"birthYear\": 2000,\r\n    \"livingAddress\": \"The hood\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users/{{createdUserId}}/library-card",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users",
+            "{{createdUserId}}",
+            "library-card"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Attempt to create a library card with validation errors",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 400 Bad Request\", function() {\r\n    pm.response.to.have.status(400);\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"\",\r\n    \"postcode\": \"\",\r\n    \"birthYear\": -10,\r\n    \"livingAddress\": \"\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users/{{createdUserId}}/library-card",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users",
+            "{{createdUserId}}",
+            "library-card"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Attempt to create a library card with invalid email",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"verybademail\",\r\n    \"postcode\": \"01001\",\r\n    \"birthYear\": 1999,\r\n    \"livingAddress\": \"the hood 2\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users/{{createdUserId}}/library-card",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users",
+            "{{createdUserId}}",
+            "library-card"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Attempt to create a library card with invalid birth year",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 400 Bad Request\", function() {\r\n    pm.response.to.have.status(400);\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"good@email.com\",\r\n    \"postcode\": \"01001\",\r\n    \"birthYear\": \"woah there bucko\",\r\n    \"livingAddress\": \"the hood 2\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users/{{createdUserId}}/library-card",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users",
+            "{{createdUserId}}",
+            "library-card"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Attempt to create a library card for non-existent user",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 404 Not Found\", function() {\r\n    pm.response.to.have.status(404);\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"iamnotreal@gmail.com\",\r\n    \"postcode\": \"1455078341\",\r\n    \"birthYear\": 1995,\r\n    \"livingAddress\": \"the air\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users/3bf201e4-9737-413d-aae3-9bff75784d99/library-card",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users",
+            "3bf201e4-9737-413d-aae3-9bff75784d99",
+            "library-card"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get library card for non-existent user",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 404 Not Found\", function() {\r\n    pm.response.to.have.status(404);\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users/3bf201e4-9737-413d-aae3-9bff75784d99/library-card",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users",
+            "3bf201e4-9737-413d-aae3-9bff75784d99",
+            "library-card"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update library card with validation errors",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 400 Bad Request\", function() {\r\n    pm.response.to.have.status(400);\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"bademail\",\r\n    \"postcode\": \"\",\r\n    \"birthYear\": -500,\r\n    \"livingAddress\": \"\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users/{{createdUserId}}/library-card",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users",
+            "{{createdUserId}}",
+            "library-card"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update library card with non-existent user ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 404 Not Found\", function() {\r\n    pm.response.to.have.status(404);\r\n})"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"iamnotreal@gmail.com\",\r\n    \"postcode\": \"1455078341\",\r\n    \"birthYear\": 1995,\r\n    \"livingAddress\": \"the air\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users/3bf201e4-9737-413d-aae3-9bff75784d99/library-card",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users",
+            "3bf201e4-9737-413d-aae3-9bff75784d99",
+            "library-card"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
