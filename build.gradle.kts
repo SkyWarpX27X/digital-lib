@@ -25,6 +25,7 @@ dependencies {
 	implementation("org.springframework.modulith:spring-modulith-events-api")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1")
+	implementation(project(":digital-lib-spring-boot-starter"))
 	runtimeOnly("com.h2database:h2")
 	testImplementation("org.springframework.modulith:spring-modulith-starter-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")

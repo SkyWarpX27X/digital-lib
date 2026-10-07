@@ -16,7 +16,7 @@ import ua.fictionallibrary.digital_lib.bookorder.dto.BookOrderRequest;
 import ua.fictionallibrary.digital_lib.bookorder.implementations.BookOrderServiceImpl;
 import ua.fictionallibrary.digital_lib.bookorder.BookOrder;
 import ua.fictionallibrary.digital_lib.bookorder.dto.BookOrderResponse;
-import ua.fictionallibrary.digital_lib.exception.DuplicateException;
+import ua.fictionallibrary.digital_lib.starter.exception.DuplicateException;
 import ua.fictionallibrary.digital_lib.exception.InvalidOrderUpdateException;
 import ua.fictionallibrary.digital_lib.exception.LibraryCardNotFoundException;
 import ua.fictionallibrary.digital_lib.user.LibraryCardService;
