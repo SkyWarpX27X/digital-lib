@@ -63,7 +63,7 @@ jobs:
       - name: Start app
         run: |
           ./gradlew bootRun &
-           npx wait-on http://localhost:8080/actuator/health --timeout 60000
+           npx wait-on http://localhost:8080/actuator/health --timeout 120000
           
 
       - name: Run Newman
