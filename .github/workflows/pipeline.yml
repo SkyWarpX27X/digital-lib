@@ -57,6 +57,9 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
       - name: Start app
         run: |
           ./gradlew bootRun &
