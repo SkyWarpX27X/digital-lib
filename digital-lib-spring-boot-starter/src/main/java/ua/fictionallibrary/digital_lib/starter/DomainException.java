@@ -1,4 +1,4 @@
-package ua.fictionallibrary.digital_lib.starter.exception;
+package ua.fictionallibrary.digital_lib.starter;
 
 public abstract class DomainException extends RuntimeException {
     public DomainException(String message) {

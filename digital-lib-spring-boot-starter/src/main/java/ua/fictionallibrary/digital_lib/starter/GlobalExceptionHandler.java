@@ -1,4 +1,4 @@
-package ua.fictionallibrary.digital_lib.starter.exception;
+package ua.fictionallibrary.digital_lib.starter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

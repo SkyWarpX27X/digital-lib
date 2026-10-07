@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ua.fictionallibrary.digital_lib.author.Author;
 import ua.fictionallibrary.digital_lib.author.AuthorService;
 import ua.fictionallibrary.digital_lib.digitizedbook.BookDigitizedEvent;
-import ua.fictionallibrary.digital_lib.starter.exception.DataNotFoundException;
+import ua.fictionallibrary.digital_lib.starter.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookAddedEvent;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookRepository;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookService;

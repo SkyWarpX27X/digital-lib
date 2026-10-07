@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.fictionallibrary.digital_lib.bookmark.*;
 import ua.fictionallibrary.digital_lib.bookmark.dto.BookmarkResponse;
-import ua.fictionallibrary.digital_lib.starter.exception.DataNotFoundException;
-import ua.fictionallibrary.digital_lib.starter.exception.DuplicateException;
+import ua.fictionallibrary.digital_lib.starter.DataNotFoundException;
+import ua.fictionallibrary.digital_lib.starter.DuplicateException;
 
 import java.util.UUID;
 

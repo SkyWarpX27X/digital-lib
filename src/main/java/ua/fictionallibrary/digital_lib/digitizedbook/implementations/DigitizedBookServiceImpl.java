@@ -11,7 +11,7 @@ import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBookRepository;
 import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBookService;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookRequest;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookResponse;
-import ua.fictionallibrary.digital_lib.starter.exception.DataNotFoundException;
+import ua.fictionallibrary.digital_lib.starter.DataNotFoundException;
 
 import java.util.List;
 import java.util.UUID;
