@@ -25,6 +25,8 @@ dependencies {
 	implementation("org.springframework.modulith:spring-modulith-events-api")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1")
+	implementation("org.springframework.boot:spring-boot-starter-security")
+	implementation("org.bouncycastle:bcprov-jdk18on:1.85.2")
 	implementation(project(":digital-lib-spring-boot-starter"))
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-h2console")
