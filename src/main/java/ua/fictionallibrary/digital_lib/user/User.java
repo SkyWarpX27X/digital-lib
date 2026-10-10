@@ -1,17 +1,23 @@
 package ua.fictionallibrary.digital_lib.user;
 
 import jakarta.persistence.*;
+import org.jspecify.annotations.NullMarked;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
 @Table(name = "users")
-public class User {
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    @Column(nullable = false, length = 50)
-    private String login;
+    @Column(unique = true, nullable = false, length = 50)
+    private String username;
     @Column(nullable = false, length = 50)
     private String password;
     @Column(nullable = false, length = 30)
@@ -29,8 +35,8 @@ public class User {
 
     protected User() {}
 
-    public User(String login, String password, String name, String surname, String patronymic, UserRole role, boolean isActive) {
-        this.login = login;
+    public User(String username, String password, String name, String surname, String patronymic, UserRole role, boolean isActive) {
+        this.username = username;
         this.password = password;
         this.name = name;
         this.surname = surname;
@@ -40,8 +46,13 @@ public class User {
     }
 
     public String toString() {
-        return "Id: "+id+", логін: "+login+", пароль: "+password.replaceAll("\\S", "*")
-                +", ім'я: "+name+", прізвище: "+surname+", по-батькові: "+patronymic+", роль: "+role;
+        return "Id: " + id
+                + ", ім'я користувача: " + username
+                + ", пароль: " + password.replaceAll("\\S", "*")
+                + ", ім'я: " + name
+                + ", прізвище: " + surname
+                + ", по-батькові: " + patronymic
+                + ", роль: " + role;
     }
 
     public UUID getId(){
@@ -52,14 +63,23 @@ public class User {
         this.id = id;
     }
 
-    public String getLogin() {
-        return login;
+    @Override
+    @NullMarked
+    public String getUsername() {
+        return username;
     }
 
-    public void setLogin(String login) {
-        this.login = login;
+    public void setUsername(String login) {
+        this.username = login;
     }
 
+    @Override
+    @NullMarked
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(role.name()));
+    }
+
+    @Override
     public String getPassword() {
         return password;
     }

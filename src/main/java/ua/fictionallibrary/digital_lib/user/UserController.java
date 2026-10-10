@@ -75,7 +75,7 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
     private User toEntity(UserRequest request) {
-        return new User(request.login(), request.password(), request.name(), request.surname(),
+        return new User(request.username(), request.password(), request.name(), request.surname(),
                 request.patronymic(), request.role(), request.isActive());
     }
 }

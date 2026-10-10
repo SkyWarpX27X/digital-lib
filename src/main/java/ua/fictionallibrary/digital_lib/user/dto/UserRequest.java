@@ -6,8 +6,8 @@ import ua.fictionallibrary.digital_lib.user.UserRole;
 
 
 public record UserRequest(
-        @NotBlank(message = "Login must not be empty")
-        String login,
+        @NotBlank(message = "Username must not be empty")
+        String username,
 
         @NotBlank(message = "Password must not be empty")
         String password,

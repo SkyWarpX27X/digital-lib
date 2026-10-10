@@ -39,8 +39,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserResponse addUser(User user) {
-        if (userRepository.existsByLogin(user.getLogin()))
-            throw new DuplicateException("User with login " + user.getLogin() + " already exists");
+        if (userRepository.existsByUsername(user.getUsername()))
+            throw new DuplicateException("User with username " + user.getUsername() + " already exists");
         User saved = userRepository.save(user);
         eventPublisher.publishEvent(new UserAddedEvent(
                 saved.toString()
@@ -53,9 +53,9 @@ public class UserServiceImpl implements UserService {
     public UserResponse updateUser(UUID userId, User user) {
         User existing = userRepository.findById(userId)
                 .orElseThrow(() -> new DataNotFoundException("Can't update non-existent user " + userId));
-        if (!existing.getLogin().equals(user.getLogin()) && userRepository.existsByLogin(user.getLogin()))
-            throw new DuplicateException("User with login " + user.getLogin() + " already exists");
-        existing.setLogin(user.getLogin());
+        if (!existing.getUsername().equals(user.getUsername()) && userRepository.existsByUsername(user.getUsername()))
+            throw new DuplicateException("User with username " + user.getUsername() + " already exists");
+        existing.setUsername(user.getUsername());
         existing.setPassword(user.getPassword());
         existing.setName(user.getName());
         existing.setSurname(user.getSurname());
@@ -80,7 +80,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean existsByLogin(String login) {
-        return userRepository.existsByLogin(login);
+        return userRepository.existsByUsername(login);
     }
 
 

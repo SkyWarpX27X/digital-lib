@@ -46,7 +46,7 @@ public class UserServiceImplTest {
                 "Illiovych",
                 UserRole.READER,
                 true);
-        final var user = new User(userRequest.login(), userRequest.password(), userRequest.name(), userRequest.surname(),
+        final var user = new User(userRequest.username(), userRequest.password(), userRequest.name(), userRequest.surname(),
                 userRequest.patronymic(), userRequest.role(), userRequest.isActive());
         when(userRepository.save(user)).thenReturn(user);
         when(userRepository.existsById(user.getId())).thenReturn(false);
@@ -73,7 +73,7 @@ public class UserServiceImplTest {
                 "Illiovych",
                 UserRole.READER,
                 true);
-        final var user = new User(userRequest.login(), userRequest.password(), userRequest.name(), userRequest.surname(),
+        final var user = new User(userRequest.username(), userRequest.password(), userRequest.name(), userRequest.surname(),
                 userRequest.patronymic(), userRequest.role(), userRequest.isActive());
         when(userRepository.findById(user.getId())).thenReturn(Optional.empty());
 
