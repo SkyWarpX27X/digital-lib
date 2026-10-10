@@ -1,4 +1,4 @@
-package ua.fictionallibrary.digital_lib.security;
+package ua.fictionallibrary.digital_lib.security.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
