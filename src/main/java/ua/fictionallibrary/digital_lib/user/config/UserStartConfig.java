@@ -28,7 +28,7 @@ public class UserStartConfig {
                     "Роджер",
                     "Тейлор",
                     "",
-                    UserRole.READER,
+                    UserRole.BOOK_DELIVERY_DEPARTMENT,
                     true));
             repository.save(new User(
                     "queen",
@@ -36,7 +36,7 @@ public class UserStartConfig {
                     "Фредді",
                     "Меркьюрі",
                     "Булсара",
-                    UserRole.READER,
+                    UserRole.ADMIN,
                     true));
         };
     }
