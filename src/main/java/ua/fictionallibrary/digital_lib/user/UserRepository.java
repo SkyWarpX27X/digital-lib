@@ -17,5 +17,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @NullMarked
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.libraryCard WHERE u.id = :userId")
     Optional<User> findById(UUID userId);
+
+
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.libraryCard WHERE u.username = :username")
+    Optional<User> findByUsername(String username);
     boolean existsByUsername(String login);
 }
