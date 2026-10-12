@@ -30,6 +30,8 @@ dependencies {
 	implementation(project(":digital-lib-spring-boot-starter"))
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-h2console")
+	implementation("io.jsonwebtoken:jjwt-api:0.12.6")
+	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
 	runtimeOnly("com.h2database:h2")
 	testImplementation("org.springframework.modulith:spring-modulith-starter-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
