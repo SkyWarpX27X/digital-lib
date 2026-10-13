@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import ua.fictionallibrary.digital_lib.starter.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.user.User;
 import ua.fictionallibrary.digital_lib.user.UserRepository;
@@ -28,12 +29,14 @@ public class UserServiceImplTest {
     private UserRepository userRepository;
     @Mock
     ApplicationEventPublisher eventPublisher;
+    @Mock
+    PasswordEncoder passwordEncoder;
 
     private UserService service;
 
     @BeforeEach
     public void setup() {
-        service = new UserServiceImpl(userRepository, eventPublisher);
+        service = new UserServiceImpl(userRepository, eventPublisher, passwordEncoder);
     }
 
     @Test
@@ -48,6 +51,7 @@ public class UserServiceImplTest {
                 true);
         final var user = new User(userRequest.username(), userRequest.password(), userRequest.name(), userRequest.surname(),
                 userRequest.patronymic(), userRequest.role(), userRequest.isActive());
+        when(passwordEncoder.encode(userRequest.password())).thenReturn("encoded");
         when(userRepository.save(user)).thenReturn(user);
         when(userRepository.existsById(user.getId())).thenReturn(false);
 
@@ -58,6 +62,7 @@ public class UserServiceImplTest {
         assertEquals(response.surname(), user.getSurname());
         assertEquals(response.patronymic(), user.getPatronymic());
         assertEquals(response.role(), user.getRole());
+        assertEquals("encoded", user.getPassword());
         assert(service.existsById(response.id()));
 
         verify(userRepository).save(user);

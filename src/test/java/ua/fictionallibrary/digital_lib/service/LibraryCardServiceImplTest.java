@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import ua.fictionallibrary.digital_lib.starter.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.starter.exception.DuplicateException;
 import ua.fictionallibrary.digital_lib.user.*;
@@ -30,13 +31,15 @@ public class LibraryCardServiceImplTest {
     @Mock
     ApplicationEventPublisher eventPublisher;
     @Mock
+    PasswordEncoder passwordEncoder;
+    @Mock
     UserService userService;
 
     private LibraryCardService libraryCardService;
 
     @BeforeEach
     public void setup() {
-        userService = new UserServiceImpl(userRepository, eventPublisher);
+        userService = new UserServiceImpl(userRepository, eventPublisher, passwordEncoder);
         libraryCardService = new LibraryCardServiceImpl(libraryCardRepository, userRepository, eventPublisher, userService);
     }
 
