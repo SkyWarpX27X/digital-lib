@@ -1,6 +1,7 @@
 package ua.fictionallibrary.digital_lib.user.implementation;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.fictionallibrary.digital_lib.starter.exception.DataNotFoundException;
@@ -16,10 +17,12 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository, ApplicationEventPublisher eventPublisher) {
+    public UserServiceImpl(UserRepository userRepository, ApplicationEventPublisher eventPublisher, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.eventPublisher = eventPublisher;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -41,6 +44,7 @@ public class UserServiceImpl implements UserService {
     public UserResponse addUser(User user) {
         if (userRepository.existsByUsername(user.getUsername()))
             throw new DuplicateException("User with username " + user.getUsername() + " already exists");
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         User saved = userRepository.save(user);
         eventPublisher.publishEvent(new UserAddedEvent(
                 saved.toString()
@@ -56,7 +60,7 @@ public class UserServiceImpl implements UserService {
         if (!existing.getUsername().equals(user.getUsername()) && userRepository.existsByUsername(user.getUsername()))
             throw new DuplicateException("User with username " + user.getUsername() + " already exists");
         existing.setUsername(user.getUsername());
-        existing.setPassword(user.getPassword());
+        existing.setPassword(passwordEncoder.encode(user.getPassword()));
         existing.setName(user.getName());
         existing.setSurname(user.getSurname());
         existing.setPatronymic(user.getPatronymic());
