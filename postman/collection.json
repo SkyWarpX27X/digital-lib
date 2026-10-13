@@ -1,9 +1,228 @@
 {
   "info": {
-    "name": "User + LibraryCard API Tests",
+    "name": "Auth + User + LibraryCard API Tests",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
+    {
+      "name": "Login as admin",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "const json = pm.response.json();",
+              "pm.test(\"Response contains a bearer token\", function () {",
+              "    pm.expect(json.token).to.be.a(\"string\").and.not.empty;",
+              "    pm.expect(json.type).to.eql(\"Bearer\");",
+              "    pm.expect(json.expiresInSeconds).to.be.above(0);",
+              "    pm.environment.set(\"adminToken\", json.token);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"username\": \"{{adminUsername}}\",\n    \"password\": \"{{adminPassword}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Attempt to login with wrong password",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 401 Unauthorized\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"username\": \"{{adminUsername}}\",\n    \"password\": \"definitelyNotThePassword\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Attempt to login as non-existent user",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 401 Unauthorized\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"username\": \"i_do_not_exist\",\n    \"password\": \"whatever\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Attempt to get all users without token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 401 Unauthorized\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Attempt to get all users with invalid token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 401 Unauthorized\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{auth_secret_169k}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
     {
       "name": "Get all users (initial state)",
       "event": [
@@ -12,7 +231,10 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test(\"Response status is 200 OK\", function() {\r\n    pm.response.to.have.status(200)\r\n});"
+              "pm.test(\"Response status is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.environment.set(\"initialUserCount\", pm.response.json().length);"
             ]
           }
         }
@@ -35,7 +257,7 @@
       "response": []
     },
     {
-      "name": "Create a new user",
+      "name": "Register a new reader without token",
       "event": [
         {
           "listen": "test",
@@ -48,11 +270,14 @@
         }
       ],
       "request": {
+        "auth": {
+          "type": "noauth"
+        },
         "method": "POST",
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n\t\"login\" : \"john_doe\",\r\n    \"password\" : \"superSecretPassword\",\r\n    \"name\": \"John\",\r\n    \"surname\" : \"Doe\",\r\n    \"patronymic\" : \"Johnsonovych\",\r\n    \"role\" : \"READER\",\r\n    \"isActive\" : true\r\n}",
+          "raw": "{\r\n\t\"username\" : \"john_doe\",\r\n    \"password\" : \"superSecretPassword\",\r\n    \"name\": \"John\",\r\n    \"surname\" : \"Doe\",\r\n    \"patronymic\" : \"Johnsonovych\",\r\n    \"role\" : \"READER\",\r\n    \"isActive\" : true\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -74,6 +299,337 @@
       "response": []
     },
     {
+      "name": "Login as registered reader",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "const json = pm.response.json();",
+              "pm.test(\"Response contains a bearer token\", function () {",
+              "    pm.expect(json.token).to.be.a(\"string\").and.not.empty;",
+              "    pm.expect(json.type).to.eql(\"Bearer\");",
+              "    pm.expect(json.expiresInSeconds).to.be.above(0);",
+              "    pm.environment.set(\"readerToken\", json.token);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"username\": \"john_doe\",\n    \"password\": \"superSecretPassword\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Reader cannot get all users",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 403 Forbidden\", function () {",
+              "    pm.response.to.have.status(403);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{readerToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Attempt to register an admin without token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 401 Unauthorized\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"username\": \"wannabe_admin\",\n    \"password\": \"password123\",\n    \"name\": \"Wannabe\",\n    \"surname\": \"Admin\",\n    \"role\": \"ADMIN\",\n    \"isActive\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Attempt to register a department employee without token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 401 Unauthorized\", function () {",
+              "    pm.response.to.have.status(401);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"username\": \"wannabe_delivery\",\n    \"password\": \"password123\",\n    \"name\": \"Wannabe\",\n    \"surname\": \"Courier\",\n    \"role\": \"BOOK_DELIVERY_DEPARTMENT\",\n    \"isActive\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Reader cannot create an admin",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 403 Forbidden\", function () {",
+              "    pm.response.to.have.status(403);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{readerToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"username\": \"reader_made_admin\",\n    \"password\": \"password123\",\n    \"name\": \"Sneaky\",\n    \"surname\": \"Reader\",\n    \"role\": \"ADMIN\",\n    \"isActive\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Admin creates a department employee",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "const json = pm.response.json();",
+              "pm.test(\"Response body contains the created employee\", function () {",
+              "    pm.expect(json.name).to.eql(\"Archie\");",
+              "    pm.expect(json.role).to.eql(\"DIGITAL_ARCHIVE_DEPARTMENT\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"username\": \"archivist\",\n    \"password\": \"archivistPassword\",\n    \"name\": \"Archie\",\n    \"surname\": \"Vist\",\n    \"role\": \"DIGITAL_ARCHIVE_DEPARTMENT\",\n    \"isActive\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Login as created department employee",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Response status is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "const json = pm.response.json();",
+              "pm.test(\"Response contains a bearer token\", function () {",
+              "    pm.expect(json.token).to.be.a(\"string\").and.not.empty;",
+              "    pm.expect(json.type).to.eql(\"Bearer\");",
+              "    pm.expect(json.expiresInSeconds).to.be.above(0);",
+              "    pm.environment.set(\"employeeToken\", json.token);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"username\": \"archivist\",\n    \"password\": \"archivistPassword\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
       "name": "Get user by ID",
       "event": [
         {
@@ -87,6 +643,16 @@
         }
       ],
       "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{readerToken}}",
+              "type": "string"
+            }
+          ]
+        },
         "method": "GET",
         "header": [],
         "url": {
@@ -122,7 +688,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n\t\"login\" : \"john_doe\",\r\n    \"password\" : \"superSecretPassword\",\r\n    \"name\": \"Jane\",\r\n    \"surname\" : \"Doe\",\r\n    \"patronymic\" : \"Johnsonovych\",\r\n    \"role\" : \"ADMIN\",\r\n    \"isActive\" : true\r\n}",
+          "raw": "{\r\n\t\"username\" : \"john_doe\",\r\n    \"password\" : \"superSecretPassword\",\r\n    \"name\": \"Jane\",\r\n    \"surname\" : \"Doe\",\r\n    \"patronymic\" : \"Johnsonovych\",\r\n    \"role\" : \"ADMIN\",\r\n    \"isActive\" : true\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -145,7 +711,7 @@
       "response": []
     },
     {
-      "name": "Create another user",
+      "name": "Register another reader without token",
       "event": [
         {
           "listen": "test",
@@ -158,11 +724,14 @@
         }
       ],
       "request": {
+        "auth": {
+          "type": "noauth"
+        },
         "method": "POST",
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n\t\"login\" : \"dummy\",\r\n    \"password\" : \"passwordForDummies\",\r\n    \"name\": \"Dummy\",\r\n    \"surname\" : \"Dummy\",\r\n    \"role\" : \"READER\",\r\n    \"isActive\" : true\r\n}",
+          "raw": "{\r\n\t\"username\" : \"dummy\",\r\n    \"password\" : \"passwordForDummies\",\r\n    \"name\": \"Dummy\",\r\n    \"surname\" : \"Dummy\",\r\n    \"role\" : \"READER\",\r\n    \"isActive\" : true\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -191,7 +760,13 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test(\"Response status is 200 OK\", function() {\r\n    pm.response.to.have.status(200)\r\n});\r\nconst json = pm.response.json();\r\npm.test(\"Response body length is 2\", function() {\r\n    pm.expect(json.length).to.eql(2)\r\n})"
+              "pm.test(\"Response status is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "const json = pm.response.json();",
+              "pm.test(\"Response contains initial users plus 3 created ones\", function () {",
+              "    pm.expect(json.length).to.eql(pm.environment.get(\"initialUserCount\") + 3);",
+              "});"
             ]
           }
         }
@@ -199,15 +774,6 @@
       "request": {
         "method": "GET",
         "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
         "url": {
           "raw": "{{baseUrl}}/api/v1/users",
           "host": [
@@ -236,11 +802,14 @@
         }
       ],
       "request": {
+        "auth": {
+          "type": "noauth"
+        },
         "method": "POST",
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n  \"login\": \"\",\r\n  \"password\": \"\",\r\n  \"name\": \"\",\r\n  \"surname\": \"\",\r\n  \"isActive\": true\r\n}",
+          "raw": "{\r\n  \"username\": \"\",\r\n  \"password\": \"\",\r\n  \"name\": \"\",\r\n  \"surname\": \"\",\r\n  \"isActive\": true\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -275,11 +844,14 @@
         }
       ],
       "request": {
+        "auth": {
+          "type": "noauth"
+        },
         "method": "POST",
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n\t\"login\" : \"dummy\",\r\n    \"password\" : \"passwordForDummies\",\r\n    \"name\": \"Dummy\",\r\n    \"surname\" : \"Dummy\",\r\n    \"role\" : \"WHATS_A_ROLE\",\r\n    \"isActive\" : true\r\n}",
+          "raw": "{\r\n\t\"username\" : \"dummy\",\r\n    \"password\" : \"passwordForDummies\",\r\n    \"name\": \"Dummy\",\r\n    \"surname\" : \"Dummy\",\r\n    \"role\" : \"WHATS_A_ROLE\",\r\n    \"isActive\" : true\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -316,15 +888,6 @@
       "request": {
         "method": "GET",
         "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\r\n\t\"login\" : \"john_doe\",\r\n    \"password\" : \"superSecretPassword\",\r\n    \"name\": \"John\",\r\n    \"surname\" : \"Doe\",\r\n    \"patronymic\" : \"Johnsonovych\",\r\n    \"role\" : \"READER\",\r\n    \"isActive\" : true\r\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
         "url": {
           "raw": "{{baseUrl}}/api/v1/users/bdb70cd0-84bc-47b9-8772-94cfc607c1e6",
           "host": [
@@ -358,7 +921,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n\t\"login\" : \"\",\r\n    \"password\" : \"\",\r\n    \"name\": \"\",\r\n    \"surname\" : \"\",\r\n    \"role\" : \"\",\r\n    \"isActive\" : true\r\n}",
+          "raw": "{\r\n\t\"username\" : \"\",\r\n    \"password\" : \"\",\r\n    \"name\": \"\",\r\n    \"surname\" : \"\",\r\n    \"role\" : \"\",\r\n    \"isActive\" : true\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -398,7 +961,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n\t\"login\" : \"dummy\",\r\n    \"password\" : \"passwordForDummies\",\r\n    \"name\": \"Dummy\",\r\n    \"surname\" : \"Dummy\",\r\n    \"role\" : \"READER\",\r\n    \"isActive\" : true\r\n}",
+          "raw": "{\r\n\t\"username\" : \"dummy\",\r\n    \"password\" : \"passwordForDummies\",\r\n    \"name\": \"Dummy\",\r\n    \"surname\" : \"Dummy\",\r\n    \"role\" : \"READER\",\r\n    \"isActive\" : true\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -434,11 +997,14 @@
         }
       ],
       "request": {
+        "auth": {
+          "type": "noauth"
+        },
         "method": "POST",
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\r\n\t\"login\" : \"john_doe\",\r\n    \"password\" : \"superSecretPassword\",\r\n    \"name\": \"John\",\r\n    \"surname\" : \"Doe\",\r\n    \"patronymic\" : \"Johnsonovych\",\r\n    \"role\" : \"READER\",\r\n    \"isActive\" : true\r\n}",
+          "raw": "{\r\n\t\"username\" : \"john_doe\",\r\n    \"password\" : \"superSecretPassword\",\r\n    \"name\": \"John\",\r\n    \"surname\" : \"Doe\",\r\n    \"patronymic\" : \"Johnsonovych\",\r\n    \"role\" : \"READER\",\r\n    \"isActive\" : true\r\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -953,6 +1519,22 @@
         }
       },
       "response": []
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{adminToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "auth_secret_169k",
+      "secret": true
     }
   ]
 }
