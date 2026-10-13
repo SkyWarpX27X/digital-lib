@@ -31,6 +31,14 @@ public class UserStartConfig {
                     UserRole.BOOK_DELIVERY_DEPARTMENT,
                     true));
             repository.save(new User(
+                    "vsauce",
+                    encoder.encode("yourPasswordIsSecure_OrIsIt?"),
+                    "Майкл",
+                    "Стівенс",
+                    "",
+                    UserRole.DIGITAL_ARCHIVE_DEPARTMENT,
+                    true));
+            repository.save(new User(
                     "queen",
                     encoder.encode("M@m@@@@@@@!!!!___"),
                     "Фредді",
