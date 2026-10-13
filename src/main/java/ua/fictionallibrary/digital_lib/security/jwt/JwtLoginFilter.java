@@ -40,7 +40,7 @@ public class JwtLoginFilter extends UsernamePasswordAuthenticationFilter {
         this.jwtService = jwtService;
         this.mapper = objectMapper;
         this.authenticationEntryPoint = authenticationEntryPoint;
-        setRequiresAuthenticationRequestMatcher(PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/api/v1/login"));
+        setRequiresAuthenticationRequestMatcher(PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/api/v1/auth/login"));
     }
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
