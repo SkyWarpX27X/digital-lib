@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -32,12 +33,16 @@ public class UserController {
     }
 
     @PostMapping
-    @Operation(summary = "Створити нового користувача")
+    @Operation(summary = "Створити нового користувача",
+            description = "Читача можна створити без дозволів, користувачів з іншими ролями — тільки адміністратор")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Користувача успішно створено"),
             @ApiResponse(responseCode = "400", description = "Некоректні вхідні дані запиту", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "401", description = "Створення користувача з цією роллю потребує автентифікації", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "403", description = "Створювати користувачів з цією роллю може тільки адміністратор", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "409", description = "Користувач з вказаним логіном уже існує", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
+    @PreAuthorize("hasRole('ADMIN') || #userRequest.role().name() == 'READER'")
     public ResponseEntity<UserResponse> createUser(@Validated(OnCreate.class) @RequestBody UserRequest userRequest) {
         final var response = userService.addUser(toEntity(userRequest));
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(response.id()).toUri();
