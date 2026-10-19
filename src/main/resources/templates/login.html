@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Вхід до бібліотеки')}"></head>
+<body>
+<div class="login">
+    <header th:replace="~{fragments/layout :: brand}"></header>
+    <main class="login__main">
+        <h1 class="login__title">Вхід</h1>
+        <div class="alert alert--error" th:if="${param.error}" role="alert">Невірний логін або пароль</div>
+
+        <form th:action="@{/login}" method="post">
+            <div class="field">
+                <label class="field__label" for="username">Логін</label>
+                <input class="input" type="text" id="username" name="username" placeholder="Ваш логін"
+                       autocomplete="username" required autofocus>
+            </div>
+
+            <div class="field">
+                <label class="field__label" for="password">Пароль</label>
+                <div class="field__control">
+                    <input class="input input--with-action" type="password" id="password" name="password"
+                           placeholder="Ваш пароль" autocomplete="current-password" required>
+                </div>
+            </div>
+
+            <button class="btn btn--primary btn--block login__submit" type="submit">Увійти</button>
+        </form>
+    </main>
+</div>
+</body>
+</html>

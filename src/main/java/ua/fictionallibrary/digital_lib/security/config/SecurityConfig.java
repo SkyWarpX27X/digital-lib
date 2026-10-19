@@ -1,7 +1,9 @@
 package ua.fictionallibrary.digital_lib.security.config;
 
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
@@ -26,19 +28,19 @@ public class SecurityConfig {
     private static final String ADMIN = UserRole.ADMIN.name();
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   JwtAuthFilter jwtAuthFilter,
-                                                   JwtLoginFilter jwtLoginFilter,
-                                                   AuthenticationEntryPoint authenticationEntryPoint) {
+    @Order(1)
+    public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http,
+                                                      JwtAuthFilter jwtAuthFilter,
+                                                      JwtLoginFilter jwtLoginFilter,
+                                                      AuthenticationEntryPoint authenticationEntryPoint) {
         return http
+                .securityMatcher("/api/**")
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(authenticationEntryPoint))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/error").permitAll()
-                        .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers(HttpMethod.GET,  "/api/v1/users").hasRole(ADMIN)
                         .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/users/{id}").authenticated()
@@ -68,6 +70,47 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAt(jwtLoginFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
+    }
+
+    @Bean
+    @Order(2)
+    public SecurityFilterChain webSecurityFilterChain(HttpSecurity http) {
+        return http
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/login", "/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
+
+                        .requestMatchers(HttpMethod.GET,  "/physical-books/new").hasAnyRole(BOOK_DELIVERY, ADMIN)
+                        .requestMatchers(HttpMethod.GET,  "/physical-books").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/physical-books").hasAnyRole(BOOK_DELIVERY, ADMIN)
+                        .anyRequest().authenticated()
+                )
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/physical-books", false)
+                        .failureUrl("/login?error")
+                        .permitAll()
+                )
+                .logout(logout -> logout
+                        .logoutSuccessUrl("/login?logout")
+                        .deleteCookies("JSESSIONID")
+                )
+                .build();
+    }
+
+    @Bean
+    public FilterRegistrationBean<JwtAuthFilter> jwtAuthFilterRegistration(JwtAuthFilter filter) {
+        FilterRegistrationBean<JwtAuthFilter> registration = new FilterRegistrationBean<>(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
+    public FilterRegistrationBean<JwtLoginFilter> jwtLoginFilterRegistration(JwtLoginFilter filter) {
+        FilterRegistrationBean<JwtLoginFilter> registration = new FilterRegistrationBean<>(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 
     @Bean
