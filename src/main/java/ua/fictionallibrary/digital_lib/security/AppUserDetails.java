@@ -9,10 +9,13 @@ import java.util.UUID;
 
 public class AppUserDetails extends User {
     private final UUID id;
+    private final String name;
 
-    public AppUserDetails(UUID id, String username, @Nullable String password, Collection<? extends GrantedAuthority> authorities) {
+    public AppUserDetails(UUID id, String username, @Nullable String password, String name, String surname, Collection<? extends GrantedAuthority> authorities) {
         super(username, password, authorities);
         this.id = id;
+        this.name = name + " " + surname;
     }
     public UUID getId() { return id; }
+    public String getName() { return name; }
 }

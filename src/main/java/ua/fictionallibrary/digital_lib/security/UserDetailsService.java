@@ -25,7 +25,7 @@ public class UserDetailsService implements org.springframework.security.core.use
         User user = userRepository.findByUsername(username).orElseThrow(
                 () -> new UsernameNotFoundException("Користувача " + username + " не знайдено"));
 
-        return new AppUserDetails(user.getId(), user.getUsername(), user.getPassword(),
+        return new AppUserDetails(user.getId(), user.getUsername(), user.getPassword(), user.getName(), user.getSurname(),
                 List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())));
     }
 }
