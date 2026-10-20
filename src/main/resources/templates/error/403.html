@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Доступ заборонено')}"></head>
+<body>
+<div class="centered-page error-page">
+    <header th:replace="~{fragments/layout :: brand}"></header>
+    <main class="centered-page__main">
+        <div class="error-page__code">403</div>
+        <h1 class="page-title">Доступ заборонено</h1>
+        <p class="centered-page__text">У вас недостатньо прав для перегляду цієї сторінки.</p>
+        <div>
+            <a class="btn btn--primary" th:href="@{/physical-books}">На головну</a>
+        </div>
+    </main>
+</div>
+</body>
+</html>

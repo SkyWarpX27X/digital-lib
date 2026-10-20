@@ -8,7 +8,7 @@
     <main class="content content--narrow">
         <h1 class="page-title">Додати фізичну книгу</h1>
 
-        <form class="card form-card" th:action="@{/physical-books}" th:object="${form}" method="post" novalidate>
+        <form class="card" th:action="@{/physical-books}" th:object="${form}" method="post" novalidate>
             <div class="form-card__body">
                 <label class="field__label" for="name">Назва</label>
                 <input class="input" type="text" id="name" th:field="*{name}" th:errorclass="input--invalid">
@@ -40,7 +40,7 @@
                 <span class="field__error" th:if="${#fields.hasErrors('resourceType')}" th:errors="*{resourceType}"></span>
             </div>
 
-            <div class="form-card__footer">
+            <div>
                 <a class="btn btn--secondary" th:href="@{/physical-books}">Скасувати</a>
                 <button class="btn btn--primary" type="submit">Зберегти</button>
             </div>
