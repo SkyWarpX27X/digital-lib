@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -44,6 +45,7 @@ public class LibraryCardController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN') or @userAccess.isSelf(#userId, authentication)")
     @Operation(summary = "Отримати картку читача за ID користувача", description = "Повертає повні не конфіденційні дані картки читача")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Картку читача знайдено"),
@@ -55,6 +57,7 @@ public class LibraryCardController {
     }
 
     @PutMapping
+    @PreAuthorize("hasRole('ADMIN') or @userAccess.isSelf(#userId, authentication)")
     @Operation(summary = "Оновити дані картки читача за ID користувача")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Картку читача успішно оновлено"),

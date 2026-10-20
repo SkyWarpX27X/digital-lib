@@ -69,6 +69,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or @userAccess.isSelf(#id, authentication)")
     @Operation(summary = "Оновити дані користувача")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Користувача успішно оновлено"),
