@@ -28,9 +28,9 @@
     <nav class="nav">
         <a class="nav__link" th:href="@{/digitized-books}" th:classappend="${active == 'digitized-books'} ? 'nav__link--active'">Оцифровані книги</a>
         <a class="nav__link" th:href="@{/physical-books}" th:classappend="${active == 'physical-books'} ? 'nav__link--active'">Фізичні книги</a>
-        <a class="nav__link" sec:authentification="hasRole('READER')" th:href="@{/book-orders}" th:classappend="${active == 'book-orders'} ? 'nav__link--active'">Замовлення</a>
-        <a class="nav__link" sec:authentification="hasRole('ADMIN')" th:href="@{/users}" th:classappend="${active == 'users'} ? 'nav__link--active'">Користувачі</a>
-        <a class="nav__link" sec:authentification="hasRole('ADMIN')" th:href="@{/library-cards}" th:classappend="${active == 'library-cards'} ? 'nav__link--active'">Картки читачів</a>
+        <a class="nav__link" sec:authorize="hasRole('READER')" th:href="@{/book-orders}" th:classappend="${active == 'book-orders'} ? 'nav__link--active'">Замовлення</a>
+        <a class="nav__link" sec:authorize="hasRole('ADMIN')" th:href="@{/users}" th:classappend="${active == 'users'} ? 'nav__link--active'">Користувачі</a>
+        <a class="nav__link" sec:authorize="hasRole('ADMIN')" th:href="@{/library-cards}" th:classappend="${active == 'library-cards'} ? 'nav__link--active'">Картки читачів</a>
     </nav>
 
     <div class="sidebar__user" sec:authorize="isAuthenticated()">
