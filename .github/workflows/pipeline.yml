@@ -42,6 +42,21 @@ jobs:
     name: Test API endpoints
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: digital_lib
+          POSTGRES_USER: digital_lib
+          POSTGRES_PASSWORD: digital_lib
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -61,6 +76,9 @@ jobs:
         run: chmod +x gradlew
 
       - name: Start app
+        env:
+          # Postgres is provided by the service container above
+          SPRING_DOCKER_COMPOSE_ENABLED: false
         run: |
           ./gradlew bootRun &
            npx wait-on http://localhost:8080/actuator/health --timeout 120000
