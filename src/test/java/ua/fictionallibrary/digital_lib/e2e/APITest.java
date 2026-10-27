@@ -78,4 +78,20 @@ public class APITest {
                 "lat", "Стародрук"));
     }
 
+    @Test
+    void readerCannotCreatePhysicalBook() {
+        String readerToken = login("username666", "abba123");
+
+        client.post().uri("/api/v1/physical-books")
+                .headers(headers -> headers.setBearerAuth(readerToken))
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        {"name": "Idea medicinae philosophicae", "authors": ["Petro Severino"],
+                        "description": "description", "topic": "Історія медицини", "publishingYear": "1660", "language": "lat",
+                        "resourceType": "Стародрук"}
+                        """)
+                .exchange()
+                .expectStatus().isForbidden();
+    }
+
 }
