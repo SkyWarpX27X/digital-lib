@@ -27,6 +27,7 @@ public class User implements UserDetails {
     @Column(length = 30)
     private String patronymic;
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private UserRole role;
     private boolean isActive;
 

@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Entity
+@Table(name = "digitized_books")
 public class DigitizedBook {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
