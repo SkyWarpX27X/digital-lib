@@ -31,13 +31,12 @@ abstract class BrowserTestSupport {
 
     @RegisterExtension
     final AfterTestExecutionCallback saveArtifactsOnFailure = extension -> {
-        if (extension.getExecutionException().isPresent()) {
-            String name = extension.getRequiredTestClass().getSimpleName() + "-" + extension.getDisplayName()
-                    .replaceAll("[^\\p{L}\\p{N}_-]", "");
-            page.screenshot(new Page.ScreenshotOptions().setPath(ARTIFACTS.resolve(name + ".png")).setFullPage(true));
-            context.tracing().stop(new Tracing.StopOptions().setPath(ARTIFACTS.resolve(name + "-trace.zip")));
-            tracingSaved = true;
-        }
+        String name = extension.getRequiredTestClass().getSimpleName() + "-" + extension.getDisplayName()
+                .replaceAll("[^\\p{L}\\p{N}_-]", "");
+        page.screenshot(new Page.ScreenshotOptions().setPath(ARTIFACTS.resolve(name + ".png")).setFullPage(true));
+        context.tracing().stop(new Tracing.StopOptions().setPath(ARTIFACTS.resolve(name + "-trace.zip")));
+        tracingSaved = true;
+
     };
 
     @BeforeAll
