@@ -54,7 +54,7 @@ public class BookOrderServiceImpl implements BookOrderService {
                 .orElseThrow(() -> new DataNotFoundException(
                         "Failed to create order, not found book with id " + request.book()));
         User user = userRepository.getReferenceById(creatorId);
-        BookOrder order = toEntity(request, user, book);
+        BookOrder order = new BookOrder(user, request.emailForDelivery(), request.book(), request.isOpen());
         if (order.getEmailForDeliver() == null)
             order.setEmailForDeliver(libraryCardService.getEmail(creatorId));
         BookOrder savedOrder = bookOrderRepository.save(order);
@@ -62,7 +62,7 @@ public class BookOrderServiceImpl implements BookOrderService {
                 savedOrder.getId(),
                 user.getId(),
                 savedOrder.getEmailForDeliver(),
-                book.getId()
+                savedOrder.getBookId()
         ));
         return toResponse(savedOrder);
     }
@@ -97,10 +97,7 @@ public class BookOrderServiceImpl implements BookOrderService {
     }
 
     private BookOrderResponse toResponse(BookOrder order) {
-        return new BookOrderResponse(order.getId(), order.getUser().getId(), order.getEmailForDeliver(), order.getBook().getId(), order.isOpen());
-    }
-
-    private BookOrder toEntity(BookOrderRequest request, User user, PhysicalBook book){
-        return new BookOrder(user, request.emailForDelivery(), book, request.isOpen());
+        return new BookOrderResponse(order.getId(), order.getUser().getId(),
+                order.getEmailForDeliver(), order.getBookId(), order.isOpen());
     }
 }

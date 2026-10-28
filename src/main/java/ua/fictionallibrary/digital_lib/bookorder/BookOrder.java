@@ -17,18 +17,17 @@ public class BookOrder {
     private User user;
     @Column(nullable = false)
     private String emailForDeliver;
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "book_id", nullable = false)
-    private PhysicalBook book;
+    @Column(name = "book_id", nullable = false)
+    private UUID bookId;
     @Column
     private boolean isOpen;
 
     public BookOrder() {}
 
-    public BookOrder(User user, String emailForDeliver, PhysicalBook book, boolean isOpen) {
+    public BookOrder(User user, String emailForDeliver, UUID bookId, boolean isOpen) {
         this.user = user;
         this.emailForDeliver = emailForDeliver;
-        this.book = book;
+        this.bookId = bookId;
         this.isOpen = isOpen;
     }
 
@@ -48,8 +47,8 @@ public class BookOrder {
         this.emailForDeliver = emailForDeliver;
     }
 
-    public PhysicalBook getBook() {
-        return book;
+    public UUID getBookId() {
+        return bookId;
     }
 
     public boolean isOpen() {

@@ -77,9 +77,8 @@ public class BookOrderServiceImplTest {
         ArgumentCaptor<BookOrder> orderCaptor = ArgumentCaptor.forClass(BookOrder.class);
         verify(repository).save(orderCaptor.capture());
         BookOrder saved = orderCaptor.getValue();
-        assertEquals(book, saved.getBook());
+        assertEquals(bookId, saved.getBookId());
         assertSame(user, saved.getUser());
-        assertSame(book, saved.getBook());
         assertEquals("123@gmail.com", saved.getEmailForDeliver());
         assertTrue(saved.isOpen());
 
@@ -111,7 +110,8 @@ public class BookOrderServiceImplTest {
     @Test
     void successfullyCloseOrder() {
         UUID orderId = UUID.randomUUID();
-        when(repository.findById(orderId)).thenReturn(Optional.of(new BookOrder(user, "123@gmail.com", book, true)));
+        when(repository.findById(orderId)).thenReturn(Optional.of(
+                new BookOrder(user, "123@gmail.com", UUID.randomUUID(), true)));
         when(repository.save(any(BookOrder.class))).thenAnswer(i -> i.getArgument(0));
 
         BookOrderResponse response = service.updateStatus(orderId, new UpdateStatusCommand(false));
@@ -122,7 +122,8 @@ public class BookOrderServiceImplTest {
     @Test
     void tryToOpenClosedOrder() {
         UUID orderId = UUID.randomUUID();
-        when(repository.findById(orderId)).thenReturn(Optional.of(new BookOrder(user, "123@gmail.com", book, false)));
+        when(repository.findById(orderId)).thenReturn(Optional.of(
+                new BookOrder(user, "123@gmail.com", UUID.randomUUID(), false)));
 
         assertThrows(InvalidOrderUpdateException.class, () -> service.updateStatus(orderId, new UpdateStatusCommand(true)));
     }
