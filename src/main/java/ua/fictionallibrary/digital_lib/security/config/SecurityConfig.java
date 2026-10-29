@@ -40,6 +40,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(authenticationEntryPoint))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET, "/api/v1/auth/me").authenticated()
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET,  "/api/v1/users").hasRole(ADMIN)
                         .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
@@ -76,25 +77,12 @@ public class SecurityConfig {
     @Order(2)
     public SecurityFilterChain webSecurityFilterChain(HttpSecurity http) {
         return http
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/css/**", "/logout").permitAll()
-                        .requestMatchers("/error").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
-
-                        .requestMatchers(HttpMethod.GET,  "/physical-books/new").hasAnyRole(BOOK_DELIVERY, ADMIN)
-                        .requestMatchers(HttpMethod.GET,  "/physical-books").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/physical-books").hasAnyRole(BOOK_DELIVERY, ADMIN)
-                        .anyRequest().authenticated()
-                )
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .defaultSuccessUrl("/physical-books", false)
-                        .failureUrl("/login?error")
-                        .permitAll()
-                )
-                .logout(logout -> logout
-                        .logoutSuccessUrl("/login")
-                        .deleteCookies("JSESSIONID")
+                        .requestMatchers("/actuator/**").denyAll()
+                        .anyRequest().permitAll()
                 )
                 .build();
     }

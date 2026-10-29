@@ -56,7 +56,7 @@ class UITest extends BrowserTestSupport {
         form.publishingYearInput().fill("2999");
         form.saveExpectingErrors();
 
-        assertThat(page).hasURL(Pattern.compile("/physical-books$"));
+        assertThat(page).hasURL(Pattern.compile(AddPhysicalBookPage.PATH + "$"));
         assertThat(form.heading()).isVisible();
         assertThat(form.nameInput()).not().hasClass(Pattern.compile("input--invalid"));
         assertThat(form.authorsInput()).hasClass(Pattern.compile("input--invalid"));

@@ -2,6 +2,7 @@ plugins {
 	java
 	id("org.springframework.boot") version "4.1.1"
 	id("io.spring.dependency-management") version "1.1.7"
+	id("com.github.node-gradle.node") version "7.1.0"
 }
 
 group = "ua.fictionallibrary"
@@ -20,8 +21,6 @@ repositories {
 dependencies {
 	implementation(platform("org.springframework.modulith:spring-modulith-bom:2.1.1"))
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
-	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
-	implementation("org.thymeleaf.extras:thymeleaf-extras-springsecurity6")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.modulith:spring-modulith-starter-core")
 	implementation("org.springframework.modulith:spring-modulith-events-api")
@@ -44,6 +43,28 @@ dependencies {
 	testImplementation("com.microsoft.playwright:playwright:1.57.0")
 	testImplementation("org.springframework.security:spring-security-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+node {
+	download = false
+	nodeProjectDir = file("frontend")
+}
+
+val npmBuild = tasks.register<com.github.gradle.node.npm.task.NpmTask>("npmBuild") {
+	description = "Builds the React frontend."
+	group = "build"
+	dependsOn(tasks.npmInstall)
+	args = listOf("run", "build")
+	inputs.dir("frontend/src")
+	inputs.files("frontend/package.json", "frontend/package-lock.json", "frontend/index.html",
+		"frontend/vite.config.ts", "frontend/tsconfig.json")
+	outputs.dir("frontend/dist")
+}
+
+tasks.processResources {
+	from(npmBuild) {
+		into("static")
+	}
 }
 
 tasks.test {
