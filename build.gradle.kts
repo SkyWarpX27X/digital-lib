@@ -94,3 +94,7 @@ tasks.register<Test>("integrationTest") {
 	}
 	shouldRunAfter(tasks.test)
 }
+
+tasks.bootJar {
+	archiveFileName = "app.jar"
+}

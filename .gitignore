@@ -43,3 +43,6 @@ out/
 /logs/
 
 logs/
+### Build outputs / secrets ###
+target/
+.env
