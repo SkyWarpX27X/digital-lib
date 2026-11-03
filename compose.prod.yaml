@@ -24,7 +24,7 @@ services:
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/digital_lib
     ports:
-      - "127.0.0.1:8080:8080"
+      - "8080:8080"
     volumes:
       - applogs:/app/logs
 
