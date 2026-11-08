@@ -4,6 +4,9 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext'
 import { RequireAuth, RequireRole } from './auth/guards'
 import AddPhysicalBookPage from './pages/AddPhysicalBookPage'
+import DigitizedBookFormPage from './pages/DigitizedBookFormPage'
+import DigitizedBookPage from './pages/DigitizedBookPage'
+import DigitizedBooksPage, { EDITOR_ROLES } from './pages/DigitizedBooksPage'
 import LoginPage from './pages/LoginPage'
 import NotFoundPage from './pages/NotFoundPage'
 import PhysicalBooksPage from './pages/PhysicalBooksPage'
@@ -22,6 +25,16 @@ createRoot(document.getElementById('root')!).render(
               <RequireRole roles={['BOOK_DELIVERY_DEPARTMENT', 'ADMIN']}><AddPhysicalBookPage /></RequireRole>
             </RequireAuth>
           } />
+          {/* public, like GET /api/v1/digitized-books; copyrighted books redirect to login from the page */}
+          <Route path="/digitized-books" element={<DigitizedBooksPage />} />
+          <Route path="/digitized-books/:id" element={<DigitizedBookPage />} />
+          {['/digitized-books/new', '/digitized-books/:id/edit'].map(path => (
+            <Route key={path} path={path} element={
+              <RequireAuth>
+                <RequireRole roles={[...EDITOR_ROLES]}><DigitizedBookFormPage /></RequireRole>
+              </RequireAuth>
+            } />
+          ))}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </AuthProvider>

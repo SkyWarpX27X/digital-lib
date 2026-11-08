@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -34,8 +35,10 @@ public class DigitizedBookController {
     @Operation(summary = "Отримати оцифровану книгу за ID", description = "Повертає повні дані оцифрованої книги")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Оцифровану книгу знайдено"),
+            @ApiResponse(responseCode = "401", description = "Книга під авторським правом доступна лише авторизованим користувачам", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "404", description = "Оцифровану книгу з вказаним ID не знайдено", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
+    @PostAuthorize("!returnObject.body.isCopyrighted() or isAuthenticated()")
     public ResponseEntity<DigitizedBookResponse> getBookById(@PathVariable UUID id) {
         DigitizedBookResponse book = service.getDigitizedBook(id);
         return ResponseEntity.ok(book);

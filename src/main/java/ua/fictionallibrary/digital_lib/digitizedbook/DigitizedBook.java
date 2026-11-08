@@ -37,7 +37,7 @@ public class DigitizedBook {
     private String resourceType;
     @Column(nullable = false)
     private boolean isCopyrighted;
-    @Column(nullable = false)
+    @Column
     private String coverUrl;
     @Column(nullable = false)
     private String fileUrl;

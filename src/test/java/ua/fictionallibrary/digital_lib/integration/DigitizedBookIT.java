@@ -95,6 +95,23 @@ public class DigitizedBookIT extends AbstractIT {
     }
 
     @Test
+    void getById_copyrighted_anonymous_shouldReturn401() throws Exception {
+        UUID id = insertDigitizedBook(uniqueName(), true);
+
+        mockMvc.perform(get(URL + "/{id}", id))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void getById_copyrighted_authenticated_shouldReturnBook() throws Exception {
+        UUID id = insertDigitizedBook(uniqueName(), true);
+
+        mockMvc.perform(get(URL + "/{id}", id).with(asReader()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id.toString()));
+    }
+
+    @Test
     void getAll_isPublic() throws Exception {
         insertDigitizedBook(uniqueName());
 
@@ -210,13 +227,17 @@ public class DigitizedBookIT extends AbstractIT {
     }
 
     private UUID insertDigitizedBook(String name) {
+        return insertDigitizedBook(name, false);
+    }
+
+    private UUID insertDigitizedBook(String name, boolean copyrighted) {
         UUID id = UUID.randomUUID();
         jdbc.sql("""
                 INSERT INTO digitized_books
                   (id, name, description, topic, publishing_year, language, resource_type, is_copyrighted, cover_url, file_url)
-                VALUES (:id, :name, 'desc', 'Історична', 1850, 'eng', 'Стародрук', false, 'url', 'url')
+                VALUES (:id, :name, 'desc', 'Історична', 1850, 'eng', 'Стародрук', :copyrighted, 'url', 'url')
                 """)
-                .param("id", id).param("name", name).param("pb", physicalBookId)
+                .param("id", id).param("name", name).param("copyrighted", copyrighted)
                 .update();
         return id;
     }

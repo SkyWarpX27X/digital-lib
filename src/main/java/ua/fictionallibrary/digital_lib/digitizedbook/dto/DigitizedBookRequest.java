@@ -47,8 +47,7 @@ public record DigitizedBookRequest(
         @Schema(description = "Чи накладається авторське право на книгу?", example = "True")
         boolean isCopyrighted,
 
-        @Schema(description = "Посилання на зображення з обкладинкою книги", example = "https://digital-lib.com/image")
-        @NotBlank(message = "Cover URL must be specified")
+        @Schema(description = "Посилання на зображення з обкладинкою книги (необов'язково)", example = "https://digital-lib.com/image")
         String coverUrl,
 
         @Schema(description = "Посилання на файл з PDF книги", example = "https://digital-lib.com/file")
