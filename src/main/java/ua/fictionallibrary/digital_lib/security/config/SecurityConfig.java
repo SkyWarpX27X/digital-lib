@@ -54,8 +54,9 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.POST, "/api/v1/book-orders").hasRole(READER)
                         .requestMatchers(HttpMethod.GET,  "/api/v1/book-orders").hasAnyRole(BOOK_DELIVERY, ADMIN)
-                        .requestMatchers(HttpMethod.GET,  "/api/v1/book-orders/{id}").authenticated()
-                        .requestMatchers(HttpMethod.PATCH,"/api/v1/book-orders/{id}").hasAnyRole(BOOK_DELIVERY, ADMIN)
+                        .requestMatchers(HttpMethod.GET,  "/api/v1/book-orders/my").hasRole(READER)
+                        .requestMatchers(HttpMethod.GET,  "/api/v1/book-orders/{id}").hasAnyRole(READER, BOOK_DELIVERY, ADMIN)
+                        .requestMatchers(HttpMethod.PATCH,"/api/v1/book-orders/{id}").hasAnyRole(READER, BOOK_DELIVERY, ADMIN)
 
                         .requestMatchers(HttpMethod.GET,    "/api/v1/physical-books/**").authenticated()
                         .requestMatchers(HttpMethod.POST,   "/api/v1/physical-books").hasAnyRole(BOOK_DELIVERY, ADMIN)

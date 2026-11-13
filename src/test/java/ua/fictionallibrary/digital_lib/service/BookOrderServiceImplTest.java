@@ -65,14 +65,14 @@ public class BookOrderServiceImplTest {
     void successfullyCreateOrder() {
         UUID bookId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
-        BookOrderRequest request = new BookOrderRequest(userId, "123@gmail.com", bookId, true);
-        when(repository.existsByBookId(bookId)).thenReturn(false);
+        BookOrderRequest request = new BookOrderRequest("123@gmail.com", bookId, true);
+        when(repository.existsByUserIdAndBookIdAndIsOpenTrue(userId, bookId)).thenReturn(false);
         when(libraryCardService.exists(userId)).thenReturn(true);
         when(userRepository.getReferenceById(userId)).thenReturn(user);
         when(bookRepository.findById(bookId)).thenReturn(Optional.ofNullable(book));
         when(repository.save(any(BookOrder.class))).thenAnswer(i -> i.getArgument(0));
 
-        BookOrderResponse response = service.addBookOrder(request);
+        BookOrderResponse response = service.addBookOrder(request, userId);
         assertNotNull(response);
         ArgumentCaptor<BookOrder> orderCaptor = ArgumentCaptor.forClass(BookOrder.class);
         verify(repository).save(orderCaptor.capture());
@@ -81,6 +81,9 @@ public class BookOrderServiceImplTest {
         assertSame(user, saved.getUser());
         assertEquals("123@gmail.com", saved.getEmailForDeliver());
         assertTrue(saved.isOpen());
+        assertEquals("Book", saved.getBookName());
+        assertEquals("John", saved.getBookAuthors());
+        assertEquals("John Doe", response.creatorName());
 
         ArgumentCaptor<BookOrderCreatedEvent> eventCaptor = ArgumentCaptor.forClass(BookOrderCreatedEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());
@@ -90,21 +93,21 @@ public class BookOrderServiceImplTest {
     void tryToOrderAlreadyOrderedBook() {
         UUID bookId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
-        BookOrderRequest request = new BookOrderRequest(userId, "123@gmail.com", bookId, true);
+        BookOrderRequest request = new BookOrderRequest("123@gmail.com", bookId, true);
         when(libraryCardService.exists(userId)).thenReturn(true);
-        when(repository.existsByBookId(bookId)).thenReturn(true);
+        when(repository.existsByUserIdAndBookIdAndIsOpenTrue(userId, bookId)).thenReturn(true);
 
-        assertThrows(DuplicateException.class, () -> service.addBookOrder(request));
+        assertThrows(DuplicateException.class, () -> service.addBookOrder(request, userId));
         verify(repository, never()).save(any(BookOrder.class));
     }
 
     @Test
     void tryToOrderWithoutLibraryCard() {
         UUID userId = UUID.randomUUID();
-        BookOrderRequest request = new BookOrderRequest(userId, "123@gmail.com", UUID.randomUUID(), true);
+        BookOrderRequest request = new BookOrderRequest("123@gmail.com", UUID.randomUUID(), true);
         when(libraryCardService.exists(userId)).thenReturn(false);
 
-        assertThrows(LibraryCardNotFoundException.class, () -> service.addBookOrder(request));
+        assertThrows(LibraryCardNotFoundException.class, () -> service.addBookOrder(request, userId));
     }
 
     @Test

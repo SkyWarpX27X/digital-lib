@@ -3,6 +3,7 @@ package ua.fictionallibrary.digital_lib.bookorder.implementations;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ua.fictionallibrary.digital_lib.bookorder.BookOrderCreatedEvent;
 import ua.fictionallibrary.digital_lib.bookorder.BookOrderRepository;
 import ua.fictionallibrary.digital_lib.bookorder.BookOrderService;
@@ -21,11 +22,14 @@ import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookRepository;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookService;
 import ua.fictionallibrary.digital_lib.user.User;
 import ua.fictionallibrary.digital_lib.user.UserRepository;
+import ua.fictionallibrary.digital_lib.author.Author;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class BookOrderServiceImpl implements BookOrderService {
 
     private final BookOrderRepository bookOrderRepository;
@@ -44,17 +48,18 @@ public class BookOrderServiceImpl implements BookOrderService {
     }
 
     @Override
-    public BookOrderResponse addBookOrder(BookOrderRequest request) {
-        UUID creatorId = request.creatorId();
+    public BookOrderResponse addBookOrder(BookOrderRequest request, UUID creatorId) {
         if (!libraryCardService.exists(creatorId))
             throw new LibraryCardNotFoundException("User with id " + creatorId + " do not have library card and cannot place book orders");
-        if (bookOrderRepository.existsByBookId(request.book()))
-            throw new DuplicateException("Book with id" + request.book() + " already ordered");
+        if (bookOrderRepository.existsByUserIdAndBookIdAndIsOpenTrue(creatorId, request.book()))
+            throw new DuplicateException("User already has an open order for book with id " + request.book());
         PhysicalBook book = physicalBookRepository.findById(request.book())
                 .orElseThrow(() -> new DataNotFoundException(
                         "Failed to create order, not found book with id " + request.book()));
         User user = userRepository.getReferenceById(creatorId);
-        BookOrder order = new BookOrder(user, request.emailForDelivery(), request.book(), request.isOpen());
+        String email = request.emailForDelivery() == null || request.emailForDelivery().isBlank() ? null : request.emailForDelivery();
+        BookOrder order = new BookOrder(user, email, request.book(), request.isOpen());
+        order.setBook(book.getName(), book.getAuthors().stream().map(Author::getName).sorted().collect(Collectors.joining(", ")));
         if (order.getEmailForDeliver() == null)
             order.setEmailForDeliver(libraryCardService.getEmail(creatorId));
         BookOrder savedOrder = bookOrderRepository.save(order);
@@ -70,6 +75,11 @@ public class BookOrderServiceImpl implements BookOrderService {
     @Override
     public List<BookOrderResponse> getBookOrders(boolean onlyOpen) {
         return bookOrderRepository.findBooks(onlyOpen).stream().map(this::toResponse).toList();
+    }
+
+    @Override
+    public List<BookOrderResponse> getUserBookOrders(UUID userId) {
+        return bookOrderRepository.findByUserId(userId).stream().map(this::toResponse).toList();
     }
 
     @Override
@@ -92,12 +102,13 @@ public class BookOrderServiceImpl implements BookOrderService {
 
     @ApplicationModuleListener
     public void onBookDigitized(BookDigitizedEvent event) {
-        bookOrderRepository.findByBookId(event.physicalId())
-                .ifPresent(order -> updateStatus(order.getId(), new UpdateStatusCommand(false)));
+        bookOrderRepository.findByBookIdAndIsOpenTrue(event.physicalId())
+                .forEach(order -> updateStatus(order.getId(), new UpdateStatusCommand(false)));
     }
 
     private BookOrderResponse toResponse(BookOrder order) {
-        return new BookOrderResponse(order.getId(), order.getUser().getId(),
-                order.getEmailForDeliver(), order.getBookId(), order.isOpen());
+        User user = order.getUser();
+        return new BookOrderResponse(order.getId(), user.getId(), user.getName() + " " + user.getSurname(),
+                order.getEmailForDeliver(), order.getBookId(), order.getBookName(), order.getBookAuthors(), order.isOpen());
     }
 }

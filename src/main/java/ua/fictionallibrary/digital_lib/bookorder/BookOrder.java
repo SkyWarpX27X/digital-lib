@@ -21,6 +21,10 @@ public class BookOrder {
     private UUID bookId;
     @Column
     private boolean isOpen;
+    @Column
+    private String bookName;
+    @Column
+    private String bookAuthors;
 
     public BookOrder() {}
 
@@ -57,5 +61,18 @@ public class BookOrder {
 
     public void setOpen(boolean open) {
         isOpen = open;
+    }
+
+    public String getBookName() {
+        return bookName;
+    }
+
+    public String getBookAuthors() {
+        return bookAuthors;
+    }
+
+    public void setBook(String bookName, String bookAuthors) {
+        this.bookName = bookName;
+        this.bookAuthors = bookAuthors;
     }
 }

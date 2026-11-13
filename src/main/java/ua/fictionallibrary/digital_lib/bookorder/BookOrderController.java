@@ -8,7 +8,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
+import ua.fictionallibrary.digital_lib.security.AppUserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ua.fictionallibrary.digital_lib.common.OnCreate;
@@ -37,8 +41,9 @@ public class BookOrderController {
             @ApiResponse(responseCode = "409", description = "Замовлення на книгу вже було створено", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "422", description = "У користувача відсутня картка читача", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
-    public ResponseEntity<BookOrderResponse> createBookOrder(@Validated(OnCreate.class) @RequestBody BookOrderRequest request){
-        BookOrderResponse response = service.addBookOrder(request);
+    public ResponseEntity<BookOrderResponse> createBookOrder(@Validated(OnCreate.class) @RequestBody BookOrderRequest request,
+                                                             @AuthenticationPrincipal AppUserDetails user){
+        BookOrderResponse response = service.addBookOrder(request, user.getId());
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(response.id()).toUri();
         return ResponseEntity.created(location).body(response);
     }
@@ -50,25 +55,45 @@ public class BookOrderController {
         return ResponseEntity.ok(service.getBookOrders(onlyOpen));
     }
 
+    @GetMapping("/my")
+    @Operation(summary = "Отримати замовлення поточного читача", description = "Усі замовлення автора запиту, відкриті й закриті")
+    @ApiResponse(responseCode = "200", description = "Список замовлень успішно отримано")
+    public ResponseEntity<List<BookOrderResponse>> getMyBookOrders(@AuthenticationPrincipal AppUserDetails user){
+        return ResponseEntity.ok(service.getUserBookOrders(user.getId()));
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Отримати замовлення за ID")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Замовлення знайдено"),
+            @ApiResponse(responseCode = "403", description = "Читач може переглядати лише власні замовлення", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "404", description = "Замовлення з вказаним ID не знайдено", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
-    public ResponseEntity<BookOrderResponse> getBookOrder(@PathVariable UUID id){
-        return ResponseEntity.ok(service.getBookOrder(id));
+    public ResponseEntity<BookOrderResponse> getBookOrder(@PathVariable UUID id, @AuthenticationPrincipal AppUserDetails user){
+        BookOrderResponse order = service.getBookOrder(id);
+        requireOwnerOrStaff(order, user);
+        return ResponseEntity.ok(order);
     }
 
     @PatchMapping("/{id}")
     @Operation(summary = "Оновити статус замовлення за ID", description = "Оновлення статусу з відкритого на закрите (протилежне видає помилку)")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Статус замовлення оновлено"),
+            @ApiResponse(responseCode = "403", description = "Читач може змінювати лише власні замовлення", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "404", description = "Замовлення з вказаним ID не знайдено", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "422", description = "Нелегальний перехід статусу замовлення", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
-    public ResponseEntity<BookOrderResponse> updateOrderStatus(@PathVariable UUID id, @RequestBody UpdateStatusCommand command){
+    public ResponseEntity<BookOrderResponse> updateOrderStatus(@PathVariable UUID id, @RequestBody UpdateStatusCommand command,
+                                                               @AuthenticationPrincipal AppUserDetails user){
+        requireOwnerOrStaff(service.getBookOrder(id), user);
         BookOrderResponse response = service.updateStatus(id, command);
         return ResponseEntity.ok(response);
+    }
+
+    private static void requireOwnerOrStaff(BookOrderResponse order, AppUserDetails user) {
+        boolean staff = user.getAuthorities().stream().map(GrantedAuthority::getAuthority).filter(Objects::nonNull)
+                .anyMatch(a -> a.equals("ROLE_BOOK_DELIVERY_DEPARTMENT") || a.equals("ROLE_ADMIN"));
+        if (!staff && !order.creatorId().equals(user.getId()))
+            throw new AccessDeniedException("Reader can access only own orders");
     }
 }

@@ -41,11 +41,12 @@ public class BookOrderCRUDTest extends AbstractIT {
         mockMvc.perform(post(URL)
                         .with(bearerFor(readerUsername))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(orderJson(readerId, "delivery@digital-lib.com", physicalBookId, true)))
+                        .content(orderJson("delivery@digital-lib.com", physicalBookId, true)))
                 .andExpect(status().isCreated())
                 .andExpect(header().exists("Location"))
                 .andExpect(jsonPath("$.creatorId").value(readerId.toString()))
-                .andExpect(jsonPath("$.book").value(physicalBookId.toString()));
+                .andExpect(jsonPath("$.book").value(physicalBookId.toString()))
+                .andExpect(jsonPath("$.bookName").value("Physical " + physicalBookId));
         flush();
 
         Map<String, Object> row = jdbc.sql("SELECT * FROM book_orders WHERE book_id = :bookId")
@@ -63,7 +64,7 @@ public class BookOrderCRUDTest extends AbstractIT {
         mockMvc.perform(post(URL)
                         .with(bearerFor(readerUsername))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(orderJson(readerId, null, physicalBookId, true)))
+                        .content(orderJson(null, physicalBookId, true)))
                 .andExpect(status().isCreated());
         flush();
 
@@ -80,7 +81,7 @@ public class BookOrderCRUDTest extends AbstractIT {
         mockMvc.perform(post(URL)
                         .with(bearerFor(readerUsername))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(orderJson(readerId, null, physicalBookId, false)))
+                        .content(orderJson(null, physicalBookId, false)))
                 .andExpect(status().isBadRequest());
 
         assertThat(countByBook(physicalBookId)).isZero();
@@ -91,7 +92,7 @@ public class BookOrderCRUDTest extends AbstractIT {
         mockMvc.perform(post(URL)
                         .with(bearerFor(readerUsername))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(orderJson(readerId, null, null, true)))
+                        .content(orderJson(null, null, true)))
                 .andExpect(status().isBadRequest());
 
         assertThat(countByUser(readerId)).isZero();
@@ -105,7 +106,7 @@ public class BookOrderCRUDTest extends AbstractIT {
         mockMvc.perform(post(URL)
                         .with(bearerFor(username))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(orderJson(userId, "delivery@digital-lib.com", physicalBookId, true)))
+                        .content(orderJson("delivery@digital-lib.com", physicalBookId, true)))
                 .andExpect(status().isUnprocessableContent());
 
         assertThat(countByBook(physicalBookId)).isZero();
@@ -118,10 +119,36 @@ public class BookOrderCRUDTest extends AbstractIT {
         mockMvc.perform(post(URL)
                         .with(bearerFor(readerUsername))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(orderJson(readerId, null, physicalBookId, true)))
+                        .content(orderJson(null, physicalBookId, true)))
                 .andExpect(status().isConflict());
 
         assertThat(countByBook(physicalBookId)).isOne();
+    }
+
+    @Test
+    void create_bookOrderedByAnotherReader_shouldSaveOrder() throws Exception {
+        String other = createUser(UserRole.READER);
+        insertBookOrder(idOf(other), physicalBookId, true);
+
+        mockMvc.perform(post(URL)
+                        .with(bearerFor(readerUsername))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(orderJson(null, physicalBookId, true)))
+                .andExpect(status().isCreated());
+        flush();
+
+        assertThat(countByBook(physicalBookId)).isEqualTo(2);
+    }
+
+    @Test
+    void getMy_shouldReturnOnlyOwnOrders() throws Exception {
+        UUID own = insertBookOrder(readerId, physicalBookId, false);
+        UUID foreign = insertBookOrder(idOf(createUser(UserRole.READER)), physicalBookId, true);
+
+        mockMvc.perform(get(URL + "/my").with(bearerFor(readerUsername)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == '%s')]".formatted(own)).exists())
+                .andExpect(jsonPath("$[?(@.id == '%s')]".formatted(foreign)).doesNotExist());
     }
 
     @Test
@@ -129,7 +156,7 @@ public class BookOrderCRUDTest extends AbstractIT {
         mockMvc.perform(post(URL)
                         .with(bearerFor(readerUsername))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(orderJson(readerId, null, UUID.randomUUID(), true)))
+                        .content(orderJson(null, UUID.randomUUID(), true)))
                 .andExpect(status().isNotFound());
 
         assertThat(countByUser(readerId)).isZero();
@@ -140,7 +167,7 @@ public class BookOrderCRUDTest extends AbstractIT {
         mockMvc.perform(post(URL)
                         .with(asBookDeliveryDepartment())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(orderJson(readerId, null, physicalBookId, true)))
+                        .content(orderJson(null, physicalBookId, true)))
                 .andExpect(status().isForbidden());
 
         assertThat(countByBook(physicalBookId)).isZero();
@@ -150,7 +177,7 @@ public class BookOrderCRUDTest extends AbstractIT {
     void create_unauthenticated_shouldReturn401() throws Exception {
         mockMvc.perform(post(URL)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(orderJson(readerId, null, physicalBookId, true)))
+                        .content(orderJson(null, physicalBookId, true)))
                 .andExpect(status().isUnauthorized());
 
         assertThat(countByBook(physicalBookId)).isZero();
@@ -166,6 +193,22 @@ public class BookOrderCRUDTest extends AbstractIT {
                 .andExpect(jsonPath("$.creatorId").value(readerId.toString()))
                 .andExpect(jsonPath("$.book").value(physicalBookId.toString()))
                 .andExpect(jsonPath("$.emailForDelivery").value("order@digital-lib.com"));
+    }
+
+    @Test
+    void getById_foreignOrderAsReader_shouldReturn403() throws Exception {
+        UUID id = insertBookOrder(readerId, physicalBookId, true);
+
+        mockMvc.perform(get(URL + "/{id}", id).with(bearerFor(createUser(UserRole.READER))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getById_asBookDelivery_shouldReturnOrder() throws Exception {
+        UUID id = insertBookOrder(readerId, physicalBookId, true);
+
+        mockMvc.perform(get(URL + "/{id}", id).with(asBookDeliveryDepartment()))
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -231,11 +274,25 @@ public class BookOrderCRUDTest extends AbstractIT {
     }
 
     @Test
-    void updateStatus_asReader_shouldReturn403AndKeepRow() throws Exception {
+    void updateStatus_ownOrderAsReader_shouldClose() throws Exception {
         UUID id = insertBookOrder(readerId, physicalBookId, true);
 
         mockMvc.perform(patch(URL + "/{id}", id)
                         .with(bearerFor(readerUsername))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(statusJson(false)))
+                .andExpect(status().isOk());
+        flush();
+
+        assertThat(isOpen(id)).isFalse();
+    }
+
+    @Test
+    void updateStatus_foreignOrderAsReader_shouldReturn403AndKeepRow() throws Exception {
+        UUID id = insertBookOrder(readerId, physicalBookId, true);
+
+        mockMvc.perform(patch(URL + "/{id}", id)
+                        .with(bearerFor(createUser(UserRole.READER)))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(statusJson(false)))
                 .andExpect(status().isForbidden());
@@ -263,8 +320,8 @@ public class BookOrderCRUDTest extends AbstractIT {
                 .query(Integer.class).single()).isOne();
     }
 
-    private String orderJson(UUID creatorId, String email, UUID bookId, boolean isOpen) {
-        return objectMapper.writeValueAsString(new BookOrderRequest(creatorId, email, bookId, isOpen));
+    private String orderJson(String email, UUID bookId, boolean isOpen) {
+        return objectMapper.writeValueAsString(new BookOrderRequest(email, bookId, isOpen));
     }
 
     private String statusJson(boolean isOpen) {

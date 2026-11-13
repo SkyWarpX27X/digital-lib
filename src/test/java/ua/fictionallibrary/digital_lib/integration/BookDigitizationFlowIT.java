@@ -87,7 +87,7 @@ public class BookDigitizationFlowIT extends AbstractFlowIT {
     @Test
     @Order(4)
     void createBookOrder_withoutLibraryCard_isRejected() throws Exception {
-        BookOrderRequest order = new BookOrderRequest(userId, null, UUID.randomUUID(), true);
+        BookOrderRequest order = new BookOrderRequest(null, UUID.randomUUID(), true);
         post("/api/v1/book-orders", order, bearerFor(USERNAME))
                 .andExpect(status().is4xxClientError());
     }
@@ -159,7 +159,7 @@ public class BookDigitizationFlowIT extends AbstractFlowIT {
     @Test
     @Order(12)
     void createBookOrder_asBookDelivery_returns403() throws Exception {
-        post("/api/v1/book-orders", new BookOrderRequest(userId, null, physicalBookId, true),
+        post("/api/v1/book-orders", new BookOrderRequest(null, physicalBookId, true),
                 asBookDeliveryDepartment())
                 .andExpect(status().isForbidden());
     }
@@ -167,7 +167,7 @@ public class BookDigitizationFlowIT extends AbstractFlowIT {
     @Test
     @Order(13)
     void createBookOrder_createdAlreadyClosed_returns400() throws Exception {
-        post("/api/v1/book-orders", new BookOrderRequest(userId, null, physicalBookId, false),
+        post("/api/v1/book-orders", new BookOrderRequest(null, physicalBookId, false),
                 bearerFor(USERNAME))
                 .andExpect(status().isBadRequest());
     }
@@ -175,7 +175,7 @@ public class BookDigitizationFlowIT extends AbstractFlowIT {
     @Test
     @Order(14)
     void createBookOrder_unknownBook_returns404() throws Exception {
-        post("/api/v1/book-orders", new BookOrderRequest(userId, null, UUID.randomUUID(), true),
+        post("/api/v1/book-orders", new BookOrderRequest(null, UUID.randomUUID(), true),
                 bearerFor(USERNAME))
                 .andExpect(status().isNotFound());
     }
@@ -183,7 +183,7 @@ public class BookDigitizationFlowIT extends AbstractFlowIT {
     @Test
     @Order(15)
     void createBookOrder_storedRowWhenHasLibraryCard() throws Exception {
-        String body = post("/api/v1/book-orders", new BookOrderRequest(userId, null, physicalBookId, true),
+        String body = post("/api/v1/book-orders", new BookOrderRequest(null, physicalBookId, true),
                 bearerFor(USERNAME))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
@@ -201,7 +201,7 @@ public class BookDigitizationFlowIT extends AbstractFlowIT {
     @Test
     @Order(16)
     void createBookOrder_sameBookTwice_returns409() throws Exception {
-        post("/api/v1/book-orders", new BookOrderRequest(userId, null, physicalBookId, true),
+        post("/api/v1/book-orders", new BookOrderRequest(null, physicalBookId, true),
                 bearerFor(USERNAME))
                 .andExpect(status().isConflict());
     }
