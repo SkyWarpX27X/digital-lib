@@ -19,14 +19,21 @@ export default function Layout({ children, narrow = false }: { children: ReactNo
       <aside className="sidebar">
         <Brand />
 
-        <nav className="nav">
-          <NavLink className={navClass} to="/digitized-books">Оцифровані книги</NavLink>
-          <NavLink className={navClass} to="/physical-books">Фізичні книги</NavLink>
-          {hasAnyRole('BOOK_DELIVERY_DEPARTMENT', 'ADMIN') &&
-            <NavLink className={navClass} to="/book-orders">Замовлення</NavLink>}
-          {hasAnyRole('ADMIN') && <NavLink className={navClass} to="/users">Користувачі</NavLink>}
-          {hasAnyRole('ADMIN') && <NavLink className={navClass} to="/library-cards">Картки читачів</NavLink>}
-        </nav>
+        {hasAnyRole('READER') && !hasAnyRole('DIGITAL_ARCHIVE_DEPARTMENT', 'BOOK_DELIVERY_DEPARTMENT', 'ADMIN') ? (
+          <nav className="nav">
+            <NavLink className={navClass} to="/digitized-books">Каталог</NavLink>
+            <NavLink className={navClass} to="/book-orders">Мої замовлення</NavLink>
+          </nav>
+        ) : (
+          <nav className="nav">
+            <NavLink className={navClass} to="/digitized-books">Оцифровані книги</NavLink>
+            <NavLink className={navClass} to="/physical-books">Фізичні книги</NavLink>
+            {hasAnyRole('BOOK_DELIVERY_DEPARTMENT', 'ADMIN') &&
+              <NavLink className={navClass} to="/book-orders">Замовлення</NavLink>}
+            {hasAnyRole('ADMIN') && <NavLink className={navClass} to="/users">Користувачі</NavLink>}
+            {hasAnyRole('ADMIN') && <NavLink className={navClass} to="/library-cards">Картки читачів</NavLink>}
+          </nav>
+        )}
 
         {user && (
           <div className="sidebar__user">

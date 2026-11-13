@@ -3,7 +3,10 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext'
 import { RequireAuth, RequireRole } from './auth/guards'
+import { STAFF_ROLES } from './bookOrders'
 import AddPhysicalBookPage from './pages/AddPhysicalBookPage'
+import BookOrdersPage from './pages/BookOrdersPage'
+import NewBookOrderPage from './pages/NewBookOrderPage'
 import DigitizedBookFormPage from './pages/DigitizedBookFormPage'
 import DigitizedBookPage from './pages/DigitizedBookPage'
 import DigitizedBooksPage, { EDITOR_ROLES } from './pages/DigitizedBooksPage'
@@ -35,6 +38,16 @@ createRoot(document.getElementById('root')!).render(
               </RequireAuth>
             } />
           ))}
+          <Route path="/book-orders" element={
+            <RequireAuth>
+              <RequireRole roles={['READER', ...STAFF_ROLES]}><BookOrdersPage /></RequireRole>
+            </RequireAuth>
+          } />
+          <Route path="/book-orders/new" element={
+            <RequireAuth>
+              <RequireRole roles={['READER']}><NewBookOrderPage /></RequireRole>
+            </RequireAuth>
+          } />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </AuthProvider>

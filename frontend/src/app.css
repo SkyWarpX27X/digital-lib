@@ -618,6 +618,30 @@ body {
     padding-left: 20px;
 }
 
+.form-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+}
+
+.info-box--side {
+    margin: 0;
+    border-color: var(--color-primary-bg);
+    border-radius: var(--radius-lg);
+    background: var(--color-primary-bg);
+    color: var(--color-primary);
+}
+
+.reader-summary {
+    border-radius: var(--radius-lg);
+    background: var(--color-border-light);
+}
+
+.page-note {
+    margin-top: 24px;
+}
+
 .book-hero {
     display: flex;
     flex-wrap: wrap;
@@ -750,5 +774,9 @@ body {
 
     .content {
         padding: 24px 16px;
+    }
+
+    .form-layout {
+        grid-template-columns: 1fr;
     }
 }
