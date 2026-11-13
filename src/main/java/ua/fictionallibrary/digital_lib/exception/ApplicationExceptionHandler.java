@@ -37,6 +37,16 @@ public class ApplicationExceptionHandler {
         return problemDetail;
     }
 
+    @ExceptionHandler(SelfDeactivationException.class)
+    public ProblemDetail handleSelfDeactivation(SelfDeactivationException e) {
+        log.error("Self deactivation attempt", e);
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, e.getMessage());
+        problemDetail.setTitle("Self deactivation is not allowed");
+        problemDetail.setType(URI.create("urn:problem-type:business-rule-error"));
+        problemDetail.setProperty("timestamp", Instant.now());
+        return problemDetail;
+    }
+
     @ExceptionHandler(IllegalResourceTypeException.class)
     public ProblemDetail handleIllegalResourceType(IllegalResourceTypeException e) {
         log.error("Failed to validate resource type", e);

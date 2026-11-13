@@ -46,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/users/{id}").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/v1/users/{id}").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/users/{id}").hasRole(ADMIN)
 
                         .requestMatchers("/api/v1/users/{userId}/library-card").hasAnyRole(READER, ADMIN)
 

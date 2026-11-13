@@ -8,7 +8,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
+import ua.fictionallibrary.digital_lib.security.AppUserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ua.fictionallibrary.digital_lib.bookmark.dto.BookmarkRequest;
@@ -35,18 +38,21 @@ public class BookmarkController {
             @ApiResponse(responseCode = "400", description = "Некоректні вхідні дані запиту", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "409", description = "Закладка в книзі вже була створена користувачем", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
     })
-    public ResponseEntity<BookmarkResponse> createBookmark(@Validated(OnCreate.class) @RequestBody BookmarkRequest request){
-        BookmarkResponse response = service.addBookmark(new Bookmark(request.userId(), request.bookId(), request.pageNumber()));
-        UUID userId = request.userId();
+    public ResponseEntity<BookmarkResponse> createBookmark(@Validated(OnCreate.class) @RequestBody BookmarkRequest request,
+                                                           @AuthenticationPrincipal AppUserDetails user){
+        UUID userId = user.getId();
+        BookmarkResponse response = service.addBookmark(new Bookmark(userId, request.bookId(), request.pageNumber()));
         UUID bookId = request.bookId();
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{userId}/{bookId}").buildAndExpand(userId, bookId).toUri();
         return ResponseEntity.created(location).body(response);
     }
 
     @GetMapping("/{userId}/{bookId}")
+    @PreAuthorize("hasRole('ADMIN') or @userAccess.isSelf(#userId, authentication)")
     @Operation(summary = "Отримати закладку за ID користувача та книги")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Закладку знайдено"),
+            @ApiResponse(responseCode = "403", description = "Переглядати чужі закладки може тільки адміністратор", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "404", description = "Закладку з вказаним ID користувача та книги не знайдено", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
     public ResponseEntity<BookmarkResponse> getBookmark(@PathVariable UUID userId, @PathVariable UUID bookId){
@@ -54,10 +60,12 @@ public class BookmarkController {
     }
 
     @PatchMapping("/{userId}/{bookId}")
+    @PreAuthorize("hasRole('ADMIN') or @userAccess.isSelf(#userId, authentication)")
     @Operation(summary = "Оновити сторінку закладки за ID користувача та книги")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Закладку оновлено"),
             @ApiResponse(responseCode = "400", description = "Некоректні вхідні дані запиту", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "403", description = "Змінювати чужі закладки може тільки адміністратор", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "404", description = "Закладку з вказаним ID користувача та книги не знайдено", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
     })
     public ResponseEntity<BookmarkResponse> updatePageNumber(@Validated(OnCreate.class) @PathVariable UUID userId, @PathVariable UUID bookId,

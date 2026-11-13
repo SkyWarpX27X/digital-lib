@@ -4,6 +4,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ua.fictionallibrary.digital_lib.exception.SelfDeactivationException;
 import ua.fictionallibrary.digital_lib.starter.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.starter.exception.DuplicateException;
 import ua.fictionallibrary.digital_lib.user.*;
@@ -54,7 +55,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserResponse updateUser(UUID userId, User user) {
+    public UserResponse updateUser(UUID userId, User user, UUID actorId, boolean byAdmin) {
         User existing = userRepository.findById(userId)
                 .orElseThrow(() -> new DataNotFoundException("Can't update non-existent user " + userId));
         if (!existing.getUsername().equals(user.getUsername()) && userRepository.existsByUsername(user.getUsername()))
@@ -64,9 +65,30 @@ public class UserServiceImpl implements UserService {
         existing.setName(user.getName());
         existing.setSurname(user.getSurname());
         existing.setPatronymic(user.getPatronymic());
-        existing.setRole(user.getRole());
-        existing.setActive(user.isActive());
+        if (byAdmin) {
+            requireNotSelfDeactivation(userId, user.isActive(), actorId);
+            existing.setRole(user.getRole());
+            existing.setActive(user.isActive());
+        }
         return toResponse(userRepository.save(existing));
+    }
+
+    @Override
+    @Transactional
+    public UserResponse updateRoleAndStatus(UUID userId, UserRole role, Boolean isActive, UUID actorId) {
+        User existing = userRepository.findById(userId)
+                .orElseThrow(() -> new DataNotFoundException("Can't update non-existent user " + userId));
+        if (isActive != null) {
+            requireNotSelfDeactivation(userId, isActive, actorId);
+            existing.setActive(isActive);
+        }
+        if (role != null) existing.setRole(role);
+        return toResponse(userRepository.save(existing));
+    }
+
+    private static void requireNotSelfDeactivation(UUID userId, boolean isActive, UUID actorId) {
+        if (!isActive && userId.equals(actorId))
+            throw new SelfDeactivationException("Адміністратор не може деактивувати власний обліковий запис");
     }
 
     @Override

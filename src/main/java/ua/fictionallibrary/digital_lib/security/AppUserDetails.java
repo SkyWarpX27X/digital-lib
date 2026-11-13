@@ -11,8 +11,9 @@ public class AppUserDetails extends User {
     private final UUID id;
     private final String name;
 
-    public AppUserDetails(UUID id, String username, @Nullable String password, String name, String surname, Collection<? extends GrantedAuthority> authorities) {
-        super(username, password, authorities);
+    public AppUserDetails(UUID id, String username, @Nullable String password, String name, String surname, boolean enabled,
+                          Collection<? extends GrantedAuthority> authorities) {
+        super(username, password, enabled, true, true, true, authorities);
         this.id = id;
         this.name = name + " " + surname;
     }

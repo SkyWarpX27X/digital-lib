@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -44,6 +45,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             String username = jwtValidator.extractUsername(token);
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                if (!userDetails.isEnabled())
+                    throw new DisabledException("User " + username + " is deactivated");
                 if (jwtValidator.isTokenValid(token, userDetails)) {
                     var authToken = new UsernamePasswordAuthenticationToken(
                             userDetails, null, userDetails.getAuthorities());
@@ -51,7 +54,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
-        } catch (JwtException | IllegalArgumentException | UsernameNotFoundException e) {
+        } catch (JwtException | IllegalArgumentException | UsernameNotFoundException | DisabledException e) {
             SecurityContextHolder.clearContext();
             authenticationEntryPoint.commence(request, response,
                     new BadCredentialsException("Invalid or expired JWT", e));

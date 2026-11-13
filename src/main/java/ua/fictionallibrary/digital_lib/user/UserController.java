@@ -9,11 +9,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ua.fictionallibrary.digital_lib.common.OnCreate;
 import ua.fictionallibrary.digital_lib.common.OnUpdate;
+import ua.fictionallibrary.digital_lib.user.dto.UserAdminUpdateRequest;
 import ua.fictionallibrary.digital_lib.user.dto.UserRequest;
 import ua.fictionallibrary.digital_lib.user.dto.UserResponse;
 
@@ -43,16 +46,24 @@ public class UserController {
             @ApiResponse(responseCode = "409", description = "Користувач з вказаним логіном уже існує", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
     @PreAuthorize("hasRole('ADMIN') || #userRequest.role().name() == 'READER'")
-    public ResponseEntity<UserResponse> createUser(@Validated(OnCreate.class) @RequestBody UserRequest userRequest) {
-        final var response = userService.addUser(toEntity(userRequest));
+    public ResponseEntity<UserResponse> createUser(@Validated(OnCreate.class) @RequestBody UserRequest userRequest,
+                                                   Authentication auth) {
+        User user = toEntity(userRequest);
+        if (!isAdmin(auth)) {
+            user.setRole(UserRole.READER);
+            user.setActive(true);
+        }
+        final var response = userService.addUser(user);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(response.id()).toUri();
         return ResponseEntity.created(location).body(response);
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Отримати користувача за ID", description = "Повертає повні не конфіденційні дані користувача")
+    @PreAuthorize("hasRole('ADMIN') or @userAccess.isSelf(#id, authentication)")
+    @Operation(summary = "Отримати користувача за ID", description = "Повертає повні не конфіденційні дані користувача. Доступно адміністратору або самому користувачу")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Користувача знайдено"),
+            @ApiResponse(responseCode = "403", description = "Переглядати чужий профіль може тільки адміністратор", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "404", description = "Користувача з вказаним ID не знайдено", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
     public ResponseEntity<UserResponse> getUserById(@PathVariable UUID id) {
@@ -70,16 +81,40 @@ public class UserController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or @userAccess.isSelf(#id, authentication)")
-    @Operation(summary = "Оновити дані користувача")
+    @Operation(summary = "Оновити дані користувача",
+            description = "Роль і статус активності змінюються лише адміністратором; для інших користувачів ці поля ігноруються")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Користувача успішно оновлено"),
             @ApiResponse(responseCode = "400", description = "Некоректні вхідні дані запиту", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
-            @ApiResponse(responseCode = "404", description = "Користувача не знайдено", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
+            @ApiResponse(responseCode = "404", description = "Користувача не знайдено", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "409", description = "Користувач з вказаним логіном уже існує", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "422", description = "Адміністратор не може деактивувати сам себе", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
-    public ResponseEntity<UserResponse> updateUser(@PathVariable UUID id, @Validated(OnUpdate.class) @RequestBody UserRequest userRequest) {
-        final var response = userService.updateUser(id, toEntity(userRequest));
+    public ResponseEntity<UserResponse> updateUser(@PathVariable UUID id, @Validated(OnUpdate.class) @RequestBody UserRequest userRequest,
+                                                   @AuthenticationPrincipal(expression = "id") UUID actorId, Authentication auth) {
+        final var response = userService.updateUser(id, toEntity(userRequest), actorId, isAdmin(auth));
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/{id}")
+    @Operation(summary = "Змінити роль або статус активності користувача",
+            description = "Тільки для адміністратора. Пароль та інші дані не змінюються; відсутні поля лишаються без змін")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Користувача успішно оновлено"),
+            @ApiResponse(responseCode = "400", description = "Некоректні вхідні дані запиту", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "403", description = "Змінювати роль і статус може тільки адміністратор", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "404", description = "Користувача не знайдено", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "422", description = "Адміністратор не може деактивувати сам себе", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
+    })
+    public ResponseEntity<UserResponse> updateRoleAndStatus(@PathVariable UUID id, @RequestBody UserAdminUpdateRequest request,
+                                                            @AuthenticationPrincipal(expression = "id") UUID actorId) {
+        return ResponseEntity.ok(userService.updateRoleAndStatus(id, request.role(), request.isActive(), actorId));
+    }
+
+    private static boolean isAdmin(Authentication auth) {
+        return auth != null && auth.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+    }
+
     private User toEntity(UserRequest request) {
         return new User(request.username(), request.password(), request.name(), request.surname(),
                 request.patronymic(), request.role(), request.isActive());

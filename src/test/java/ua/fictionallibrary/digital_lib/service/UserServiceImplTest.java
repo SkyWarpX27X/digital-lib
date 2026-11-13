@@ -82,7 +82,7 @@ public class UserServiceImplTest {
                 userRequest.patronymic(), userRequest.role(), userRequest.isActive());
         when(userRepository.findById(user.getId())).thenReturn(Optional.empty());
 
-        assertThrows(DataNotFoundException.class, () -> service.updateUser(user.getId(), user));
+        assertThrows(DataNotFoundException.class, () -> service.updateUser(user.getId(), user, UUID.randomUUID(), true));
     }
 
     @Test

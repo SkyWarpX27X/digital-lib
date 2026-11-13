@@ -34,7 +34,7 @@ public class BookmarkCRUDTest extends AbstractIT {
         mockMvc.perform(post(URL)
                         .with(bearerFor(readerUsername))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(bookmarkJson(readerId, bookId, 42)))
+                        .content(bookmarkJson(bookId, 42)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.userId").value(readerId.toString()))
                 .andExpect(jsonPath("$.bookId").value(bookId.toString()))
@@ -51,7 +51,7 @@ public class BookmarkCRUDTest extends AbstractIT {
         mockMvc.perform(post(URL)
                         .with(bearerFor(readerUsername))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(bookmarkJson(readerId, bookId, 99)))
+                        .content(bookmarkJson(bookId, 99)))
                 .andExpect(status().isConflict());
 
         assertThat(count(readerId, bookId)).isOne();
@@ -63,7 +63,7 @@ public class BookmarkCRUDTest extends AbstractIT {
         mockMvc.perform(post(URL)
                         .with(bearerFor(readerUsername))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(bookmarkJson(readerId, null, 5)))
+                        .content(bookmarkJson(null, 5)))
                 .andExpect(status().isBadRequest());
 
         assertThat(jdbc.sql("SELECT count(*) FROM bookmarks WHERE user_id = :userId").param("userId", readerId)
@@ -74,7 +74,7 @@ public class BookmarkCRUDTest extends AbstractIT {
     void create_unauthenticated_shouldReturn401() throws Exception {
         mockMvc.perform(post(URL)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(bookmarkJson(readerId, bookId, 5)))
+                        .content(bookmarkJson(bookId, 5)))
                 .andExpect(status().isUnauthorized());
 
         assertThat(count(readerId, bookId)).isZero();
@@ -133,8 +133,54 @@ public class BookmarkCRUDTest extends AbstractIT {
         assertThat(pageNumber(readerId, bookId)).isEqualTo(10);
     }
 
-    private String bookmarkJson(UUID userId, UUID bookId, int pageNumber) {
-        return objectMapper.writeValueAsString(new BookmarkRequest(userId, bookId, pageNumber));
+    @Test
+    void get_otherReadersBookmark_shouldReturn403() throws Exception {
+        insertBookmark(readerId, bookId, 17);
+
+        mockMvc.perform(get(URL + "/{userId}/{bookId}", readerId, bookId).with(asReader()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void get_otherReadersBookmark_asAdmin_shouldSucceed() throws Exception {
+        insertBookmark(readerId, bookId, 17);
+
+        mockMvc.perform(get(URL + "/{userId}/{bookId}", readerId, bookId).with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pageNumber").value(17));
+    }
+
+    @Test
+    void updatePage_otherReadersBookmark_shouldReturn403AndKeepRow() throws Exception {
+        insertBookmark(readerId, bookId, 10);
+
+        mockMvc.perform(patch(URL + "/{userId}/{bookId}", readerId, bookId)
+                        .with(asReader())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(pageJson(55)))
+                .andExpect(status().isForbidden());
+
+        assertThat(pageNumber(readerId, bookId)).isEqualTo(10);
+    }
+
+    @Test
+    void create_withUserIdInBody_shouldReturn400() throws Exception {
+        UUID otherId = UUID.randomUUID();
+
+        mockMvc.perform(post(URL)
+                        .with(bearerFor(readerUsername))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"userId": "%s", "bookId": "%s", "pageNumber": 3}
+                                """.formatted(otherId, bookId)))
+                .andExpect(status().isBadRequest());
+
+        assertThat(count(otherId, bookId)).isZero();
+        assertThat(count(readerId, bookId)).isZero();
+    }
+
+    private String bookmarkJson(UUID bookId, int pageNumber) {
+        return objectMapper.writeValueAsString(new BookmarkRequest(bookId, pageNumber));
     }
 
     private String pageJson(int pageNumber) {

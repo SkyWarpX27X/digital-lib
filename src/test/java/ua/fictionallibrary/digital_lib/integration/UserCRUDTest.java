@@ -275,6 +275,174 @@ public class UserCRUDTest extends AbstractIT {
                 .query(Integer.class).single()).isOne();
     }
 
+    @Test
+    void create_unauthenticated_withInactiveFlag_shouldBeActive() throws Exception {
+        String username = uniqueUsername();
+        UserRequest request = new UserRequest(username, "secret123", "Taras", "Shevchenko",
+                null, UserRole.READER, false);
+
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated());
+        flush();
+
+        assertThat(isActiveByUsername(username)).isTrue();
+    }
+
+    @Test
+    void update_self_asReader_cannotChangeRoleOrActive() throws Exception {
+        String username = createUser(UserRole.READER);
+        UUID id = idOf(username);
+        UserRequest request = new UserRequest(username, "newSecret", "Taras", "Shevchenko",
+                null, UserRole.ADMIN, false);
+
+        mockMvc.perform(put(URL + "/{id}", id)
+                        .with(bearerFor(username))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.role").value("READER"));
+        flush();
+
+        assertThat(roleByUsername(username)).isEqualTo("READER");
+        assertThat(isActiveByUsername(username)).isTrue();
+    }
+
+    @Test
+    void getById_otherUser_asReader_shouldReturn403() throws Exception {
+        UUID id = idOf(createUser(UserRole.READER));
+
+        mockMvc.perform(get(URL + "/{id}", id).with(asReader()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void patch_asAdmin_shouldChangeRoleAndStatus_andKeepPassword() throws Exception {
+        String username = createUser(UserRole.READER);
+        UUID id = idOf(username);
+        String passwordBefore = passwordByUsername(username);
+
+        mockMvc.perform(patch(URL + "/{id}", id)
+                        .with(asAdmin())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"role": "DIGITAL_ARCHIVE_DEPARTMENT", "isActive": false}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.role").value("DIGITAL_ARCHIVE_DEPARTMENT"));
+        flush();
+
+        assertThat(roleByUsername(username)).isEqualTo("DIGITAL_ARCHIVE_DEPARTMENT");
+        assertThat(isActiveByUsername(username)).isFalse();
+        assertThat(passwordByUsername(username)).isEqualTo(passwordBefore);
+    }
+
+    @Test
+    void patch_onlyRole_shouldKeepActive() throws Exception {
+        String username = createUser(UserRole.READER);
+
+        mockMvc.perform(patch(URL + "/{id}", idOf(username))
+                        .with(asAdmin())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"role": "BOOK_DELIVERY_DEPARTMENT"}
+                                """))
+                .andExpect(status().isOk());
+        flush();
+
+        assertThat(roleByUsername(username)).isEqualTo("BOOK_DELIVERY_DEPARTMENT");
+        assertThat(isActiveByUsername(username)).isTrue();
+    }
+
+    @Test
+    void patch_asReader_shouldReturn403() throws Exception {
+        String username = createUser(UserRole.READER);
+
+        mockMvc.perform(patch(URL + "/{id}", idOf(username))
+                        .with(bearerFor(username))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"role": "ADMIN"}
+                                """))
+                .andExpect(status().isForbidden());
+
+        assertThat(roleByUsername(username)).isEqualTo("READER");
+    }
+
+    @Test
+    void patch_selfDeactivation_asAdmin_shouldReturn422() throws Exception {
+        String admin = createUser(UserRole.ADMIN);
+
+        mockMvc.perform(patch(URL + "/{id}", idOf(admin))
+                        .with(bearerFor(admin))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"isActive": false}
+                                """))
+                .andExpect(status().isUnprocessableContent());
+
+        assertThat(isActiveByUsername(admin)).isTrue();
+    }
+
+    @Test
+    void patch_unknown_shouldReturn404() throws Exception {
+        mockMvc.perform(patch(URL + "/{id}", UUID.randomUUID())
+                        .with(asAdmin())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"isActive": false}
+                                """))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deactivatedUser_withOldToken_shouldReturn401() throws Exception {
+        String username = createUser(UserRole.READER);
+        UUID id = idOf(username);
+        var oldToken = bearerFor(username);
+
+        mockMvc.perform(get(URL + "/{id}", id).with(oldToken))
+                .andExpect(status().isOk());
+
+        jdbc.sql("UPDATE users SET is_active = false WHERE id = :id").param("id", id).update();
+        entityManager.clear();
+
+        mockMvc.perform(get(URL + "/{id}", id).with(oldToken))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void login_deactivatedUser_shouldReturn401() throws Exception {
+        String username = createUser(UserRole.READER);
+        jdbc.sql("UPDATE users SET password = :password WHERE username = :username")
+                .param("password", passwordEncoder.encode("secret123"))
+                .param("username", username)
+                .update();
+        String loginJson = """
+                {"username": "%s", "password": "secret123"}
+                """.formatted(username);
+
+        mockMvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON).content(loginJson))
+                .andExpect(status().isOk());
+
+        jdbc.sql("UPDATE users SET is_active = false WHERE username = :username").param("username", username).update();
+        entityManager.clear();
+
+        mockMvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON).content(loginJson))
+                .andExpect(status().isUnauthorized());
+    }
+
+    private boolean isActiveByUsername(String username) {
+        return jdbc.sql("SELECT is_active FROM users WHERE username = :username").param("username", username)
+                .query(Boolean.class).single();
+    }
+
+    private String passwordByUsername(String username) {
+        return jdbc.sql("SELECT password FROM users WHERE username = :username").param("username", username)
+                .query(String.class).single();
+    }
+
     private static String uniqueUsername() {
         return "user_" + UUID.randomUUID().toString().substring(0, 8);
     }

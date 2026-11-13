@@ -10,7 +10,8 @@ public interface UserService {
     UserResponse getUser(UUID userId);
     List<UserResponse> getAllUsers();
     UserResponse addUser(User user);
-    UserResponse updateUser(UUID userId, User user);
+    UserResponse updateUser(UUID userId, User user, UUID actorId, boolean byAdmin);
+    UserResponse updateRoleAndStatus(UUID userId, UserRole role, Boolean isActive, UUID actorId);
     void deleteUser(UUID userId);
     boolean existsById(UUID userId);
     boolean existsByLogin(String login);
