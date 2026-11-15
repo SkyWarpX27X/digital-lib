@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
-import { REDIRECT_KEY } from '../auth/guards'
+import { HOME, takeRedirect } from '../auth/guards'
 import Brand from '../components/Brand'
 import { useTitle } from '../useTitle'
 
@@ -14,16 +14,14 @@ export default function LoginPage() {
   const [error, setError] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
-  if (user && !submitting) return <Navigate to="/physical-books" replace />
+  if (user && !submitting) return <Navigate to={HOME} replace />
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
     setSubmitting(true)
     try {
       await login(username, password)
-      const target = sessionStorage.getItem(REDIRECT_KEY) ?? '/physical-books'
-      sessionStorage.removeItem(REDIRECT_KEY)
-      navigate(target, { replace: true })
+      navigate(takeRedirect(), { replace: true })
     } catch {
       setError(true)
       setSubmitting(false)
@@ -54,6 +52,9 @@ export default function LoginPage() {
 
           <button className="btn btn--primary btn--block login__submit" type="submit" disabled={submitting}>Увійти</button>
         </form>
+        <p className="centered-page__text page-note">
+          Немає облікового запису? <Link to="/register">Зареєструватися</Link>
+        </p>
       </main>
     </div>
   )

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { HOME } from '../auth/guards'
 import Brand from '../components/Brand'
 import { useTitle } from '../useTitle'
 
@@ -19,7 +20,7 @@ export default function ErrorPage({ code, title, text }: ErrorPageProps) {
         <h1 className="page-title">{title}</h1>
         <p className="centered-page__text">{text}</p>
         <div>
-          <Link className="btn btn--primary" to="/physical-books">На головну</Link>
+          <Link className="btn btn--primary" to={HOME}>На головну</Link>
         </div>
       </main>
     </div>

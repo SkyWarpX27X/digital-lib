@@ -2,7 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext'
-import { RequireAuth, RequireRole } from './auth/guards'
+import { HOME, RequireAuth, RequireRole } from './auth/guards'
 import { STAFF_ROLES } from './bookOrders'
 import AddPhysicalBookPage from './pages/AddPhysicalBookPage'
 import BookOrdersPage from './pages/BookOrdersPage'
@@ -13,6 +13,8 @@ import DigitizedBooksPage, { EDITOR_ROLES } from './pages/DigitizedBooksPage'
 import LoginPage from './pages/LoginPage'
 import NotFoundPage from './pages/NotFoundPage'
 import PhysicalBooksPage from './pages/PhysicalBooksPage'
+import ProfilePage from './pages/ProfilePage'
+import RegisterPage from './pages/RegisterPage'
 import './app.css'
 
 createRoot(document.getElementById('root')!).render(
@@ -21,7 +23,9 @@ createRoot(document.getElementById('root')!).render(
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/" element={<Navigate to="/physical-books" replace />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/" element={<Navigate to={HOME} replace />} />
+          <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
           <Route path="/physical-books" element={<RequireAuth><PhysicalBooksPage /></RequireAuth>} />
           <Route path="/physical-books/new" element={
             <RequireAuth>

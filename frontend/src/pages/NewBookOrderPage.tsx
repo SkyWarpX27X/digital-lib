@@ -52,7 +52,11 @@ export default function NewBookOrderPage() {
       <div className="form-layout">
         <form className="card form-card" onSubmit={handleSubmit}>
           <div className="form-card__body">
-            {noCard && <div className="alert alert--error" role="alert">Замовлення доступне лише читачам із карткою бібліотеки.</div>}
+            {noCard && (
+              <div className="alert alert--error" role="alert">
+                Замовлення доступне лише читачам із карткою бібліотеки. <Link to="/profile">Оформити картку в профілі</Link>
+              </div>
+            )}
             {error && <div className="alert alert--error" role="alert">{error}</div>}
 
             <dl className="details reader-summary">

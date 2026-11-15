@@ -107,6 +107,13 @@ public class BookDigitizationFlowIT extends AbstractFlowIT {
     }
 
     @Test
+    @Order(6)
+    void createLibraryCard_forOtherReader_returns403() throws Exception {
+        post("/api/v1/users/%s/library-card".formatted(userId), validCard(), asReader())
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @Order(7)
     void createLibraryCard_invalidEmail_returns400() throws Exception {
         LibraryCardRequest bad = new LibraryCardRequest("not-an-email", "87104", Year.of(2007),

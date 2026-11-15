@@ -32,10 +32,12 @@ public class LibraryCardController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN') or @userAccess.isSelf(#userId, authentication)")
     @Operation(summary = "Створити нову картку читача", description = "Створення новох картки читача на основі існуючого запису про користувача")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Картку читача успішно створено"),
             @ApiResponse(responseCode = "400", description = "Некоректні вхідні дані запиту", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "403", description = "Створювати картку для іншого користувача може тільки адміністратор", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "409", description = "Картка читача вказаного користувача уже існує", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
     public ResponseEntity<LibraryCardResponse> createLibraryCard(@PathVariable UUID userId, @Validated(OnCreate.class) @RequestBody LibraryCardRequest libraryCardRequest) {

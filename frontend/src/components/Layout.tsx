@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { REDIRECT_KEY } from '../auth/guards'
 import Brand from './Brand'
 
 const navClass = ({ isActive }: { isActive: boolean }) => 'nav__link' + (isActive ? ' nav__link--active' : '')
@@ -9,20 +10,26 @@ export default function Layout({ children, narrow = false }: { children: ReactNo
   const { user, logout, hasAnyRole } = useAuth()
   const navigate = useNavigate()
 
+  const location = useLocation()
+
   const handleLogout = () => {
     logout()
     navigate('/login')
   }
+
+  // come back to the page the visitor was browsing after login
+  const rememberPage = () => sessionStorage.setItem(REDIRECT_KEY, location.pathname + location.search)
 
   return (
     <div className="app">
       <aside className="sidebar">
         <Brand />
 
-        {hasAnyRole('READER') && !hasAnyRole('DIGITAL_ARCHIVE_DEPARTMENT', 'BOOK_DELIVERY_DEPARTMENT', 'ADMIN') ? (
+        {!hasAnyRole('DIGITAL_ARCHIVE_DEPARTMENT', 'BOOK_DELIVERY_DEPARTMENT', 'ADMIN') ? (
           <nav className="nav">
             <NavLink className={navClass} to="/digitized-books">Каталог</NavLink>
-            <NavLink className={navClass} to="/book-orders">Мої замовлення</NavLink>
+            {hasAnyRole('READER') && <NavLink className={navClass} to="/book-orders">Мої замовлення</NavLink>}
+            {user && <NavLink className={navClass} to="/profile">Профіль</NavLink>}
           </nav>
         ) : (
           <nav className="nav">
@@ -32,16 +39,21 @@ export default function Layout({ children, narrow = false }: { children: ReactNo
               <NavLink className={navClass} to="/book-orders">Замовлення</NavLink>}
             {hasAnyRole('ADMIN') && <NavLink className={navClass} to="/users">Користувачі</NavLink>}
             {hasAnyRole('ADMIN') && <NavLink className={navClass} to="/library-cards">Картки читачів</NavLink>}
+            <NavLink className={navClass} to="/profile">Профіль</NavLink>
           </nav>
         )}
 
-        {user && (
+        {user ? (
           <div className="sidebar__user">
             <div>
               <div className="sidebar__user-name">{user.name}</div>
               <div className="sidebar__user-role">{user.username}</div>
             </div>
             <button className="icon-btn" type="button" onClick={handleLogout}>Вийти</button>
+          </div>
+        ) : (
+          <div className="sidebar__user">
+            <Link className="btn btn--primary btn--block" to="/login" onClick={rememberPage}>Увійти</Link>
           </div>
         )}
       </aside>
