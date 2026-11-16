@@ -1,5 +1,6 @@
 package ua.fictionallibrary.digital_lib.digitizedbook;
 
+import org.springframework.web.multipart.MultipartFile;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookRequest;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookResponse;
 
@@ -10,7 +11,8 @@ public interface DigitizedBookService {
     DigitizedBookResponse getDigitizedBook(UUID id);
     List<DigitizedBookResponse> getAllDigitizedBooks();
     List<DigitizedBookResponse> findDigitizedBooksByName(String name);
-    DigitizedBookResponse addDigitizedBook(DigitizedBookRequest request, UUID physicalBookId);
+    DigitizedBookResponse addDigitizedBook(DigitizedBookRequest request, UUID physicalBookId, MultipartFile pdf,
+                                           MultipartFile cover);
     DigitizedBookResponse updateDigitizedBook(UUID id, DigitizedBookRequest request);
     void deleteDigitizedBook(UUID id);
     boolean exists(UUID id);

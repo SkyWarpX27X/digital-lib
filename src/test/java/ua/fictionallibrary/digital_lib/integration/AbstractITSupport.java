@@ -4,10 +4,12 @@ import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.http.HttpHeaders;
 import tools.jackson.databind.ObjectMapper;
+import ua.fictionallibrary.digital_lib.filestorage.FileStorageService;
 import ua.fictionallibrary.digital_lib.security.UserDetailsService;
 import ua.fictionallibrary.digital_lib.security.jwt.JwtService;
 import ua.fictionallibrary.digital_lib.support.IntegrationTest;
@@ -35,6 +37,9 @@ public abstract class AbstractITSupport {
 
     @Autowired
     protected EntityManager entityManager;
+
+    @MockitoBean
+    protected FileStorageService fileStorageService;
 
     protected RequestPostProcessor bearer(UserRole role) {
         String username = createUser(role);

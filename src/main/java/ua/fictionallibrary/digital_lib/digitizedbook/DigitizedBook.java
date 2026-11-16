@@ -38,14 +38,17 @@ public class DigitizedBook {
     @Column(nullable = false)
     private boolean isCopyrighted;
     @Column
-    private String coverUrl;
+    private String coverKey;
     @Column(nullable = false)
-    private String fileUrl;
+    private String pdfKey;
+    @Column
+    private String coverContentType;
 
 
     protected DigitizedBook() {}
 
-    public DigitizedBook(String name, Set<Author> authors, String description, String topic, Year publishingYear, String language, String resourceType, boolean isCopyrighted, String coverUrl, String fileUrl) {
+    public DigitizedBook(String name, Set<Author> authors, String description, String topic, Year publishingYear,
+                         String language, String resourceType, boolean isCopyrighted) {
         this.name = name;
         this.authors = authors;
         this.description = description;
@@ -54,8 +57,6 @@ public class DigitizedBook {
         this.language = language;
         this.resourceType = resourceType;
         this.isCopyrighted = isCopyrighted;
-        this.coverUrl = coverUrl;
-        this.fileUrl = fileUrl;
     }
 
     public UUID getId() {
@@ -126,19 +127,27 @@ public class DigitizedBook {
         isCopyrighted = copyrighted;
     }
 
-    public String getCoverUrl() {
-        return coverUrl;
+    public String getCoverKey() {
+        return coverKey;
     }
 
-    public void setCoverUrl(String coverUrl) {
-        this.coverUrl = coverUrl;
+    public void setCoverKey(String coverKey) {
+        this.coverKey = coverKey;
     }
 
-    public String getFileUrl() {
-        return fileUrl;
+    public String getPdfKey() {
+        return pdfKey;
     }
 
-    public void setFileUrl(String fileUrl) {
-        this.fileUrl = fileUrl;
+    public void setPdfKey(String pdfKey) {
+        this.pdfKey = pdfKey;
+    }
+
+    public String getCoverContentType() {
+        return coverContentType;
+    }
+
+    public void setCoverContentType(String coverContentType) {
+        this.coverContentType = coverContentType;
     }
 }

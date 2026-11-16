@@ -6,11 +6,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ua.fictionallibrary.digital_lib.common.OnCreate;
 import ua.fictionallibrary.digital_lib.common.OnUpdate;
@@ -30,6 +32,8 @@ public class DigitizedBookController {
     public DigitizedBookController(DigitizedBookService service) {
         this.service = service;
     }
+
+    //TODO: add pdf/cover updates
 
     @GetMapping("/{id}")
     @Operation(summary = "Отримати оцифровану книгу за ID", description = "Повертає повні дані оцифрованої книги")
@@ -58,18 +62,20 @@ public class DigitizedBookController {
         return ResponseEntity.ok(service.findDigitizedBooksByName(name));
     }
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Створити нову оцифровану книгу", description = "Реєструє нову оцифровану книгу на основі існуючої фізичної книги")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Книгу успішно створено"),
             @ApiResponse(responseCode = "400", description = "Некоректні вхідні дані запиту", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
     })
-    public ResponseEntity<DigitizedBookResponse> createBook(@Validated(OnCreate.class) @RequestBody DigitizedBookRequest request) {
-        DigitizedBookResponse response = service.addDigitizedBook (request, request.physicalBookId());
+    public ResponseEntity<DigitizedBookResponse> createBook(
+            @RequestPart("data") @Validated(OnCreate.class) DigitizedBookRequest data,
+            @RequestPart("pdf") MultipartFile pdf,
+            @RequestPart(value = "cover", required = false) MultipartFile cover) {
+        DigitizedBookResponse response = service.addDigitizedBook (data, data.physicalBookId(), pdf, cover);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(response.id()).toUri();
         return ResponseEntity.created(location).body(response);
     }
-
 
 
     @PutMapping("/{id}")

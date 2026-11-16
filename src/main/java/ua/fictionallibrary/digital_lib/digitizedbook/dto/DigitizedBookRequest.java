@@ -47,13 +47,6 @@ public record DigitizedBookRequest(
         @Schema(description = "Чи накладається авторське право на книгу?", example = "True")
         boolean isCopyrighted,
 
-        @Schema(description = "Посилання на зображення з обкладинкою книги (необов'язково)", example = "https://digital-lib.com/image")
-        String coverUrl,
-
-        @Schema(description = "Посилання на файл з PDF книги", example = "https://digital-lib.com/file")
-        @NotBlank(message = "File URL must be specified")
-        String fileUrl,
-
         @Schema(description = "UUID фізичної книги, яка оцифрувалась", example = "01324319-0853-4021-ab5d-3cd459469af7")
         @NotNull(groups = OnCreate.class, message = "Physical book ID must not be null when creating")
         @Null(groups = OnUpdate.class, message = "Physical book ID can only be null when updating")

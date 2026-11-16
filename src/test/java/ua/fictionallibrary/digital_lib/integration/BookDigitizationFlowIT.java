@@ -4,6 +4,7 @@ import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
@@ -18,6 +19,10 @@ import ua.fictionallibrary.digital_lib.user.UserRole;
 import ua.fictionallibrary.digital_lib.user.dto.LibraryCardRequest;
 import ua.fictionallibrary.digital_lib.user.dto.UserRequest;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Year;
 import java.util.List;
@@ -217,14 +222,14 @@ public class BookDigitizationFlowIT extends AbstractFlowIT {
     @Test
     @Order(17)
     void createDigitizedBook_asReader_returns403() throws Exception {
-        post("/api/v1/digitized-books", validDigitizedBook(physicalBookId), bearerFor(USERNAME))
+        postDigitized(validDigitizedBook(physicalBookId), bearerFor(USERNAME))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     @Order(18)
     void createDigitizedBook_withoutPhysicalBookId_returns400() throws Exception {
-        post("/api/v1/digitized-books", validDigitizedBook(null), asDigitalArchiveDepartment())
+        postDigitized(validDigitizedBook(null), asDigitalArchiveDepartment())
                 .andExpect(status().isBadRequest());
         assertThat(orderIsOpen()).isTrue();
     }
@@ -232,12 +237,8 @@ public class BookDigitizationFlowIT extends AbstractFlowIT {
     @Test
     @Order(19)
     void createDigitizedBook_asDigitalArchiveUpdatedOrderStatusAndRemovedPhysicalBook() throws Exception {
-        String json = objectMapper.writeValueAsString(validDigitizedBook(physicalBookId));
-        System.out.println("DEBUG json = " + json);System.out.println("DEBUG physicalBookId = " + physicalBookId);
-        String body = post("/api/v1/digitized-books", validDigitizedBook(physicalBookId),
-                asDigitalArchiveDepartment())
-                .andExpect(status().isCreated())
-                .andReturn().getResponse().getContentAsString();
+        postDigitized(validDigitizedBook(physicalBookId), asDigitalArchiveDepartment())
+                .andExpect(status().isCreated());
 
         await().atMost(Duration.ofSeconds(5)).untilAsserted(() ->
                 assertThat(orderIsOpen()).isFalse());
@@ -266,6 +267,18 @@ public class BookDigitizationFlowIT extends AbstractFlowIT {
         return mockMvc.perform(request).andDo(org.springframework.test.web.servlet.result.MockMvcResultHandlers.log());
     }
 
+    private ResultActions postDigitized(DigitizedBookRequest meta, RequestPostProcessor auth) throws Exception {
+        var request = MockMvcRequestBuilders.multipart("/api/v1/digitized-books")
+                .file(new MockMultipartFile("data", "", MediaType.APPLICATION_JSON_VALUE,
+                        objectMapper.writeValueAsBytes(meta)))
+                .file(new MockMultipartFile("pdf", "book.pdf", "application/pdf",
+                        TestFiles.samplePdf()))
+                .file(new MockMultipartFile("cover", "cover.png", "image/png", TestFiles.coverPng()));
+        if (auth != null)
+            request.with(auth);
+        return mockMvc.perform(request).andDo(MockMvcResultHandlers.log());
+    }
+
     private boolean orderIsOpen() {
         return jdbc.sql("SELECT is_open FROM " + BOOK_ORDERS + " WHERE id = :id")
                 .param("id", bookOrderId).query(Boolean.class).single();
@@ -290,7 +303,6 @@ public class BookDigitizationFlowIT extends AbstractFlowIT {
     private DigitizedBookRequest validDigitizedBook(UUID physicalId) {
         return new DigitizedBookRequest("Тигролови", List.of("Іван Багряний"),
                 "Пригодницький роман", "Історичний пригодницький роман",
-                Year.of(1944), "Українська", "Книга", false,
-                "https://digital-lib.com/image", "https://digital-lib.com/file", physicalId);
+                Year.of(1944), "Українська", "Книга", false, physicalId);
     }
 }

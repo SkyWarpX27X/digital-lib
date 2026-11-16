@@ -2,8 +2,15 @@ package ua.fictionallibrary.digital_lib.integration;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookRequest;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.Year;
 import java.util.List;
 import java.util.UUID;
@@ -15,6 +22,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import org.springframework.http.MediaType;
+
+import javax.imageio.ImageIO;
 
 public class DigitizedBookIT extends AbstractIT {
 
@@ -31,11 +40,7 @@ public class DigitizedBookIT extends AbstractIT {
     void createDigitizedBook_shouldStoreRow() throws Exception {
         String name = uniqueName();
 
-        mockMvc.perform(post(URL)
-                        .with(asDigitalArchiveDepartment())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(bookJson(name, physicalBookId)))
-                .andExpect(status().isCreated());
+        createBook(name, physicalBookId, asDigitalArchiveDepartment()).andExpect(status().isCreated());
         flush();
         String stored = jdbc.sql(
                         "SELECT name FROM digitized_books WHERE name = :name")
@@ -51,11 +56,7 @@ public class DigitizedBookIT extends AbstractIT {
     void create_withBlankName_shouldStoreNothing() throws Exception {
         String name = " ";
 
-        mockMvc.perform(post(URL)
-                        .with(asDigitalArchiveDepartment())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(bookJson(name, physicalBookId)))
-                .andExpect(status().isBadRequest());
+        createBook(name, physicalBookId, asDigitalArchiveDepartment()).andExpect(status().isBadRequest());
 
         assertThat(countByName(name)).isZero();
     }
@@ -64,11 +65,7 @@ public class DigitizedBookIT extends AbstractIT {
     void create_asReaderShouldStoreNothing() throws Exception {
         String name = uniqueName();
 
-        mockMvc.perform(post(URL)
-                        .with(asReader())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(bookJson(name, physicalBookId)))
-                .andExpect(status().isForbidden());
+        createBook(name, physicalBookId, asReader()).andExpect(status().isForbidden());
 
         assertThat(countByName(name)).isZero();
     }
@@ -76,11 +73,7 @@ public class DigitizedBookIT extends AbstractIT {
     @Test
     void create_withoutPhysicalBookId_shouldReturn400() throws Exception {
         String name = uniqueName();
-        mockMvc.perform(post(URL)
-                        .with(asAdmin())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(bookJson(name, null)))
-                .andExpect(status().isBadRequest());
+        createBook(name, null, asAdmin()).andExpect(status().isBadRequest());
         assertThat(countByName(name)).isZero();
     }
 
@@ -209,8 +202,6 @@ public class DigitizedBookIT extends AbstractIT {
                 "eng",
                 "Стародрук",
                 false,
-                "https://digital-lib.com/image",
-                "https://digital-lib.com/file",
                 physicalBookId
         );
         return objectMapper.writeValueAsString(request);
@@ -233,11 +224,12 @@ public class DigitizedBookIT extends AbstractIT {
     private UUID insertDigitizedBook(String name, boolean copyrighted) {
         UUID id = UUID.randomUUID();
         jdbc.sql("""
-                INSERT INTO digitized_books
-                  (id, name, description, topic, publishing_year, language, resource_type, is_copyrighted, cover_url, file_url)
-                VALUES (:id, :name, 'desc', 'Історична', 1850, 'eng', 'Стародрук', :copyrighted, 'url', 'url')
-                """)
+            INSERT INTO digitized_books
+              (id, name, description, topic, publishing_year, language, resource_type, is_copyrighted, pdf_key)
+            VALUES (:id, :name, 'desc', 'Історична', 1850, 'eng', 'Стародрук', :copyrighted, :pdfKey)
+            """)
                 .param("id", id).param("name", name).param("copyrighted", copyrighted)
+                .param("pdfKey", "digitized-books/" + id + "/book.pdf")
                 .update();
         return id;
     }
@@ -253,5 +245,14 @@ public class DigitizedBookIT extends AbstractIT {
                 .param("name", "Physical " + id)
                 .update();
         return id;
+    }
+
+    private ResultActions createBook(String name, UUID physicalId, RequestPostProcessor auth) throws Exception {
+        return mockMvc.perform(multipart(URL)
+                .file(new MockMultipartFile("data", "", MediaType.APPLICATION_JSON_VALUE,
+                        bookJson(name, physicalId).getBytes(StandardCharsets.UTF_8)))
+                .file(new MockMultipartFile("pdf", "book.pdf", "application/pdf", TestFiles.samplePdf()))
+                .file(new MockMultipartFile("cover", "cover.png", "image/png", TestFiles.coverPng()))
+                .with(auth));
     }
 }
