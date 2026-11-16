@@ -33,6 +33,8 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("io.jsonwebtoken:jjwt-api:0.12.6")
 	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+	implementation(platform("io.awspring.cloud:spring-cloud-aws-dependencies:4.2.1"))
+	implementation("io.awspring.cloud:spring-cloud-aws-starter-s3")
 	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
 	runtimeOnly("org.postgresql:postgresql")
