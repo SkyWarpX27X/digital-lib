@@ -2,6 +2,8 @@ package ua.fictionallibrary.digital_lib.integration;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -21,5 +23,9 @@ public class TestFiles {
         var out = new ByteArrayOutputStream();
         ImageIO.write(new BufferedImage(200, 300, BufferedImage.TYPE_INT_RGB), "png", out);
         return out.toByteArray();
+    }
+
+    public static MultipartFile sampleMultipartPdf() throws IOException {
+        return new MockMultipartFile("file", "sample.pdf", "application/pdf", samplePdf());
     }
 }
