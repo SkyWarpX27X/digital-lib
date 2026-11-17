@@ -55,7 +55,7 @@ public class UserStartConfig {
                     true));
             repository.save(new User(
                     "vsauce",
-                    encoder.encode("yourPasswordIsSecure_OrIsIt?"),
+                        encoder.encode("yourPasswordIsSecure_OrIsIt?"),
                     "Майкл",
                     "Стівенс",
                     "",

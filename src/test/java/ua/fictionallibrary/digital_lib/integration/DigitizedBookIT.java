@@ -7,23 +7,22 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookRequest;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import org.springframework.http.HttpHeaders;
+
+import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Year;
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import org.springframework.http.MediaType;
-
-import javax.imageio.ImageIO;
 
 public class DigitizedBookIT extends AbstractIT {
 
@@ -102,6 +101,67 @@ public class DigitizedBookIT extends AbstractIT {
         mockMvc.perform(get(URL + "/{id}", id).with(asReader()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id.toString()));
+    }
+
+    @Test
+    void getPdf_shouldStreamPdfInline() throws Exception {
+        UUID id = insertDigitizedBook(uniqueName());
+        byte[] pdf = TestFiles.samplePdf();
+        when(fileStorageService.load("digitized-books/" + id + "/book.pdf")).thenReturn(new ByteArrayInputStream(pdf));
+
+        mockMvc.perform(get(URL + "/{id}/pdf", id))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_PDF))
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, "inline"))
+                .andExpect(content().bytes(pdf));
+    }
+
+    @Test
+    void getPdf_copyrighted_anonymous_shouldReturn401() throws Exception {
+        UUID id = insertDigitizedBook(uniqueName(), true);
+
+        mockMvc.perform(get(URL + "/{id}/pdf", id))
+                .andExpect(status().isUnauthorized());
+        verify(fileStorageService, never()).load(any());
+    }
+
+    @Test
+    void getPdf_copyrighted_authenticated_shouldReturnPdf() throws Exception {
+        UUID id = insertDigitizedBook(uniqueName(), true);
+        when(fileStorageService.load(any())).thenReturn(new ByteArrayInputStream(TestFiles.samplePdf()));
+
+        mockMvc.perform(get(URL + "/{id}/pdf", id).with(asReader()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_PDF));
+    }
+
+    @Test
+    void getPdf_unknown_shouldReturn404() throws Exception {
+        mockMvc.perform(get(URL + "/{id}/pdf", UUID.randomUUID()))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getCover_shouldReturnImageWithStoredType() throws Exception {
+        UUID id = insertDigitizedBook(uniqueName());
+        String coverKey = "digitized-books/" + id + "/cover.png";
+        jdbc.sql("UPDATE digitized_books SET cover_key = :key, cover_content_type = 'image/png' WHERE id = :id")
+                .param("key", coverKey).param("id", id).update();
+        byte[] cover = TestFiles.coverPng();
+        when(fileStorageService.load(coverKey)).thenReturn(new ByteArrayInputStream(cover));
+
+        mockMvc.perform(get(URL + "/{id}/cover", id))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.IMAGE_PNG))
+                .andExpect(content().bytes(cover));
+    }
+
+    @Test
+    void getCover_bookWithoutCover_shouldReturn404() throws Exception {
+        UUID id = insertDigitizedBook(uniqueName());
+
+        mockMvc.perform(get(URL + "/{id}/cover", id))
+                .andExpect(status().isNotFound());
     }
 
     @Test

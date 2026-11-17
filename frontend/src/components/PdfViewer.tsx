@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { getDocument, GlobalWorkerOptions, type PDFDocumentProxy } from 'pdfjs-dist'
+import { tokenStore } from '../api'
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 
 GlobalWorkerOptions.workerSrc = workerUrl
@@ -21,7 +22,8 @@ export default function PdfViewer({ url }: { url: string }) {
     setPdf(null)
     setError(false)
     setPage(1)
-    const task = getDocument(url)
+    const token = tokenStore.get()
+    const task = getDocument({ url, httpHeaders: token ? { Authorization: `Bearer ${token}` } : undefined })
     task.promise.then(setPdf, () => setError(true))
     return () => { task.destroy() }
   }, [url])

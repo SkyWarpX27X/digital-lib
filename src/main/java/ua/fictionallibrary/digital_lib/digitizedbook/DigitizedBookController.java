@@ -6,9 +6,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +23,10 @@ import ua.fictionallibrary.digital_lib.common.OnUpdate;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookRequest;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookResponse;
 
+import ua.fictionallibrary.digital_lib.digitizedbook.dto.StoredFile;
+
 import java.net.URI;
+import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
 
@@ -46,6 +53,37 @@ public class DigitizedBookController {
     public ResponseEntity<DigitizedBookResponse> getBookById(@PathVariable UUID id) {
         DigitizedBookResponse book = service.getDigitizedBook(id);
         return ResponseEntity.ok(book);
+    }
+
+    @GetMapping("/{id}/pdf")
+    @Operation(summary = "Отримати PDF-файл оцифрованої книги", description = "Віддає PDF для перегляду в браузері")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "PDF-файл книги", content = @Content(mediaType = MediaType.APPLICATION_PDF_VALUE)),
+            @ApiResponse(responseCode = "401", description = "Книга під авторським правом доступна лише авторизованим користувачам", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "404", description = "Оцифровану книгу з вказаним ID не знайдено", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
+    })
+    public ResponseEntity<InputStreamResource> getPdf(@PathVariable UUID id, Principal principal) {
+        // shortcut: same rule as getBookById for now, stage 3 replaces it with the library-card rule
+        if (principal == null && service.getDigitizedBook(id).isCopyrighted())
+            throw new AccessDeniedException("Copyrighted book is available only to authenticated users");
+        return inline(service.getPdf(id));
+    }
+
+    @GetMapping("/{id}/cover")
+    @Operation(summary = "Отримати обкладинку оцифрованої книги", description = "Віддає зображення обкладинки (JPEG або PNG)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Зображення обкладинки", content = @Content(mediaType = "image/*")),
+            @ApiResponse(responseCode = "404", description = "Книгу не знайдено або в неї немає обкладинки", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
+    })
+    public ResponseEntity<InputStreamResource> getCover(@PathVariable UUID id) {
+        return inline(service.getCover(id));
+    }
+
+    private static ResponseEntity<InputStreamResource> inline(StoredFile file) {
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(file.contentType()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.inline().build().toString())
+                .body(new InputStreamResource(file.data()));
     }
 
     @GetMapping
