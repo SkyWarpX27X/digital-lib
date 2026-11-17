@@ -16,6 +16,7 @@ import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBookRepository;
 import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBookService;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookRequest;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookResponse;
+import ua.fictionallibrary.digital_lib.digitizedbook.dto.StoredFile;
 import ua.fictionallibrary.digital_lib.filestorage.FileStorageService;
 import ua.fictionallibrary.digital_lib.filestorage.FileValidator;
 import ua.fictionallibrary.digital_lib.filestorage.S3FileStorageService;
@@ -158,6 +159,22 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
     }
 
     @Override
+    public StoredFile getPdf(UUID id) {
+        DigitizedBook book = repository.findById(id)
+                .orElseThrow(() -> new DataNotFoundException("Not found digitized book with id " + id));
+        return new StoredFile(fileStorageService.load(book.getPdfKey()), "application/pdf");
+    }
+
+    @Override
+    public StoredFile getCover(UUID id) {
+        DigitizedBook book = repository.findById(id)
+                .orElseThrow(() -> new DataNotFoundException("Not found digitized book with id " + id));
+        if (book.getCoverKey() == null)
+            throw new DataNotFoundException("Digitized book with id " + id + " has no cover");
+        return new StoredFile(fileStorageService.load(book.getCoverKey()), book.getCoverContentType());
+    }
+
+    @Override
     public boolean exists(UUID id) {
         return repository.existsById(id);
     }
@@ -170,7 +187,7 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
 
     private DigitizedBookResponse toResponse(DigitizedBook entity) {
         List<String> authors = entity.getAuthors().stream().map(Author::getName).toList();
-        String base = "/digitized-books/" + entity.getId();
+        String base = "/api/v1/digitized-books/" + entity.getId();
         return new DigitizedBookResponse(entity.getId(), entity.getName(), authors, entity.getDescription(),
                 entity.getTopic(), entity.getPublishingYear(), entity.getLanguage(), entity.getResourceType(),
                 entity.isCopyrighted(), entity.getCoverKey() == null ? null : base + "/cover", base + "/pdf");

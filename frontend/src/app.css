@@ -564,12 +564,6 @@ body {
     margin-top: 20px;
 }
 
-.input--temp {
-    height: 40px;
-    margin-top: 12px;
-    font-size: 14px;
-}
-
 .dropzone {
     display: flex;
     flex-direction: column;

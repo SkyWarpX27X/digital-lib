@@ -26,7 +26,8 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers)
   const token = tokenStore.get()
   if (token) headers.set('Authorization', `Bearer ${token}`)
-  if (init.body) headers.set('Content-Type', 'application/json')
+  // FormData sets its own multipart Content-Type with the boundary
+  if (init.body && !(init.body instanceof FormData)) headers.set('Content-Type', 'application/json')
 
   const response = await fetch(path, { ...init, headers })
 

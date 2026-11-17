@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.net.URI;
 import java.time.Instant;
@@ -52,6 +53,16 @@ public class ApplicationExceptionHandler {
         log.error("Failed to validate resource type", e);
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, e.getMessage());
         problemDetail.setTitle("Failed to validate resource type");
+        problemDetail.setType(URI.create("urn:problem-type:business-rule-error"));
+        problemDetail.setProperty("timestamp", Instant.now());
+        return problemDetail;
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ProblemDetail handleMaxUploadSize(MaxUploadSizeExceededException e) {
+        log.error("Upload too large", e);
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.CONTENT_TOO_LARGE, "Uploaded file is too large");
+        problemDetail.setTitle("Upload too large");
         problemDetail.setType(URI.create("urn:problem-type:business-rule-error"));
         problemDetail.setProperty("timestamp", Instant.now());
         return problemDetail;

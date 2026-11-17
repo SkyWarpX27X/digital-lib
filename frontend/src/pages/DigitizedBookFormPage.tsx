@@ -4,27 +4,26 @@ import { api, ApiError } from '../api'
 import Layout from '../components/Layout'
 import { LANGUAGES, RESOURCE_TYPES, type DigitizedBook, type DigitizedBookRequest } from '../digitizedBooks'
 import type { PhysicalBook } from '../physicalBooks'
-import { uploadFile } from '../upload'
 import { useTitle } from '../useTitle'
 
-type Field = 'physicalBookId' | 'name' | 'authors' | 'publishingYear' | 'language' | 'resourceType' | 'coverUrl' | 'fileUrl'
+type Field = 'physicalBookId' | 'name' | 'authors' | 'publishingYear' | 'language' | 'resourceType'
 interface Form extends Record<Field, string> {
   description: string
   topic: string
   isCopyrighted: boolean
 }
-type Errors = Partial<Record<Field, string>>
+type Errors = Partial<Record<Field | 'pdf', string>>
 
 const EMPTY_FORM: Form = {
   physicalBookId: '', name: '', authors: '', publishingYear: '', language: '', resourceType: '',
-  coverUrl: '', fileUrl: '', description: '', topic: '', isCopyrighted: false,
+  description: '', topic: '', isCopyrighted: false,
 }
 
 function splitAuthors(authors: string) {
   return authors.split(',').map(author => author.trim()).filter(author => author !== '')
 }
 
-function validate(form: Form, creating: boolean): Errors {
+function validate(form: Form, pdf: File | null, creating: boolean): Errors {
   const errors: Errors = {}
   if (creating && !form.physicalBookId) errors.physicalBookId = 'Оберіть фізичну книгу'
   if (form.name.trim() === '') errors.name = 'Назва має бути вказана'
@@ -37,7 +36,7 @@ function validate(form: Form, creating: boolean): Errors {
 
   if (!form.language) errors.language = 'Мова має бути вказана'
   if (!form.resourceType) errors.resourceType = 'Тип ресурсу має бути вказаний'
-  if (form.fileUrl.trim() === '') errors.fileUrl = 'Файл книги має бути вказаний'
+  if (creating && !pdf) errors.pdf = 'Оберіть PDF-файл книги'
   return errors
 }
 
@@ -49,15 +48,26 @@ export default function DigitizedBookFormPage() {
   const [form, setForm] = useState<Form>(EMPTY_FORM)
   const [errors, setErrors] = useState<Errors>({})
   const [physicalBooks, setPhysicalBooks] = useState<PhysicalBook[]>([])
-  const [uploadError, setUploadError] = useState<string>()
+  const [formError, setFormError] = useState<string>()
+  const [pdf, setPdf] = useState<File | null>(null)
+  const [cover, setCover] = useState<File | null>(null)
+  const [coverPreview, setCoverPreview] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!cover) return
+    const url = URL.createObjectURL(cover)
+    setCoverPreview(url)
+    return () => URL.revokeObjectURL(url)
+  }, [cover])
 
   useEffect(() => {
     if (creating) {
       api<PhysicalBook[]>('/api/v1/physical-books').then(setPhysicalBooks)
     } else {
-      api<DigitizedBook>(`/api/v1/digitized-books/${id}`).then(book => setForm({
-        ...EMPTY_FORM, ...book, authors: book.authors.join(', '), coverUrl: book.coverUrl ?? '',
-      }))
+      api<DigitizedBook>(`/api/v1/digitized-books/${id}`).then(({ coverUrl, pdfUrl: _, ...book }) => {
+        setForm({ ...EMPTY_FORM, ...book, authors: book.authors.join(', ') })
+        setCoverPreview(coverUrl)
+      })
     }
   }, [creating, id])
 
@@ -74,19 +84,9 @@ export default function DigitizedBookFormPage() {
     })
   }
 
-  const upload = async (file: File | undefined, field: 'coverUrl' | 'fileUrl') => {
-    if (!file) return
-    try {
-      set({ [field]: await uploadFile(file) })
-      setUploadError(undefined)
-    } catch (e) {
-      setUploadError((e as Error).message)
-    }
-  }
-
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
-    const validationErrors = validate(form, creating)
+    const validationErrors = validate(form, pdf, creating)
     setErrors(validationErrors)
     if (Object.keys(validationErrors).length > 0) return
 
@@ -99,17 +99,25 @@ export default function DigitizedBookFormPage() {
       language: form.language,
       resourceType: form.resourceType,
       isCopyrighted: form.isCopyrighted,
-      coverUrl: form.coverUrl.trim() || null,
-      fileUrl: form.fileUrl.trim(),
       physicalBookId: creating ? form.physicalBookId : undefined,
     }
+    let body: BodyInit = JSON.stringify(request)
+    if (creating) {
+      const data = new FormData()
+      data.append('data', new Blob([JSON.stringify(request)], { type: 'application/json' }))
+      data.append('pdf', pdf!)
+      if (cover) data.append('cover', cover)
+      body = data
+    }
+    setFormError(undefined)
     try {
       await api<DigitizedBook>(creating ? '/api/v1/digitized-books' : `/api/v1/digitized-books/${id}`,
-        { method: creating ? 'POST' : 'PUT', body: JSON.stringify(request) })
+        { method: creating ? 'POST' : 'PUT', body })
       navigate('/digitized-books', { state: { message: creating ? 'Книгу успішно оцифровано' : 'Зміни збережено' } })
     } catch (e) {
       if (!(e instanceof ApiError)) throw e
-      setErrors(Object.keys(e.errors).length > 0 ? e.errors : { name: e.detail })
+      if (Object.keys(e.errors).length > 0) setErrors(e.errors)
+      else setFormError(e.status === 413 ? 'Файл завеликий' : e.detail)
     }
   }
 
@@ -146,7 +154,7 @@ export default function DigitizedBookFormPage() {
 
       <form className="card form-card" onSubmit={handleSubmit} noValidate>
         <div className="form-card__body">
-          {uploadError && <div className="alert alert--error" role="alert">{uploadError}</div>}
+          {formError && <div className="alert alert--error" role="alert">{formError}</div>}
 
           {creating && (
             <div className="field">
@@ -201,40 +209,37 @@ export default function DigitizedBookFormPage() {
           <div className="field">
             <span className="field__label">Обкладинка</span>
             <div className="cover-picker">
-              {form.coverUrl
-                ? <img className="cover-picker__preview" src={form.coverUrl} alt="Обкладинка" />
+              {coverPreview
+                ? <img className="cover-picker__preview" src={coverPreview} alt="Обкладинка" />
                 : <div className="cover-picker__preview cover-picker__preview--empty" aria-hidden="true">🖼</div>}
-              <div>
-                <label className="btn btn--secondary">
-                  Обрати зображення
-                  <input type="file" accept="image/jpeg,image/png" hidden
-                         onChange={e => upload(e.target.files?.[0], 'coverUrl')} />
-                </label>
-                <p className="field__hint">Необов'язково. JPG або PNG, співвідношення сторін 2:3.</p>
-              </div>
+              {creating && (
+                <div>
+                  <label className="btn btn--secondary">
+                    Обрати зображення
+                    <input type="file" accept="image/jpeg,image/png" hidden
+                           onChange={e => setCover(e.target.files?.[0] ?? null)} />
+                  </label>
+                  <p className="field__hint">Необов'язково. JPG або PNG, співвідношення сторін 2:3.</p>
+                </div>
+              )}
             </div>
-            {/* temporary until S3 upload exists: see upload.ts */}
-            <input className="input input--temp" aria-label="Посилання на обкладинку" placeholder="або посилання на обкладинку"
-                   value={form.coverUrl} onChange={e => set({ coverUrl: e.target.value })} />
           </div>
 
-          <div className="field">
-            <span className="field__label">Файл книги</span>
-            <label className={'dropzone' + (errors.fileUrl ? ' dropzone--invalid' : '')}
-                   onDragOver={(e: DragEvent) => e.preventDefault()}
-                   onDrop={(e: DragEvent) => { e.preventDefault(); upload(e.dataTransfer.files[0], 'fileUrl') }}>
-              <span className="dropzone__icon" aria-hidden="true">⇪</span>
-              <strong>Перетягніть PDF-файл сюди</strong>
-              <span className="field__hint">Підтримується лише формат PDF</span>
-              <span className="btn btn--secondary">Обрати файл</span>
-              <input type="file" accept="application/pdf" hidden onChange={e => upload(e.target.files?.[0], 'fileUrl')} />
-            </label>
-            {/* temporary until S3 upload exists: see upload.ts */}
-            <input className={inputClass('fileUrl') + ' input--temp'} aria-label="Посилання на PDF-файл"
-                   placeholder="або посилання на PDF-файл" value={form.fileUrl}
-                   onChange={e => set({ fileUrl: e.target.value })} />
-            {error('fileUrl')}
-          </div>
+          {creating && (
+            <div className="field">
+              <span className="field__label">Файл книги</span>
+              <label className={'dropzone' + (errors.pdf ? ' dropzone--invalid' : '')}
+                     onDragOver={(e: DragEvent) => e.preventDefault()}
+                     onDrop={(e: DragEvent) => { e.preventDefault(); setPdf(e.dataTransfer.files[0] ?? null) }}>
+                <span className="dropzone__icon" aria-hidden="true">⇪</span>
+                <strong>{pdf ? pdf.name : 'Перетягніть PDF-файл сюди'}</strong>
+                <span className="field__hint">Підтримується лише формат PDF</span>
+                <span className="btn btn--secondary">Обрати файл</span>
+                <input type="file" accept="application/pdf" hidden onChange={e => setPdf(e.target.files?.[0] ?? null)} />
+              </label>
+              {errors.pdf && <span className="field__error">{errors.pdf}</span>}
+            </div>
+          )}
         </div>
 
         <div className="form-card__actions">

@@ -64,7 +64,7 @@ export default function DigitizedBookPage() {
       </div>
 
       <div ref={readerRef}>
-        <PdfViewer url={book.fileUrl} />
+        <PdfViewer url={book.pdfUrl} />
       </div>
     </Layout>
   )
