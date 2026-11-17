@@ -3,6 +3,7 @@ package ua.fictionallibrary.digital_lib.user.implementation;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ua.fictionallibrary.digital_lib.audit.AuditAction;
 import ua.fictionallibrary.digital_lib.starter.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.starter.exception.DuplicateException;
 import ua.fictionallibrary.digital_lib.user.*;
@@ -17,13 +18,11 @@ public class LibraryCardServiceImpl implements LibraryCardService {
     private final LibraryCardRepository libraryCardRepository;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
-    private final UserService userService;
 
     public LibraryCardServiceImpl(LibraryCardRepository repository, UserRepository userRepository, ApplicationEventPublisher eventPublisher, UserService userService) {
         this.libraryCardRepository = repository;
         this.userRepository = userRepository;
         this.eventPublisher = eventPublisher;
-        this.userService = userService;
     }
 
     @Override
@@ -36,6 +35,7 @@ public class LibraryCardServiceImpl implements LibraryCardService {
 
     @Override
     @Transactional
+    @AuditAction
     public LibraryCardResponse addLibraryCard(UUID userId, LibraryCardRequest card) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new DataNotFoundException(
@@ -54,6 +54,7 @@ public class LibraryCardServiceImpl implements LibraryCardService {
 
     @Override
     @Transactional
+    @AuditAction
     public LibraryCardResponse updateLibraryCard(UUID userId, LibraryCardRequest card) {
         LibraryCard existing = libraryCardRepository.findByOwnerId(userId)
                 .orElseThrow(() -> new DataNotFoundException("Digital card for user " + userId + " doesn't exist"));
@@ -77,6 +78,7 @@ public class LibraryCardServiceImpl implements LibraryCardService {
 
     @Override
     @Transactional
+    @AuditAction
     public void deleteLibraryCard(UUID userId) {
         if (!libraryCardRepository.existsByOwnerId(userId))
             throw new DataNotFoundException("Can't delete non-existent library card for user " + userId);

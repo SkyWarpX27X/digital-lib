@@ -4,6 +4,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ua.fictionallibrary.digital_lib.audit.AuditAction;
 import ua.fictionallibrary.digital_lib.exception.SelfDeactivationException;
 import ua.fictionallibrary.digital_lib.starter.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.starter.exception.DuplicateException;
@@ -42,6 +43,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @AuditAction
     public UserResponse addUser(User user) {
         if (userRepository.existsByUsername(user.getUsername()))
             throw new DuplicateException("User with username " + user.getUsername() + " already exists");
@@ -55,6 +57,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @AuditAction
     public UserResponse updateUser(UUID userId, User user, UUID actorId, boolean byAdmin) {
         User existing = userRepository.findById(userId)
                 .orElseThrow(() -> new DataNotFoundException("Can't update non-existent user " + userId));
@@ -75,6 +78,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @AuditAction
     public UserResponse updateRoleAndStatus(UUID userId, UserRole role, Boolean isActive, UUID actorId) {
         User existing = userRepository.findById(userId)
                 .orElseThrow(() -> new DataNotFoundException("Can't update non-existent user " + userId));
@@ -93,6 +97,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @AuditAction
     public void deleteUser(UUID userId) {
         if (!userRepository.existsById(userId))
             throw new DataNotFoundException("Can't delete non-existent user " + userId);

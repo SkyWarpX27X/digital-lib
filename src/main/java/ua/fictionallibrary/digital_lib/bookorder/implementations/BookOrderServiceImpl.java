@@ -4,6 +4,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ua.fictionallibrary.digital_lib.audit.AuditAction;
 import ua.fictionallibrary.digital_lib.bookorder.BookOrderCreatedEvent;
 import ua.fictionallibrary.digital_lib.bookorder.BookOrderRepository;
 import ua.fictionallibrary.digital_lib.bookorder.BookOrderService;
@@ -48,6 +49,7 @@ public class BookOrderServiceImpl implements BookOrderService {
     }
 
     @Override
+    @AuditAction
     public BookOrderResponse addBookOrder(BookOrderRequest request, UUID creatorId) {
         if (!libraryCardService.exists(creatorId))
             throw new LibraryCardNotFoundException("User with id " + creatorId + " do not have library card and cannot place book orders");
@@ -90,6 +92,7 @@ public class BookOrderServiceImpl implements BookOrderService {
     }
 
     @Override
+    @AuditAction
     public BookOrderResponse updateStatus(UUID id, UpdateStatusCommand command) {
         BookOrder order = bookOrderRepository
                 .findById(id)

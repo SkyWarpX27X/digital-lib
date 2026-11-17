@@ -3,6 +3,7 @@ package ua.fictionallibrary.digital_lib.bookmark.implementation;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ua.fictionallibrary.digital_lib.audit.AuditAction;
 import ua.fictionallibrary.digital_lib.bookmark.*;
 import ua.fictionallibrary.digital_lib.bookmark.dto.BookmarkResponse;
 import ua.fictionallibrary.digital_lib.starter.exception.DataNotFoundException;

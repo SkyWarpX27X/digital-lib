@@ -4,6 +4,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ua.fictionallibrary.digital_lib.audit.AuditAction;
 import ua.fictionallibrary.digital_lib.author.Author;
 import ua.fictionallibrary.digital_lib.author.AuthorService;
 import ua.fictionallibrary.digital_lib.digitizedbook.BookDigitizedEvent;
@@ -40,6 +41,7 @@ public class PhysicalBookServiceImpl implements PhysicalBookService {
 
     @Override
     @Transactional
+    @AuditAction
     public PhysicalBookResponse addPhysicalBook(PhysicalBookRequest request) {
         PhysicalBook book = toEntity(request);
         ResourceTypeValidationStrategy strategy = strategies.get(book.getResourceType());
@@ -58,6 +60,7 @@ public class PhysicalBookServiceImpl implements PhysicalBookService {
 
     @Override
     @Transactional
+    @AuditAction
     public PhysicalBookResponse updatePhysicalBook(UUID id, PhysicalBookRequest request) {
         PhysicalBook book = repository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("Failed to update, not found physical book with id " + id));
@@ -88,6 +91,7 @@ public class PhysicalBookServiceImpl implements PhysicalBookService {
 
     @Override
     @Transactional
+    @AuditAction
     public void deletePhysicalBook(UUID id) {
         if (!repository.existsById(id))
             throw new DataNotFoundException("Failed to delete, not found physical book with id " + id);

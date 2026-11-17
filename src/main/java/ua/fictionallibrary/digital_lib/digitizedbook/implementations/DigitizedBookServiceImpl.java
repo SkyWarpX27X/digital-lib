@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
+import ua.fictionallibrary.digital_lib.audit.AuditAction;
 import ua.fictionallibrary.digital_lib.author.Author;
 import ua.fictionallibrary.digital_lib.author.AuthorService;
 import ua.fictionallibrary.digital_lib.digitizedbook.BookDigitizedEvent;
@@ -70,6 +71,7 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
 
     @Override
     @Transactional
+    @AuditAction
     public DigitizedBookResponse addDigitizedBook(DigitizedBookRequest request, UUID physicalBookId, MultipartFile pdf,
                                                   MultipartFile cover) {
         fileValidator.validatePdf(pdf);
@@ -120,6 +122,7 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
 
     @Override
     @Transactional
+    @AuditAction
     public DigitizedBookResponse updateDigitizedBook(UUID id, DigitizedBookRequest request) {
         DigitizedBook book = repository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("Failed to update, not found digitized book with id " + id));
@@ -136,6 +139,7 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
 
     @Override
     @Transactional
+    @AuditAction
     public void deleteDigitizedBook(UUID id) {
         DigitizedBook book = repository.findById(id).orElseThrow(() -> new DataNotFoundException("Failed to delete, not found digitized book with id " + id));
         List<String> keys = Stream.of(book.getPdfKey(), book.getCoverKey()).filter(Objects::nonNull).toList();
