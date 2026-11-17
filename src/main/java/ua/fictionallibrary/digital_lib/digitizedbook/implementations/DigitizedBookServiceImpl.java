@@ -19,7 +19,6 @@ import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookResponse;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.StoredFile;
 import ua.fictionallibrary.digital_lib.filestorage.FileStorageService;
 import ua.fictionallibrary.digital_lib.filestorage.FileValidator;
-import ua.fictionallibrary.digital_lib.filestorage.S3FileStorageService;
 import ua.fictionallibrary.digital_lib.starter.exception.DataNotFoundException;
 
 import java.io.IOException;
@@ -27,7 +26,6 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 

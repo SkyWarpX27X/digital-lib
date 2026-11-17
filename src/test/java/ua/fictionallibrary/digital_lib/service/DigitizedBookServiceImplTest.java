@@ -21,7 +21,6 @@ import ua.fictionallibrary.digital_lib.exception.InvalidUploadException;
 import ua.fictionallibrary.digital_lib.filestorage.FileStorageService;
 import ua.fictionallibrary.digital_lib.filestorage.FileValidator;
 import ua.fictionallibrary.digital_lib.starter.exception.DataNotFoundException;
-import ua.fictionallibrary.digital_lib.starter.exception.DuplicateException;
 import ua.fictionallibrary.digital_lib.digitizedbook.BookDigitizedEvent;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookResponse;
 
@@ -117,8 +116,8 @@ public class DigitizedBookServiceImplTest {
         assertEquals("eng", response.language());
         assertEquals("Стародрук", response.resourceType());
         assertFalse(response.isCopyrighted());
-        assertEquals("/digitized-books/" + response.id() + "/cover", response.coverUrl());
-        assertEquals("/digitized-books/" + response.id() + "/pdf", response.pdfUrl());
+        assertEquals("/api/v1/digitized-books/" + response.id() + "/cover", response.coverUrl());
+        assertEquals("/api/v1/digitized-books/" + response.id() + "/pdf", response.pdfUrl());
 
         verify(fileValidator).validatePdf(pdf);
         verify(fileValidator).validateCoverImage(cover);
@@ -158,7 +157,7 @@ public class DigitizedBookServiceImplTest {
         DigitizedBookResponse response = service.addDigitizedBook(request, request.physicalBookId(), pdfFile(), null);
 
         assertNull(response.coverUrl());
-        assertEquals("/digitized-books/" + response.id() + "/pdf", response.pdfUrl());
+        assertEquals("/api/v1/digitized-books/" + response.id() + "/pdf", response.pdfUrl());
         verify(fileValidator, never()).validateCoverImage(any());
         verify(fileStorageService, times(1)).store(anyString(), any(), anyLong(), eq("application/pdf"));
         verify(fileStorageService, times(1)).store(anyString(), any(), anyLong(), anyString());
@@ -219,7 +218,7 @@ public class DigitizedBookServiceImplTest {
         assertEquals("Стародрук", response.resourceType());
         assertFalse(response.isCopyrighted());
         assertNull(response.coverUrl());
-        assertEquals("/digitized-books/" + book.getId() + "/pdf", response.pdfUrl());
+        assertEquals("/api/v1/digitized-books/" + book.getId() + "/pdf", response.pdfUrl());
 
         verify(repository).findById(book.getId());
     }
@@ -232,7 +231,7 @@ public class DigitizedBookServiceImplTest {
 
         DigitizedBookResponse response = service.getDigitizedBook(book.getId());
 
-        assertEquals("/digitized-books/" + book.getId() + "/cover", response.coverUrl());
+        assertEquals("/api/v1/digitized-books/" + book.getId() + "/cover", response.coverUrl());
     }
 
     @Test
