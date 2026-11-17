@@ -66,7 +66,9 @@ public class AuditAspect {
 
     private static String currentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken)
+        if (auth == null)
+            return "system";
+        if (!auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken)
             return "anonymous";
         return auth.getName();
     }
