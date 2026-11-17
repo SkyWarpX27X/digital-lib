@@ -1,7 +1,6 @@
 package ua.fictionallibrary.digital_lib.bookorder.implementations;
 
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.fictionallibrary.digital_lib.audit.AuditAction;
@@ -101,12 +100,6 @@ public class BookOrderServiceImpl implements BookOrderService {
             throw new InvalidOrderUpdateException("Closed order cannot be opened again");
         order.setOpen(command.isOpen());
         return toResponse(bookOrderRepository.save(order));
-    }
-
-    @ApplicationModuleListener
-    public void onBookDigitized(BookDigitizedEvent event) {
-        bookOrderRepository.findByBookIdAndIsOpenTrue(event.physicalId())
-                .forEach(order -> updateStatus(order.getId(), new UpdateStatusCommand(false)));
     }
 
     private BookOrderResponse toResponse(BookOrder order) {

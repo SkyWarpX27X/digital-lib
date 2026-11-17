@@ -1,13 +1,11 @@
 package ua.fictionallibrary.digital_lib.physicalbook.implementations;
 
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.fictionallibrary.digital_lib.audit.AuditAction;
 import ua.fictionallibrary.digital_lib.author.Author;
 import ua.fictionallibrary.digital_lib.author.AuthorService;
-import ua.fictionallibrary.digital_lib.digitizedbook.BookDigitizedEvent;
 import ua.fictionallibrary.digital_lib.starter.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookAddedEvent;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookRepository;
@@ -101,11 +99,6 @@ public class PhysicalBookServiceImpl implements PhysicalBookService {
     @Override
     public boolean exists(UUID id) {
         return repository.existsById(id);
-    }
-
-    @ApplicationModuleListener
-    public void onBookDigitized(BookDigitizedEvent event) {
-        deletePhysicalBook(event.physicalId());
     }
 
     private PhysicalBook toEntity(PhysicalBookRequest request) {
