@@ -53,8 +53,8 @@ public class AuditAspect {
                     currentUser(),
                     auditAction.value(),
                     pjp.getSignature().toShortString(),
-                    Arrays.toString(pjp.getArgs()),
-                    error == null ? String.valueOf(result) : error.toString(),
+                    truncate(Arrays.toString(pjp.getArgs())),
+                    truncate(error == null ? String.valueOf(result) : error.toString()),
                     error != null,
                     start,
                     Duration.between(start, Instant.now()).toMillis());
@@ -71,5 +71,9 @@ public class AuditAspect {
         if (!auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken)
             return "anonymous";
         return auth.getName();
+    }
+
+    private static String truncate(String s) {
+        return s != null && s.length() > 2000 ? s.substring(0, 2000) + "…" : s;
     }
 }
