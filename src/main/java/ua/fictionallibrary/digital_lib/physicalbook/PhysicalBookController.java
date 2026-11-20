@@ -6,11 +6,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import ua.fictionallibrary.digital_lib.common.BookFilter;
 import ua.fictionallibrary.digital_lib.common.OnCreate;
 import ua.fictionallibrary.digital_lib.common.OnUpdate;
 import ua.fictionallibrary.digital_lib.physicalbook.dto.PhysicalBookRequest;
@@ -41,10 +43,11 @@ public class PhysicalBookController {
     }
 
     @GetMapping
-    @Operation(summary = "Отримати список всіх фізичних книг")
+    @Operation(summary = "Отримати список фізичних книг",
+            description = "Усі параметри необов'язкові й поєднуються через «і». Без параметрів повертає всі книги")
     @ApiResponse(responseCode = "200", description = "Список книг успішно отримано")
-    public ResponseEntity<List<PhysicalBookResponse>> getBooks() {
-        return ResponseEntity.ok(service.getAllPhysicalBooks());
+    public ResponseEntity<List<PhysicalBookResponse>> getBooks(@ParameterObject BookFilter filter) {
+        return ResponseEntity.ok(service.getAllPhysicalBooks(filter));
     }
 
     @PostMapping

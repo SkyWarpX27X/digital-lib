@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -18,6 +19,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import ua.fictionallibrary.digital_lib.common.BookFilter;
 import ua.fictionallibrary.digital_lib.common.OnCreate;
 import ua.fictionallibrary.digital_lib.common.OnUpdate;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookRequest;
@@ -97,18 +99,12 @@ public class DigitizedBookController {
     }
 
     @GetMapping
-    @Operation(summary = "Отримати список всіх оцифрованих книг")
+    @Operation(summary = "Отримати список оцифрованих книг",
+            description = "Усі параметри необов'язкові. Без параметрів повертає всі книги")
     @ApiResponse(responseCode = "200", description = "Список книг успішно отримано")
-    public ResponseEntity<List<DigitizedBookResponse>> getBooks(@AuthenticationPrincipal AppUserDetails user) {
-        return ResponseEntity.ok(service.getAllDigitizedBooks(canReadCopyrighted(user)));
-    }
-
-    @GetMapping("/search")
-    @Operation(summary = "Отримати список оцифрованих книг за назвою", description = "Повертає список усіх книг за параметром пошукового запиту назви (wildcard пошук)")
-    @ApiResponse(responseCode = "200", description = "Список книг успішно отримано")
-    public ResponseEntity<List<DigitizedBookResponse>> searchBooksByName(@RequestParam(required = false) String name,
-                                                                         @AuthenticationPrincipal AppUserDetails user) {
-        return ResponseEntity.ok(service.findDigitizedBooksByName(name, canReadCopyrighted(user)));
+    public ResponseEntity<List<DigitizedBookResponse>> getBooks(@ParameterObject BookFilter filter,
+                                                                @AuthenticationPrincipal AppUserDetails user) {
+        return ResponseEntity.ok(service.getAllDigitizedBooks(filter, canReadCopyrighted(user)));
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

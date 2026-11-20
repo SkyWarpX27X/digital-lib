@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ua.fictionallibrary.digital_lib.audit.AuditAction;
 import ua.fictionallibrary.digital_lib.author.Author;
 import ua.fictionallibrary.digital_lib.author.AuthorService;
+import ua.fictionallibrary.digital_lib.common.BookFilter;
 import ua.fictionallibrary.digital_lib.starter.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookAddedEvent;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookRepository;
@@ -83,8 +84,8 @@ public class PhysicalBookServiceImpl implements PhysicalBookService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PhysicalBookResponse> getAllPhysicalBooks() {
-        return repository.findAll().stream().map(this::toResponse).toList();
+    public List<PhysicalBookResponse> getAllPhysicalBooks(BookFilter filter) {
+        return repository.search(filter).stream().map(this::toResponse).toList();
     }
 
     @Override

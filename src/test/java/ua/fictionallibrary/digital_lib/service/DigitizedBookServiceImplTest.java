@@ -12,6 +12,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import ua.fictionallibrary.digital_lib.author.Author;
+import ua.fictionallibrary.digital_lib.common.BookFilter;
 import ua.fictionallibrary.digital_lib.author.AuthorService;
 import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBook;
 import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBookRepository;
@@ -283,9 +284,9 @@ public class DigitizedBookServiceImplTest {
     void getAllDigitizedBooks_returnsAllBooks() {
         DigitizedBook book1 = entity();
         DigitizedBook book2 = entity();
-        when(repository.findAll()).thenReturn(List.of(book1, book2));
+        when(repository.search(BookFilter.NONE)).thenReturn(List.of(book1, book2));
 
-        List<DigitizedBookResponse> responses = service.getAllDigitizedBooks(false);
+        List<DigitizedBookResponse> responses = service.getAllDigitizedBooks(BookFilter.NONE, false);
 
         assertNotNull(responses);
         assertEquals(2, responses.size());
@@ -294,19 +295,19 @@ public class DigitizedBookServiceImplTest {
         assertEquals(book1.getName(), responses.get(0).name());
         assertEquals(book2.getName(), responses.get(1).name());
 
-        verify(repository).findAll();
+        verify(repository).search(BookFilter.NONE);
     }
 
     @Test
     void getAllDigitizedBooks_returnsEmptyList() {
-        when(repository.findAll()).thenReturn(List.of());
+        when(repository.search(BookFilter.NONE)).thenReturn(List.of());
 
-        List<DigitizedBookResponse> responses = service.getAllDigitizedBooks(false);
+        List<DigitizedBookResponse> responses = service.getAllDigitizedBooks(BookFilter.NONE, false);
 
         assertNotNull(responses);
         assertTrue(responses.isEmpty());
 
-        verify(repository).findAll();
+        verify(repository).search(BookFilter.NONE);
     }
 
     @Test

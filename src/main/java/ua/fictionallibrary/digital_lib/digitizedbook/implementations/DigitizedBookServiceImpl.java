@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 import ua.fictionallibrary.digital_lib.audit.AuditAction;
 import ua.fictionallibrary.digital_lib.author.Author;
 import ua.fictionallibrary.digital_lib.author.AuthorService;
+import ua.fictionallibrary.digital_lib.common.BookFilter;
 import ua.fictionallibrary.digital_lib.digitizedbook.BookDigitizedEvent;
 import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBook;
 import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBookRepository;
@@ -58,14 +59,8 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<DigitizedBookResponse> getAllDigitizedBooks(boolean canReadCopyrighted) {
-        return repository.findAll().stream().map(book -> toResponse(book, canReadCopyrighted)).toList();
-    }
-
-    @Override
-    public List<DigitizedBookResponse> findDigitizedBooksByName(String name, boolean canReadCopyrighted) {
-        final var books = (name != null && !name.isBlank()) ? repository.findByName(name) : repository.findAll();
-        return books.stream().map(book -> toResponse(book, canReadCopyrighted)).toList();
+    public List<DigitizedBookResponse> getAllDigitizedBooks(BookFilter filter, boolean canReadCopyrighted) {
+        return repository.search(filter).stream().map(book -> toResponse(book, canReadCopyrighted)).toList();
     }
 
     @Override

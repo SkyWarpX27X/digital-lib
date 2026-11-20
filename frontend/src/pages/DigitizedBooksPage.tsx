@@ -3,8 +3,9 @@ import { Link, useLocation } from 'react-router-dom'
 import { api, ApiError } from '../api'
 import { useAuth } from '../auth/AuthContext'
 import BookCover from '../components/BookCover'
+import BookFilters, { resourceTypesOf } from '../components/BookFilters'
 import Layout from '../components/Layout'
-import { RESOURCE_TYPES, type DigitizedBook } from '../digitizedBooks'
+import type { DigitizedBook } from '../digitizedBooks'
 import { useTitle } from '../useTitle'
 
 export const EDITOR_ROLES = ['DIGITAL_ARCHIVE_DEPARTMENT', 'BOOK_DELIVERY_DEPARTMENT', 'ADMIN'] as const
@@ -25,21 +26,22 @@ export default function DigitizedBooksPage() {
   const [error, setError] = useState<string>()
   const [books, setBooks] = useState<DigitizedBook[] | null>(null)
   const [query, setQuery] = useState('')
-  const [type, setType] = useState('')
+  const [resourceTypes, setResourceTypes] = useState<string[]>([])
   const [newestFirst, setNewestFirst] = useState(true)
 
   useEffect(() => {
-    api<DigitizedBook[]>('/api/v1/digitized-books').then(setBooks)
-  }, [])
+    let stale = false
+    api<DigitizedBook[]>(`/api/v1/digitized-books?${query}`).then(result => {
+      if (stale) return
+      setBooks(result)
+      if (!query) setResourceTypes(resourceTypesOf(result))
+    })
+    return () => { stale = true }
+  }, [query])
 
-  const visible = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    return (books ?? [])
-      .filter(book => !type || book.resourceType === type)
-      .filter(book => !q || book.name.toLowerCase().includes(q)
-        || book.authors.some(author => author.toLowerCase().includes(q)))
-      .sort((a, b) => (Number(a.publishingYear) - Number(b.publishingYear)) * (newestFirst ? -1 : 1))
-  }, [books, query, type, newestFirst])
+  const visible = useMemo(() => [...(books ?? [])]
+    .sort((a, b) => (Number(a.publishingYear) - Number(b.publishingYear)) * (newestFirst ? -1 : 1)),
+  [books, newestFirst])
 
   const canEdit = hasAnyRole(...EDITOR_ROLES)
   const canDelete = hasAnyRole('ADMIN')
@@ -62,27 +64,20 @@ export default function DigitizedBooksPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Оцифровані книги</h1>
-          {books && <p className="page-subtitle">{books.length} {booksWord(books.length)} у цифровому фонді</p>}
+          {books && <p className="page-subtitle">{query ? 'Знайдено' : 'У цифровому фонді'}: {books.length} {booksWord(books.length)}</p>}
         </div>
         {canEdit && <Link className="btn btn--primary" to="/digitized-books/new">+ Додати оцифровану книгу</Link>}
       </div>
       {message && <div className="alert alert--success" role="status">{message}</div>}
       {error && <div className="alert alert--error" role="alert">{error}</div>}
 
-      <div className="filters">
-        <input className="input filters__search" type="search" placeholder="Пошук за назвою або автором"
-               aria-label="Пошук за назвою або автором" value={query} onChange={e => setQuery(e.target.value)} />
-        <select className="input filters__select" aria-label="Тип ресурсу" value={type}
-                onChange={e => setType(e.target.value)}>
-          <option value="">Усі типи ресурсу</option>
-          {RESOURCE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-        </select>
+      <BookFilters onChange={setQuery} resourceTypes={resourceTypes}>
         <select className="input filters__select" aria-label="Сортування" value={newestFirst ? 'new' : 'old'}
                 onChange={e => setNewestFirst(e.target.value === 'new')}>
           <option value="new">Спочатку нові</option>
           <option value="old">Спочатку старі</option>
         </select>
-      </div>
+      </BookFilters>
 
       <div className="card">
         <table className="table">
