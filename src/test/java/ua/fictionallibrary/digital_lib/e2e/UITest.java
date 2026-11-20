@@ -77,7 +77,7 @@ class UITest extends BrowserTestSupport {
         new AddPhysicalBookPage(page).open();
         ForbiddenPage forbidden = new ForbiddenPage(page);
         assertThat(forbidden.heading()).isVisible();
-        assertThat(forbidden.goHome().heading()).isVisible();
+        assertThat(forbidden.goHome()).isVisible();
     }
 
     @Test

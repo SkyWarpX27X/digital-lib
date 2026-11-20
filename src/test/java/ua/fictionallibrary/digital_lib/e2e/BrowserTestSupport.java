@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import ua.fictionallibrary.digital_lib.e2e.pages.PhysicalBooksPage;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -72,7 +73,8 @@ abstract class BrowserTestSupport {
         page.getByLabel("Логін").fill(username);
         page.getByLabel("Пароль").fill(password);
         page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Увійти")).click();
-        assertThat(page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions().setName("Фізичні книги")))
+        assertThat(page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions().setName("Оцифровані книги")))
                 .isVisible();
+        assertThat(new PhysicalBooksPage(page).open().heading()).isVisible();
     }
 }

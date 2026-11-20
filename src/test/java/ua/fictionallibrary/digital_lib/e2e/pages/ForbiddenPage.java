@@ -15,8 +15,8 @@ public class ForbiddenPage {
         return page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions().setName("Доступ заборонено"));
     }
 
-    public PhysicalBooksPage goHome() {
+    public Locator goHome() {
         page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName("На головну")).click();
-        return new PhysicalBooksPage(page);
+        return page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions().setName("Оцифровані книги"));
     }
 }
