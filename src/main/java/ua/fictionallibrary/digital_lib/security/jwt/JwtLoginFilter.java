@@ -1,6 +1,5 @@
 package ua.fictionallibrary.digital_lib.security.jwt;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,6 +19,8 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import ua.fictionallibrary.digital_lib.security.AuthResponse;
 import ua.fictionallibrary.digital_lib.security.LoginUserRequest;
 
@@ -56,6 +57,8 @@ public class JwtLoginFilter extends UsernamePasswordAuthenticationFilter {
                     loginRequest.username().trim(), loginRequest.password());
             setDetails(request, authRequest);
             return this.getAuthenticationManager().authenticate(authRequest);
+        } catch (JacksonException e) {
+            throw new BadCredentialsException("Malformed login request", e);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
