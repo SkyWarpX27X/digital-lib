@@ -19,7 +19,9 @@ public class UserStartConfig {
                                        PasswordEncoder encoder,
                                        @Value("${app.admin.username}") String username,
                                        @Value("${app.admin.password}") String password) {
-        return args -> {
+        return _ -> {
+            if (username.isBlank() || password.isBlank())
+                throw new IllegalStateException("ADMIN_USERNAME and ADMIN_PASSWORD must be set");
             if (!repository.existsByUsername(username)) {
                 repository.save(new User(
                         username,
@@ -36,7 +38,7 @@ public class UserStartConfig {
     @Bean
     @Profile("dev")
     public CommandLineRunner init(UserRepository repository, PasswordEncoder encoder) {
-        return args -> {
+        return _ -> {
             repository.save(new User(
                     "username666",
                     encoder.encode("abba123"),

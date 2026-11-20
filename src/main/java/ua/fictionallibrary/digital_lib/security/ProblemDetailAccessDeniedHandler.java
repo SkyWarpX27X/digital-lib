@@ -35,7 +35,7 @@ public class ProblemDetailAccessDeniedHandler implements AccessDeniedHandler {
         problemDetail.setProperty("timestamp", Instant.now().toString());
         problemDetail.setProperty("path", request.getRequestURI());
 
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         mapper.writeValue(response.getWriter(), problemDetail);
