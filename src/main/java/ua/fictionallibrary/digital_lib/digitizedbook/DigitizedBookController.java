@@ -13,7 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,9 +24,11 @@ import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookRequest;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookResponse;
 
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.StoredFile;
+import ua.fictionallibrary.digital_lib.security.AppUserDetails;
+import ua.fictionallibrary.digital_lib.user.LibraryCardService;
+import ua.fictionallibrary.digital_lib.user.UserRole;
 
 import java.net.URI;
-import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,23 +37,31 @@ import java.util.UUID;
 @Tag(name = "Оцифровані книги", description = "Керування створенням, редагуванням, видаленням та отриманням оцифрованих книг")
 public class DigitizedBookController {
     private final DigitizedBookService service;
+    private final LibraryCardService libraryCardService;
 
-    public DigitizedBookController(DigitizedBookService service) {
+    public DigitizedBookController(DigitizedBookService service, LibraryCardService libraryCardService) {
         this.service = service;
+        this.libraryCardService = libraryCardService;
+    }
+
+    private boolean canReadCopyrighted(AppUserDetails user) {
+        if (user == null) return false;
+        boolean reader = user.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_" + UserRole.READER.name()));
+        return !reader || libraryCardService.exists(user.getId());
     }
 
     //TODO: add pdf/cover updates
 
     @GetMapping("/{id}")
-    @Operation(summary = "Отримати оцифровану книгу за ID", description = "Повертає повні дані оцифрованої книги")
+    @Operation(summary = "Отримати оцифровану книгу за ID", description = "Повертає метадані книги. Посилання на PDF (pdfUrl) є лише тоді, " +
+            "коли користувач може читати книгу (canRead): книга вільного доступу, або користувач — працівник чи читач із читацьким квитком")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Оцифровану книгу знайдено"),
-            @ApiResponse(responseCode = "401", description = "Книга під авторським правом доступна лише авторизованим користувачам", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "404", description = "Оцифровану книгу з вказаним ID не знайдено", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
-    @PostAuthorize("!returnObject.body.isCopyrighted() or isAuthenticated()")
-    public ResponseEntity<DigitizedBookResponse> getBookById(@PathVariable UUID id) {
-        DigitizedBookResponse book = service.getDigitizedBook(id);
+    public ResponseEntity<DigitizedBookResponse> getBookById(@PathVariable UUID id, @AuthenticationPrincipal AppUserDetails user) {
+        DigitizedBookResponse book = service.getDigitizedBook(id, canReadCopyrighted(user));
         return ResponseEntity.ok(book);
     }
 
@@ -59,13 +69,13 @@ public class DigitizedBookController {
     @Operation(summary = "Отримати PDF-файл оцифрованої книги", description = "Віддає PDF для перегляду в браузері")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "PDF-файл книги", content = @Content(mediaType = MediaType.APPLICATION_PDF_VALUE)),
-            @ApiResponse(responseCode = "401", description = "Книга під авторським правом доступна лише авторизованим користувачам", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "401", description = "Книга під авторським правом: потрібно увійти", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "403", description = "Книга під авторським правом доступна лише читачам із читацьким квитком і працівникам", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "404", description = "Оцифровану книгу з вказаним ID не знайдено", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     })
-    public ResponseEntity<InputStreamResource> getPdf(@PathVariable UUID id, Principal principal) {
-        // shortcut: same rule as getBookById for now, stage 3 replaces it with the library-card rule
-        if (principal == null && service.getDigitizedBook(id).isCopyrighted())
-            throw new AccessDeniedException("Copyrighted book is available only to authenticated users");
+    public ResponseEntity<InputStreamResource> getPdf(@PathVariable UUID id, @AuthenticationPrincipal AppUserDetails user) {
+        if (!service.getDigitizedBook(id, canReadCopyrighted(user)).canRead())
+            throw new AccessDeniedException("Copyrighted book is available only to staff and readers with a library card");
         return inline(service.getPdf(id));
     }
 
@@ -89,15 +99,16 @@ public class DigitizedBookController {
     @GetMapping
     @Operation(summary = "Отримати список всіх оцифрованих книг")
     @ApiResponse(responseCode = "200", description = "Список книг успішно отримано")
-    public ResponseEntity<List<DigitizedBookResponse>> getBooks() {
-        return ResponseEntity.ok(service.getAllDigitizedBooks());
+    public ResponseEntity<List<DigitizedBookResponse>> getBooks(@AuthenticationPrincipal AppUserDetails user) {
+        return ResponseEntity.ok(service.getAllDigitizedBooks(canReadCopyrighted(user)));
     }
 
     @GetMapping("/search")
     @Operation(summary = "Отримати список оцифрованих книг за назвою", description = "Повертає список усіх книг за параметром пошукового запиту назви (wildcard пошук)")
     @ApiResponse(responseCode = "200", description = "Список книг успішно отримано")
-    public ResponseEntity<List<DigitizedBookResponse>> searchBooksByName(@RequestParam(required = false) String name) {
-        return ResponseEntity.ok(service.findDigitizedBooksByName(name));
+    public ResponseEntity<List<DigitizedBookResponse>> searchBooksByName(@RequestParam(required = false) String name,
+                                                                         @AuthenticationPrincipal AppUserDetails user) {
+        return ResponseEntity.ok(service.findDigitizedBooksByName(name, canReadCopyrighted(user)));
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

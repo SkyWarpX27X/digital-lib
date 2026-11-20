@@ -64,7 +64,7 @@ export default function DigitizedBookFormPage() {
     if (creating) {
       api<PhysicalBook[]>('/api/v1/physical-books').then(setPhysicalBooks)
     } else {
-      api<DigitizedBook>(`/api/v1/digitized-books/${id}`).then(({ coverUrl, pdfUrl: _, ...book }) => {
+      api<DigitizedBook>(`/api/v1/digitized-books/${id}`).then(({ coverUrl, pdfUrl: _, canRead: __, ...book }) => {
         setForm({ ...EMPTY_FORM, ...book, authors: book.authors.join(', ') })
         setCoverPreview(coverUrl)
       })
@@ -76,7 +76,6 @@ export default function DigitizedBookFormPage() {
   const choosePhysicalBook = (bookId: string) => {
     const book = physicalBooks.find(b => b.id === bookId)
     if (!book) return set({ physicalBookId: '' })
-    // description and topic aren't on the design, but the backend requires them: carry them over
     set({
       physicalBookId: book.id, name: book.name, authors: book.authors.join(', '),
       publishingYear: book.publishingYear, language: book.language, resourceType: book.resourceType,

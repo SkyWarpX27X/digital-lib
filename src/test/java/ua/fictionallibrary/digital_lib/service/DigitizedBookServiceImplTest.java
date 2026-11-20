@@ -206,7 +206,7 @@ public class DigitizedBookServiceImplTest {
         DigitizedBook book = entity();
         when(repository.findById(book.getId())).thenReturn(Optional.of(book));
 
-        DigitizedBookResponse response = service.getDigitizedBook(book.getId());
+        DigitizedBookResponse response = service.getDigitizedBook(book.getId(), false);
         assertNotNull(response);
         assertEquals(book.getId(), response.id());
         assertEquals("King Arthur in Cornwall", response.name());
@@ -229,16 +229,52 @@ public class DigitizedBookServiceImplTest {
         book.setCoverKey("digitized-books/abc/cover.jpg");
         when(repository.findById(book.getId())).thenReturn(Optional.of(book));
 
-        DigitizedBookResponse response = service.getDigitizedBook(book.getId());
+        DigitizedBookResponse response = service.getDigitizedBook(book.getId(), false);
 
         assertEquals("/api/v1/digitized-books/" + book.getId() + "/cover", response.coverUrl());
+    }
+
+    @Test
+    void getDigitizedBook_copyrightedWithoutAccess_hidesPdf() {
+        DigitizedBook book = entity();
+        book.setCopyrighted(true);
+        when(repository.findById(book.getId())).thenReturn(Optional.of(book));
+
+        DigitizedBookResponse response = service.getDigitizedBook(book.getId(), false);
+
+        assertFalse(response.canRead());
+        assertNull(response.pdfUrl());
+        assertEquals(book.getName(), response.name());
+    }
+
+    @Test
+    void getDigitizedBook_copyrightedWithAccess_returnsPdf() {
+        DigitizedBook book = entity();
+        book.setCopyrighted(true);
+        when(repository.findById(book.getId())).thenReturn(Optional.of(book));
+
+        DigitizedBookResponse response = service.getDigitizedBook(book.getId(), true);
+
+        assertTrue(response.canRead());
+        assertEquals("/api/v1/digitized-books/" + book.getId() + "/pdf", response.pdfUrl());
+    }
+
+    @Test
+    void getDigitizedBook_freeBookWithoutAccess_returnsPdf() {
+        DigitizedBook book = entity();
+        when(repository.findById(book.getId())).thenReturn(Optional.of(book));
+
+        DigitizedBookResponse response = service.getDigitizedBook(book.getId(), false);
+
+        assertTrue(response.canRead());
+        assertNotNull(response.pdfUrl());
     }
 
     @Test
     void getDigitizedBook_throwsOnUnknownBook(){
         when(repository.findById(any())).thenReturn(Optional.empty());
 
-        assertThrows(DataNotFoundException.class, () -> service.getDigitizedBook(UUID.randomUUID()));
+        assertThrows(DataNotFoundException.class, () -> service.getDigitizedBook(UUID.randomUUID(), false));
 
         verify(repository).findById(any());
     }
@@ -249,7 +285,7 @@ public class DigitizedBookServiceImplTest {
         DigitizedBook book2 = entity();
         when(repository.findAll()).thenReturn(List.of(book1, book2));
 
-        List<DigitizedBookResponse> responses = service.getAllDigitizedBooks();
+        List<DigitizedBookResponse> responses = service.getAllDigitizedBooks(false);
 
         assertNotNull(responses);
         assertEquals(2, responses.size());
@@ -265,7 +301,7 @@ public class DigitizedBookServiceImplTest {
     void getAllDigitizedBooks_returnsEmptyList() {
         when(repository.findAll()).thenReturn(List.of());
 
-        List<DigitizedBookResponse> responses = service.getAllDigitizedBooks();
+        List<DigitizedBookResponse> responses = service.getAllDigitizedBooks(false);
 
         assertNotNull(responses);
         assertTrue(responses.isEmpty());

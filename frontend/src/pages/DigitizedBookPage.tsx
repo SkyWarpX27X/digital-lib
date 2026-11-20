@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { api, ApiError } from '../api'
+import { useAuth } from '../auth/AuthContext'
 import { REDIRECT_KEY } from '../auth/guards'
 import BookCover from '../components/BookCover'
 import Layout from '../components/Layout'
@@ -14,6 +15,7 @@ export default function DigitizedBookPage() {
   const { id } = useParams()
   const [book, setBook] = useState<DigitizedBook | null>(null)
   const [status, setStatus] = useState<number>()
+  const { user, hasAnyRole } = useAuth()
   const readerRef = useRef<HTMLDivElement>(null)
   useTitle(book?.name ?? 'Оцифрована книга')
 
@@ -24,11 +26,6 @@ export default function DigitizedBookPage() {
     })
   }, [id])
 
-  // copyrighted books are returned only to logged-in users
-  if (status === 401) {
-    sessionStorage.setItem(REDIRECT_KEY, `/digitized-books/${id}`)
-    return <Navigate to="/login" replace />
-  }
   if (status === 404) return <NotFoundPage />
   if (!book) return <Layout>{null}</Layout>
 
@@ -64,7 +61,19 @@ export default function DigitizedBookPage() {
       </div>
 
       <div ref={readerRef}>
-        <PdfViewer url={book.pdfUrl} />
+        {book.pdfUrl
+          ? <PdfViewer url={book.pdfUrl} />
+          : !user
+            ? <div className="alert alert--info">
+                Книга захищена авторським правом. <Link to="/login"
+                  onClick={() => sessionStorage.setItem(REDIRECT_KEY, `/digitized-books/${id}`)}>Увійдіть, щоб читати</Link>.
+              </div>
+            : hasAnyRole('READER') && (
+              <div className="alert alert--info">
+                Книга захищена авторським правом і доступна лише читачам із читацьким квитком.{' '}
+                <Link to="/profile">Оформіть читацький квиток</Link>.
+              </div>
+            )}
       </div>
     </Layout>
   )

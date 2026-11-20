@@ -131,6 +131,11 @@ body {
     color: var(--color-success);
 }
 
+.alert--info {
+    background: var(--color-primary-bg);
+    color: var(--color-text);
+}
+
 .centered-page {
     display: flex;
     flex-direction: column;

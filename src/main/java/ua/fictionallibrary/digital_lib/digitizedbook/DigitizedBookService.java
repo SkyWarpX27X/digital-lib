@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.UUID;
 
 public interface DigitizedBookService {
-    DigitizedBookResponse getDigitizedBook(UUID id);
-    List<DigitizedBookResponse> getAllDigitizedBooks();
-    List<DigitizedBookResponse> findDigitizedBooksByName(String name);
+    DigitizedBookResponse getDigitizedBook(UUID id, boolean canReadCopyrighted);
+    List<DigitizedBookResponse> getAllDigitizedBooks(boolean canReadCopyrighted);
+    List<DigitizedBookResponse> findDigitizedBooksByName(String name, boolean canReadCopyrighted);
     DigitizedBookResponse addDigitizedBook(DigitizedBookRequest request, UUID physicalBookId, MultipartFile pdf,
                                            MultipartFile cover);
     DigitizedBookResponse updateDigitizedBook(UUID id, DigitizedBookRequest request);

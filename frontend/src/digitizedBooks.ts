@@ -9,10 +9,12 @@ export interface DigitizedBook {
   resourceType: string
   isCopyrighted: boolean
   coverUrl: string | null
-  pdfUrl: string
+  // absent when the user may not read this copyrighted book
+  pdfUrl?: string
+  canRead: boolean
 }
 
-export type DigitizedBookRequest = Omit<DigitizedBook, 'id' | 'coverUrl' | 'pdfUrl'> & { physicalBookId?: string }
+export type DigitizedBookRequest = Omit<DigitizedBook, 'id' | 'coverUrl' | 'pdfUrl' | 'canRead'> & { physicalBookId?: string }
 
 export const RESOURCE_TYPES = ['Книга', 'Стародрук']
 

@@ -50,22 +50,22 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
 
     @Override
     @Transactional(readOnly = true)
-    public DigitizedBookResponse getDigitizedBook(UUID id) {
+    public DigitizedBookResponse getDigitizedBook(UUID id, boolean canReadCopyrighted) {
         return repository.findById(id)
-                .map(this::toResponse)
+                .map(book -> toResponse(book, canReadCopyrighted))
                 .orElseThrow(() -> new DataNotFoundException("Not found digitized book with id " + id));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<DigitizedBookResponse> getAllDigitizedBooks() {
-        return repository.findAll().stream().map(this::toResponse).toList();
+    public List<DigitizedBookResponse> getAllDigitizedBooks(boolean canReadCopyrighted) {
+        return repository.findAll().stream().map(book -> toResponse(book, canReadCopyrighted)).toList();
     }
 
     @Override
-    public List<DigitizedBookResponse> findDigitizedBooksByName(String name) {
+    public List<DigitizedBookResponse> findDigitizedBooksByName(String name, boolean canReadCopyrighted) {
         final var books = (name != null && !name.isBlank()) ? repository.findByName(name) : repository.findAll();
-        return books.stream().map(this::toResponse).toList();
+        return books.stream().map(book -> toResponse(book, canReadCopyrighted)).toList();
     }
 
     @Override
@@ -90,7 +90,7 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
                 digitizedBook.getId(),
                 physicalBookId
         ));
-        return toResponse(digitizedBook);
+        return toResponse(digitizedBook, true);
     }
 
     private void upload(String key, MultipartFile file, String contentType) {
@@ -133,7 +133,7 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
         book.setLanguage(request.language());
         book.setResourceType(request.resourceType());
         book.setCopyrighted(request.isCopyrighted());
-        return toResponse(repository.save(book));
+        return toResponse(repository.save(book), true);
     }
 
     @Override
@@ -187,12 +187,14 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
                 request.isCopyrighted());
     }
 
-    private DigitizedBookResponse toResponse(DigitizedBook entity) {
+    private DigitizedBookResponse toResponse(DigitizedBook entity, boolean canReadCopyrighted) {
         List<String> authors = entity.getAuthors().stream().map(Author::getName).toList();
         String base = "/api/v1/digitized-books/" + entity.getId();
+        boolean canRead = !entity.isCopyrighted() || canReadCopyrighted;
         return new DigitizedBookResponse(entity.getId(), entity.getName(), authors, entity.getDescription(),
                 entity.getTopic(), entity.getPublishingYear(), entity.getLanguage(), entity.getResourceType(),
-                entity.isCopyrighted(), entity.getCoverKey() == null ? null : base + "/cover", base + "/pdf");
+                entity.isCopyrighted(), entity.getCoverKey() == null ? null : base + "/cover",
+                canRead ? base + "/pdf" : null, canRead);
     }
 
 }

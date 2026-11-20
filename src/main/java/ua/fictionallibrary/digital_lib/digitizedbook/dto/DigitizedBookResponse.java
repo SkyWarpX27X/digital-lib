@@ -18,7 +18,8 @@ public record DigitizedBookResponse(
         String resourceType,
         boolean isCopyrighted,
         String coverUrl,
-        String pdfUrl
+        String pdfUrl,
+        boolean canRead
 ) {
     public DigitizedBookResponse {
         authors = (authors != null) ? List.copyOf(authors) : List.of();

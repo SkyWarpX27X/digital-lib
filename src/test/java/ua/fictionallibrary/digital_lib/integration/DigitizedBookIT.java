@@ -2,10 +2,13 @@ package ua.fictionallibrary.digital_lib.integration;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookRequest;
+import ua.fictionallibrary.digital_lib.user.UserRole;
 
 import org.springframework.http.HttpHeaders;
 
@@ -86,21 +89,81 @@ public class DigitizedBookIT extends AbstractIT {
                 .andExpect(jsonPath("$.id").value(id.toString()));
     }
 
-    @Test
-    void getById_copyrighted_anonymous_shouldReturn401() throws Exception {
-        UUID id = insertDigitizedBook(uniqueName(), true);
+    enum Viewer { ANONYMOUS, READER_WITHOUT_CARD, READER_WITH_CARD, DIGITAL_ARCHIVE, BOOK_DELIVERY, ADMIN }
 
-        mockMvc.perform(get(URL + "/{id}", id))
-                .andExpect(status().isUnauthorized());
+    @ParameterizedTest(name = "{0}, copyrighted={1} -> canRead={2}, pdf {3}")
+    @CsvSource({
+            "ANONYMOUS,           true,  false, 401",
+            "READER_WITHOUT_CARD, true,  false, 403",
+            "READER_WITH_CARD,    true,  true,  200",
+            "DIGITAL_ARCHIVE,     true,  true,  200",
+            "BOOK_DELIVERY,       true,  true,  200",
+            "ADMIN,               true,  true,  200",
+            "ANONYMOUS,           false, true,  200",
+            "READER_WITHOUT_CARD, false, true,  200",
+            "READER_WITH_CARD,    false, true,  200",
+            "DIGITAL_ARCHIVE,     false, true,  200",
+    })
+    void copyrightAccess(Viewer viewer, boolean copyrighted, boolean canRead, int pdfStatus) throws Exception {
+        UUID id = insertDigitizedBook(uniqueName(), copyrighted);
+        RequestPostProcessor auth = as(viewer);
+        when(fileStorageService.load(any())).thenAnswer(i -> new ByteArrayInputStream(TestFiles.samplePdf()));
+
+        mockMvc.perform(get(URL + "/{id}", id).with(auth))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").exists())
+                .andExpect(jsonPath("$.canRead").value(canRead))
+                .andExpect(canRead ? jsonPath("$.pdfUrl").value(URL + "/" + id + "/pdf") : jsonPath("$.pdfUrl").doesNotExist());
+
+        mockMvc.perform(get(URL + "/{id}/pdf", id).with(auth))
+                .andExpect(status().is(pdfStatus));
+        if (pdfStatus != 200)
+            verify(fileStorageService, never()).load(any());
     }
 
     @Test
-    void getById_copyrighted_authenticated_shouldReturnBook() throws Exception {
-        UUID id = insertDigitizedBook(uniqueName(), true);
+    void getAll_anonymous_shouldHidePdfOfCopyrightedBooksOnly() throws Exception {
+        UUID copyrighted = insertDigitizedBook(uniqueName(), true);
+        UUID free = insertDigitizedBook(uniqueName(), false);
 
-        mockMvc.perform(get(URL + "/{id}", id).with(asReader()))
+        mockMvc.perform(get(URL))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id.toString()));
+                .andExpect(jsonPath("$[?(@.id == '%s')].pdfUrl", copyrighted).isEmpty())
+                .andExpect(jsonPath("$[?(@.id == '%s')].canRead", copyrighted).value(false))
+                .andExpect(jsonPath("$[?(@.id == '%s')].pdfUrl", free).value(URL + "/" + free + "/pdf"));
+    }
+
+    @Test
+    void getAll_readerWithCard_shouldSeePdfOfCopyrightedBooks() throws Exception {
+        UUID copyrighted = insertDigitizedBook(uniqueName(), true);
+
+        mockMvc.perform(get(URL).with(as(Viewer.READER_WITH_CARD)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == '%s')].pdfUrl", copyrighted).value(URL + "/" + copyrighted + "/pdf"));
+    }
+
+    private RequestPostProcessor as(Viewer viewer) {
+        return switch (viewer) {
+            case ANONYMOUS -> request -> request;
+            case READER_WITHOUT_CARD -> asReader();
+            case READER_WITH_CARD -> readerWithCard();
+            case DIGITAL_ARCHIVE -> asDigitalArchiveDepartment();
+            case BOOK_DELIVERY -> asBookDeliveryDepartment();
+            case ADMIN -> asAdmin();
+        };
+    }
+
+    private RequestPostProcessor readerWithCard() {
+        String username = createUser(UserRole.READER);
+        UUID userId = jdbc.sql("SELECT id FROM users WHERE username = :username").param("username", username)
+                .query(UUID.class).single();
+        jdbc.sql("""
+                INSERT INTO library_cards (owner_id, email, post_code, birth_year, living_address)
+                VALUES (:ownerId, 'reader@digital-lib.com', '01001', 1990, 'Kyiv, Khreshchatyk 1')
+                """)
+                .param("ownerId", userId)
+                .update();
+        return bearerFor(username);
     }
 
     @Test
@@ -114,25 +177,6 @@ public class DigitizedBookIT extends AbstractIT {
                 .andExpect(content().contentType(MediaType.APPLICATION_PDF))
                 .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, "inline"))
                 .andExpect(content().bytes(pdf));
-    }
-
-    @Test
-    void getPdf_copyrighted_anonymous_shouldReturn401() throws Exception {
-        UUID id = insertDigitizedBook(uniqueName(), true);
-
-        mockMvc.perform(get(URL + "/{id}/pdf", id))
-                .andExpect(status().isUnauthorized());
-        verify(fileStorageService, never()).load(any());
-    }
-
-    @Test
-    void getPdf_copyrighted_authenticated_shouldReturnPdf() throws Exception {
-        UUID id = insertDigitizedBook(uniqueName(), true);
-        when(fileStorageService.load(any())).thenReturn(new ByteArrayInputStream(TestFiles.samplePdf()));
-
-        mockMvc.perform(get(URL + "/{id}/pdf", id).with(asReader()))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_PDF));
     }
 
     @Test
