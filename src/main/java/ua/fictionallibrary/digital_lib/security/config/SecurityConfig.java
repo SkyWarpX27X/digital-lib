@@ -1,5 +1,6 @@
 package ua.fictionallibrary.digital_lib.security.config;
 
+import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +15,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import ua.fictionallibrary.digital_lib.security.jwt.JwtAuthFilter;
 import ua.fictionallibrary.digital_lib.security.jwt.JwtLoginFilter;
@@ -32,13 +35,16 @@ public class SecurityConfig {
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http,
                                                       JwtAuthFilter jwtAuthFilter,
                                                       JwtLoginFilter jwtLoginFilter,
-                                                      AuthenticationEntryPoint authenticationEntryPoint) {
+                                                      AuthenticationEntryPoint authenticationEntryPoint,
+                                                      AccessDeniedHandler accessDeniedHandler) {
         return http
                 .securityMatcher("/api/**")
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(authenticationEntryPoint))
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/api/v1/auth/me").authenticated()
                         .requestMatchers("/api/v1/auth/**").permitAll()
@@ -77,13 +83,33 @@ public class SecurityConfig {
 
     @Bean
     @Order(2)
+    public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http,
+                                                           JwtAuthFilter jwtAuthFilter,
+                                                           AuthenticationEntryPoint authenticationEntryPoint,
+                                                           AccessDeniedHandler accessDeniedHandler) {
+        return http
+                .securityMatcher("/actuator/**")
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(EndpointRequest.to("health", "info")).permitAll()
+                        .requestMatchers(EndpointRequest.toAnyEndpoint()).hasRole(ADMIN)
+                        .anyRequest().denyAll()
+                )
+                .addFilterBefore(jwtAuthFilter, BasicAuthenticationFilter.class)
+                .build();
+    }
+
+    @Bean
+    @Order(3)
     public SecurityFilterChain webSecurityFilterChain(HttpSecurity http) {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/health").permitAll()
-                        .requestMatchers("/actuator/**").denyAll()
                         .anyRequest().permitAll()
                 )
                 .build();
