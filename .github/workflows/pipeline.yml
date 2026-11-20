@@ -81,7 +81,7 @@ jobs:
           SPRING_DOCKER_COMPOSE_ENABLED: false
         run: |
           ./gradlew bootRun &
-           npx wait-on http://localhost:8080/actuator/health --timeout 120000
+           npx wait-on http://localhost:8080/actuator/health/readiness --timeout 120000
           
 
       - name: Run Newman
