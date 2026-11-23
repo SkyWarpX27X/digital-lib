@@ -18,21 +18,29 @@ import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBookRepository;
 import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBookService;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookRequest;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookResponse;
+import ua.fictionallibrary.digital_lib.digitizedbook.dto.MissingStorageFile;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.StoredFile;
 import ua.fictionallibrary.digital_lib.filestorage.FileStorageService;
 import ua.fictionallibrary.digital_lib.filestorage.FileValidator;
+import ua.fictionallibrary.digital_lib.filestorage.StoredObject;
 import ua.fictionallibrary.digital_lib.starter.exception.DataNotFoundException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 @Service
 public class DigitizedBookServiceImpl implements DigitizedBookService {
+    private static final String STORAGE_PREFIX = "digitized-books/";
 
     private final DigitizedBookRepository repository;
     private final ApplicationEventPublisher publisher;
@@ -70,7 +78,7 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
                                                   MultipartFile cover) {
         fileValidator.validatePdf(pdf);
         String coverFormat = (cover != null && !cover.isEmpty()) ? fileValidator.validateCoverImage(cover) : null;
-        String base = "digitized-books/" + UUID.randomUUID();
+        String base = STORAGE_PREFIX + UUID.randomUUID();
         String pdfKey = base + "/book.pdf";
         String coverKey = coverFormat == null ? null : base + "/cover." + (coverFormat.equals("image/png") ? "png" : "jpg");
         upload(pdfKey, pdf, "application/pdf");
@@ -174,6 +182,50 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
     @Override
     public boolean exists(UUID id) {
         return repository.existsById(id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void cleanupOrphanedFiles(Duration minAge) {
+        log.info("Storage orphan cleanup started (min age {})", minAge);
+        Set<String> referenced = new HashSet<>(repository.findAllPdfKeys());
+        referenced.addAll(repository.findAllCoverKeys());
+        Instant cutoff = Instant.now().minus(minAge);
+        List<String> orphans = fileStorageService.list(STORAGE_PREFIX).stream()
+                .filter(o -> !referenced.contains(o.key()) && o.lastModified().isBefore(cutoff))
+                .map(StoredObject::key)
+                .toList();
+        int deleted = 0;
+        for (String key : orphans) {
+            try {
+                fileStorageService.delete(key);
+                deleted++;
+                log.debug("Deleted orphaned S3 object {}", key);
+            }
+            catch (Exception e) {
+                log.warn("Could not delete orphaned S3 object {}", key, e);
+            }
+        }
+        log.info("Storage orphan cleanup finished: found {}, deleted {}, failed {}",
+                orphans.size(), deleted, orphans.size() - deleted);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MissingStorageFile> checkStorageIntegrity() {
+        log.info("Storage integrity check started");
+        List<DigitizedBook> books = repository.findAll();
+        List<MissingStorageFile> missing = new ArrayList<>();
+        for (DigitizedBook book : books) {
+            for (String key : Stream.of(book.getPdfKey(), book.getCoverKey()).filter(Objects::nonNull).toList()) {
+                if (!fileStorageService.exists(key)) {
+                    log.warn("Digitized book {} '{}' is missing S3 object {}", book.getId(), book.getName(), key);
+                    missing.add(new MissingStorageFile(book.getId(), book.getName(), key));
+                }
+            }
+        }
+        log.info("Storage integrity check finished: {} books checked, {} files missing", books.size(), missing.size());
+        return missing;
     }
 
     private DigitizedBook toEntity(DigitizedBookRequest request) {

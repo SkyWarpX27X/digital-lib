@@ -4,8 +4,10 @@ import org.springframework.web.multipart.MultipartFile;
 import ua.fictionallibrary.digital_lib.common.BookFilter;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookRequest;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookResponse;
+import ua.fictionallibrary.digital_lib.digitizedbook.dto.MissingStorageFile;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.StoredFile;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,4 +21,6 @@ public interface DigitizedBookService {
     StoredFile getPdf(UUID id);
     StoredFile getCover(UUID id);
     boolean exists(UUID id);
+    void cleanupOrphanedFiles(Duration minAge);
+    List<MissingStorageFile> checkStorageIntegrity();
 }

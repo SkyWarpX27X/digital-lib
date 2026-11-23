@@ -36,6 +36,12 @@ public interface DigitizedBookRepository extends JpaRepository<DigitizedBook, UU
     List<DigitizedBook> search(String name, String author, String topic, Year yearFrom, Year yearTo,
                                String language, String resourceType);
 
+    @Query("SELECT b.pdfKey FROM DigitizedBook b")
+    List<String> findAllPdfKeys();
+
+    @Query("SELECT b.coverKey FROM DigitizedBook b WHERE b.coverKey IS NOT NULL")
+    List<String> findAllCoverKeys();
+
     default List<DigitizedBook> search(BookFilter f) {
         return search(f.name(), f.author(), f.topic(), f.yearFrom(), f.yearTo(), f.language(), f.resourceType());
     }

@@ -9,9 +9,6 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -22,13 +19,10 @@ import java.util.Arrays;
 public class AuditAspect {
     private static final Logger log = LoggerFactory.getLogger(AuditAspect.class);
 
-    private final AuditLogRepository repository;
-    private final TransactionTemplate transactionTemplate;
+    private final AuditLogService auditLogService;
 
-    public AuditAspect(AuditLogRepository repository, PlatformTransactionManager transactionManager) {
-        this.repository = repository;
-        this.transactionTemplate = new TransactionTemplate(transactionManager);
-        this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+    public AuditAspect(AuditLogService auditLogService) {
+        this.auditLogService = auditLogService;
     }
 
     @Around("@annotation(auditAction)")
@@ -58,7 +52,7 @@ public class AuditAspect {
                     error != null,
                     start,
                     Duration.between(start, Instant.now()).toMillis());
-            transactionTemplate.executeWithoutResult(_ -> repository.save(entry));
+            auditLogService.record(entry);
         } catch (RuntimeException e) {
             log.error("Failed to write audit log for {}", pjp.getSignature().toShortString(), e);
         }
