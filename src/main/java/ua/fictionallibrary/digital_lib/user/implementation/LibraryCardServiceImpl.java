@@ -19,7 +19,7 @@ public class LibraryCardServiceImpl implements LibraryCardService {
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    public LibraryCardServiceImpl(LibraryCardRepository repository, UserRepository userRepository, ApplicationEventPublisher eventPublisher, UserService userService) {
+    public LibraryCardServiceImpl(LibraryCardRepository repository, UserRepository userRepository, ApplicationEventPublisher eventPublisher) {
         this.libraryCardRepository = repository;
         this.userRepository = userRepository;
         this.eventPublisher = eventPublisher;
@@ -95,8 +95,10 @@ public class LibraryCardServiceImpl implements LibraryCardService {
                 entity.getLivingAddress(), entity.getWorkOrStudyAddress(), entity.getOrganisation(), entity.getWorkPosition());
     }
     private LibraryCard toEntity(LibraryCardRequest request, User user) {
-        return new LibraryCard(null, request.email(), request.postcode(), request.birthYear(),
-                request.livingAddress(), request.workOrStudyAddress(), request.organisation(), request.workPosition(),
-                user);
+        LibraryCard card = new LibraryCard(user, request.email(), request.postcode(), request.birthYear(), request.livingAddress());
+        card.setWorkOrStudyAddress(request.workOrStudyAddress());
+        card.setOrganisation(request.organisation());
+        card.setWorkPosition(request.workPosition());
+        return card;
     }
 }

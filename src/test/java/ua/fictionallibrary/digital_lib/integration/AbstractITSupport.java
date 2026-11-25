@@ -10,7 +10,7 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.http.HttpHeaders;
 import tools.jackson.databind.ObjectMapper;
 import ua.fictionallibrary.digital_lib.filestorage.FileStorageService;
-import ua.fictionallibrary.digital_lib.security.UserDetailsService;
+import ua.fictionallibrary.digital_lib.security.AppUserDetailsService;
 import ua.fictionallibrary.digital_lib.security.jwt.JwtService;
 import ua.fictionallibrary.digital_lib.user.UserRole;
 
@@ -30,7 +30,7 @@ public abstract class AbstractITSupport {
     protected JwtService jwtService;
 
     @Autowired
-    protected UserDetailsService userDetailsService;
+    protected AppUserDetailsService appUserDetailsService;
 
     @Autowired
     protected EntityManager entityManager;
@@ -44,7 +44,7 @@ public abstract class AbstractITSupport {
     }
 
     protected RequestPostProcessor bearerFor(String username) {
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        UserDetails userDetails = appUserDetailsService.loadUserByUsername(username);
         String token = jwtService.generateToken(userDetails);
         return request -> {
             request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token);

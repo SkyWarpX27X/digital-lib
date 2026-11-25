@@ -27,7 +27,7 @@ public class FileValidator {
             if (is.read(header) != 5 || !"%PDF-".equals(new String(header, StandardCharsets.US_ASCII)))
                 throw new InvalidUploadException("File is not a valid PDF");
         }
-        catch (IOException e) {
+        catch (IOException _) {
             throw new InvalidUploadException("An error occurred while trying to upload file");
         }
 
@@ -35,7 +35,7 @@ public class FileValidator {
             if (document.getNumberOfPages() == 0)
                 throw new InvalidUploadException("Document has 0 pages");
         }
-        catch (IOException e) {
+        catch (IOException _) {
             throw new InvalidUploadException("File is corrupted");
         }
     }
@@ -63,7 +63,7 @@ public class FileValidator {
                 reader.dispose();
             }
         }
-        catch (IOException e) {
+        catch (IOException _) {
             throw new InvalidUploadException("An error occurred while trying to upload file");
         }
     }

@@ -2,11 +2,8 @@ package ua.fictionallibrary.digital_lib.digitizedbook;
 
 import jakarta.persistence.*;
 import ua.fictionallibrary.digital_lib.author.Author;
-import ua.fictionallibrary.digital_lib.bookmark.Bookmark;
 
 import java.time.Year;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 

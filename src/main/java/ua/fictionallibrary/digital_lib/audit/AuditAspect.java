@@ -52,7 +52,7 @@ public class AuditAspect {
                     error != null,
                     start,
                     Duration.between(start, Instant.now()).toMillis());
-            auditLogService.record(entry);
+            auditLogService.save(entry);
         } catch (RuntimeException e) {
             log.error("Failed to write audit log for {}", pjp.getSignature().toShortString(), e);
         }

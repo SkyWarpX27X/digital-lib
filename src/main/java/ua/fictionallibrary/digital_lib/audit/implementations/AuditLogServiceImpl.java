@@ -26,7 +26,7 @@ public class AuditLogServiceImpl implements AuditLogService {
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void record(AuditLogEntity entry) {
+    public void save(AuditLogEntity entry) {
         repository.save(entry);
     }
 

@@ -1,7 +1,6 @@
 package ua.fictionallibrary.digital_lib.bookorder;
 
 import jakarta.persistence.*;
-import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBook;
 import ua.fictionallibrary.digital_lib.user.User;
 
 import java.util.UUID;

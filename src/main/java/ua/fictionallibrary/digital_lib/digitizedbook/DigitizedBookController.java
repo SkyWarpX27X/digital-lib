@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.core.io.InputStreamResource;
@@ -58,10 +57,8 @@ public class DigitizedBookController {
     @GetMapping("/{id}")
     @Operation(summary = "Отримати оцифровану книгу за ID", description = "Повертає метадані книги. Посилання на PDF (pdfUrl) є лише тоді, " +
             "коли користувач може читати книгу (canRead): книга вільного доступу, або користувач — працівник чи читач із читацьким квитком")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Оцифровану книгу знайдено"),
-            @ApiResponse(responseCode = "404", description = "Оцифровану книгу з вказаним ID не знайдено", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
-    })
+    @ApiResponse(responseCode = "200", description = "Оцифровану книгу знайдено")
+    @ApiResponse(responseCode = "404", description = "Оцифровану книгу з вказаним ID не знайдено", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     public ResponseEntity<DigitizedBookResponse> getBookById(@PathVariable UUID id, @AuthenticationPrincipal AppUserDetails user) {
         DigitizedBookResponse book = service.getDigitizedBook(id, canReadCopyrighted(user));
         return ResponseEntity.ok(book);
@@ -69,12 +66,10 @@ public class DigitizedBookController {
 
     @GetMapping("/{id}/pdf")
     @Operation(summary = "Отримати PDF-файл оцифрованої книги", description = "Віддає PDF для перегляду в браузері")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "PDF-файл книги", content = @Content(mediaType = MediaType.APPLICATION_PDF_VALUE)),
-            @ApiResponse(responseCode = "401", description = "Книга під авторським правом: потрібно увійти", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
-            @ApiResponse(responseCode = "403", description = "Книга під авторським правом доступна лише читачам із читацьким квитком і працівникам", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
-            @ApiResponse(responseCode = "404", description = "Оцифровану книгу з вказаним ID не знайдено", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
-    })
+    @ApiResponse(responseCode = "200", description = "PDF-файл книги", content = @Content(mediaType = MediaType.APPLICATION_PDF_VALUE))
+    @ApiResponse(responseCode = "401", description = "Книга під авторським правом: потрібно увійти", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
+    @ApiResponse(responseCode = "403", description = "Книга під авторським правом доступна лише читачам із читацьким квитком і працівникам", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
+    @ApiResponse(responseCode = "404", description = "Оцифровану книгу з вказаним ID не знайдено", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     public ResponseEntity<InputStreamResource> getPdf(@PathVariable UUID id, @AuthenticationPrincipal AppUserDetails user) {
         if (!service.getDigitizedBook(id, canReadCopyrighted(user)).canRead())
             throw new AccessDeniedException("Copyrighted book is available only to staff and readers with a library card");
@@ -83,10 +78,8 @@ public class DigitizedBookController {
 
     @GetMapping("/{id}/cover")
     @Operation(summary = "Отримати обкладинку оцифрованої книги", description = "Віддає зображення обкладинки (JPEG або PNG)")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Зображення обкладинки", content = @Content(mediaType = "image/*")),
-            @ApiResponse(responseCode = "404", description = "Книгу не знайдено або в неї немає обкладинки", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
-    })
+    @ApiResponse(responseCode = "200", description = "Зображення обкладинки", content = @Content(mediaType = "image/*"))
+    @ApiResponse(responseCode = "404", description = "Книгу не знайдено або в неї немає обкладинки", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     public ResponseEntity<InputStreamResource> getCover(@PathVariable UUID id) {
         return inline(service.getCover(id));
     }
@@ -109,10 +102,8 @@ public class DigitizedBookController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Створити нову оцифровану книгу", description = "Реєструє нову оцифровану книгу на основі існуючої фізичної книги")
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Книгу успішно створено"),
-            @ApiResponse(responseCode = "400", description = "Некоректні вхідні дані запиту", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
-    })
+    @ApiResponse(responseCode = "201", description = "Книгу успішно створено")
+    @ApiResponse(responseCode = "400", description = "Некоректні вхідні дані запиту", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     public ResponseEntity<DigitizedBookResponse> createBook(
             @RequestPart("data") @Validated(OnCreate.class) DigitizedBookRequest data,
             @RequestPart("pdf") MultipartFile pdf,
@@ -125,11 +116,9 @@ public class DigitizedBookController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Оновити дані оцифрованої книги")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Книгу успішно оновлено"),
-            @ApiResponse(responseCode = "400", description = "Некоректні вхідні дані запиту", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
-            @ApiResponse(responseCode = "404", description = "Оцифровану книгу не знайдено", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
-    })
+    @ApiResponse(responseCode = "200", description = "Книгу успішно оновлено")
+    @ApiResponse(responseCode = "400", description = "Некоректні вхідні дані запиту", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
+    @ApiResponse(responseCode = "404", description = "Оцифровану книгу не знайдено", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     public ResponseEntity<DigitizedBookResponse> updateBook(@PathVariable UUID id, @Validated(OnUpdate.class)
     @RequestBody DigitizedBookRequest request) {
         DigitizedBookResponse response = service.updateDigitizedBook(id, request);
@@ -140,10 +129,8 @@ public class DigitizedBookController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Видалити оцифровану книгу за ID")
-    @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Оцифровану книгу успішно видалено"),
-            @ApiResponse(responseCode = "404", description = "Оцифровану книгу не знайдено", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
-    })
+    @ApiResponse(responseCode = "204", description = "Оцифровану книгу успішно видалено")
+    @ApiResponse(responseCode = "404", description = "Оцифровану книгу не знайдено", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     public ResponseEntity<DigitizedBookResponse> deleteBook(@PathVariable UUID id) {
         service.deleteDigitizedBook(id);
         return ResponseEntity.noContent().build();

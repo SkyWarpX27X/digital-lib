@@ -2,7 +2,7 @@ package ua.fictionallibrary.digital_lib.security;
 
 import org.jspecify.annotations.NullMarked;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import ua.fictionallibrary.digital_lib.user.User;
@@ -11,11 +11,11 @@ import ua.fictionallibrary.digital_lib.user.UserRepository;
 import java.util.List;
 
 @Service
-public class UserDetailsService implements org.springframework.security.core.userdetails.UserDetailsService {
+public class AppUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
-    public UserDetailsService(UserRepository userRepository) {
+    public AppUserDetailsService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 

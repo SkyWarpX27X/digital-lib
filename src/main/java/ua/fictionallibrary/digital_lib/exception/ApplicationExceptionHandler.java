@@ -15,7 +15,7 @@ import java.time.Instant;
 @Order(1)
 @RestControllerAdvice
 public class ApplicationExceptionHandler {
-
+    private static final String TIMESTAMP_PROPERTY_NAME = "timestamp";
     private static final Logger log = LoggerFactory.getLogger(ApplicationExceptionHandler.class);
 
     @ExceptionHandler(LibraryCardNotFoundException.class)
@@ -24,7 +24,7 @@ public class ApplicationExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, e.getMessage());
         problemDetail.setTitle("Library card not exists");
         problemDetail.setType(URI.create("urn:problem-type:data-not-found"));
-        problemDetail.setProperty("timestamp", Instant.now());
+        problemDetail.setProperty(TIMESTAMP_PROPERTY_NAME, Instant.now());
         return problemDetail;
     }
 
@@ -34,7 +34,7 @@ public class ApplicationExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, e.getMessage());
         problemDetail.setTitle("Invalid order status");
         problemDetail.setType(URI.create("urn:problem-type:business-rule-error"));
-        problemDetail.setProperty("timestamp", Instant.now());
+        problemDetail.setProperty(TIMESTAMP_PROPERTY_NAME, Instant.now());
         return problemDetail;
     }
 
@@ -44,7 +44,7 @@ public class ApplicationExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, e.getMessage());
         problemDetail.setTitle("Self deactivation is not allowed");
         problemDetail.setType(URI.create("urn:problem-type:business-rule-error"));
-        problemDetail.setProperty("timestamp", Instant.now());
+        problemDetail.setProperty(TIMESTAMP_PROPERTY_NAME, Instant.now());
         return problemDetail;
     }
 
@@ -54,7 +54,7 @@ public class ApplicationExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, e.getMessage());
         problemDetail.setTitle("Failed to validate resource type");
         problemDetail.setType(URI.create("urn:problem-type:business-rule-error"));
-        problemDetail.setProperty("timestamp", Instant.now());
+        problemDetail.setProperty(TIMESTAMP_PROPERTY_NAME, Instant.now());
         return problemDetail;
     }
 
@@ -64,7 +64,7 @@ public class ApplicationExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.CONTENT_TOO_LARGE, "Uploaded file is too large");
         problemDetail.setTitle("Upload too large");
         problemDetail.setType(URI.create("urn:problem-type:business-rule-error"));
-        problemDetail.setProperty("timestamp", Instant.now());
+        problemDetail.setProperty(TIMESTAMP_PROPERTY_NAME, Instant.now());
         return problemDetail;
     }
 
@@ -74,7 +74,7 @@ public class ApplicationExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, e.getMessage());
         problemDetail.setTitle("Invalid upload");
         problemDetail.setType(URI.create("urn:problem-type:business-rule-error"));
-        problemDetail.setProperty("timestamp", Instant.now());
+        problemDetail.setProperty(TIMESTAMP_PROPERTY_NAME, Instant.now());
         return problemDetail;
     }
 }

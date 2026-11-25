@@ -38,9 +38,9 @@ public class LibraryCardServiceImplTest {
     private LibraryCardService libraryCardService;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         userService = new UserServiceImpl(userRepository, eventPublisher, passwordEncoder);
-        libraryCardService = new LibraryCardServiceImpl(libraryCardRepository, userRepository, eventPublisher, userService);
+        libraryCardService = new LibraryCardServiceImpl(libraryCardRepository, userRepository, eventPublisher);
     }
 
     private LibraryCardRequest request() {
@@ -59,8 +59,8 @@ public class LibraryCardServiceImplTest {
     void successfullyAddedLibraryCardForExistentUser() {
         final var userId = UUID.randomUUID();
         final var user = mock(User.class);
-        final var libraryCard = new LibraryCard(userId, "wwww@wwww.com", "04210", Year.of(2006),
-                "Hahahahahaha", "AAAAA", "Meme org", "Senior idiot", user);
+        final var libraryCard = new LibraryCard(user, "wwww@wwww.com", "04210", Year.of(2006), "Hahahahahaha");
+        libraryCard.setOwnerId(userId);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(libraryCardRepository.existsByOwnerId(userId)).thenReturn(false);
         when(libraryCardRepository.save(any(LibraryCard.class))).thenReturn(libraryCard);

@@ -10,7 +10,6 @@ import ua.fictionallibrary.digital_lib.bookorder.BookOrderService;
 import ua.fictionallibrary.digital_lib.bookorder.UpdateStatusCommand;
 import ua.fictionallibrary.digital_lib.bookorder.BookOrder;
 import ua.fictionallibrary.digital_lib.bookorder.dto.BookOrderRequest;
-import ua.fictionallibrary.digital_lib.digitizedbook.BookDigitizedEvent;
 import ua.fictionallibrary.digital_lib.starter.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.starter.exception.DuplicateException;
 import ua.fictionallibrary.digital_lib.exception.InvalidOrderUpdateException;
@@ -19,7 +18,6 @@ import ua.fictionallibrary.digital_lib.exception.LibraryCardNotFoundException;
 import ua.fictionallibrary.digital_lib.user.LibraryCardService;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBook;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookRepository;
-import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookService;
 import ua.fictionallibrary.digital_lib.user.User;
 import ua.fictionallibrary.digital_lib.user.UserRepository;
 import ua.fictionallibrary.digital_lib.author.Author;
@@ -38,8 +36,7 @@ public class BookOrderServiceImpl implements BookOrderService {
     private final ApplicationEventPublisher eventPublisher;
     private final LibraryCardService libraryCardService;
 
-    public BookOrderServiceImpl(BookOrderRepository repository, UserRepository userRepository, PhysicalBookRepository physicalBookRepository, ApplicationEventPublisher eventPublisher,
-                                PhysicalBookService physicalBookService, LibraryCardService libraryCardService) {
+    public BookOrderServiceImpl(BookOrderRepository repository, UserRepository userRepository, PhysicalBookRepository physicalBookRepository, ApplicationEventPublisher eventPublisher, LibraryCardService libraryCardService) {
         this.bookOrderRepository = repository;
         this.userRepository = userRepository;
         this.physicalBookRepository = physicalBookRepository;

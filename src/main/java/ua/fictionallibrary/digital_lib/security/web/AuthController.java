@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -26,10 +25,8 @@ public class AuthController {
 
     @GetMapping("/me")
     @Operation(summary = "Отримати дані поточного користувача", description = "Повертає логін, ім'я та ролі власника токена")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Дані користувача успішно отримано"),
-            @ApiResponse(responseCode = "401", description = "Користувач не автентифікований", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
-    })
+    @ApiResponse(responseCode = "200", description = "Дані користувача успішно отримано")
+    @ApiResponse(responseCode = "401", description = "Користувач не автентифікований", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
     public ResponseEntity<CurrentUserResponse> me(@AuthenticationPrincipal AppUserDetails user) {
         List<String> roles = user.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).filter(Objects::nonNull)

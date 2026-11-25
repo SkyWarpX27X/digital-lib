@@ -37,7 +37,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class BookOrderServiceImplTest {
+class BookOrderServiceImplTest {
     @Mock
     BookOrderRepository repository;
     @Mock
@@ -55,8 +55,8 @@ public class BookOrderServiceImplTest {
     BookOrderService service;
 
     @BeforeEach
-    public void setUp() {
-        service = new BookOrderServiceImpl(repository, userRepository, bookRepository, eventPublisher, physicalBookService, libraryCardService);
+    void setUp() {
+        service = new BookOrderServiceImpl(repository, userRepository, bookRepository, eventPublisher, libraryCardService);
         user = new User("john", "123", "John", "Doe", null, UserRole.READER, true);
         book = new PhysicalBook("Book", Set.of(new Author("John")), "Desc", "topic", Year.of(2020), "eng", "resourceType");
     }
@@ -128,6 +128,7 @@ public class BookOrderServiceImplTest {
         when(repository.findById(orderId)).thenReturn(Optional.of(
                 new BookOrder(user, "123@gmail.com", UUID.randomUUID(), false)));
 
-        assertThrows(InvalidOrderUpdateException.class, () -> service.updateStatus(orderId, new UpdateStatusCommand(true)));
+        UpdateStatusCommand reopen = new UpdateStatusCommand(true);
+        assertThrows(InvalidOrderUpdateException.class, () -> service.updateStatus(orderId, reopen));
     }
 }

@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import ua.fictionallibrary.digital_lib.author.Author;
 
 import java.time.Year;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 

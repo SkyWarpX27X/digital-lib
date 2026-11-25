@@ -29,22 +29,20 @@ public class LibraryCard {
     @MapsId
     private User user;
 
-    public LibraryCard(UUID ownerId, String email, String postCode, Year birthYear, String livingAddress, String workOrStudyAddress, String organisation, String workPosition, User user) {
-        this.ownerId = ownerId;
+    // ownerId is filled from user via @MapsId; optional fields are set through setters
+    public LibraryCard(User user, String email, String postCode, Year birthYear, String livingAddress) {
+        this.user = user;
         this.email = email;
         this.postCode = postCode;
         this.birthYear = birthYear;
         this.livingAddress = livingAddress;
-        this.workOrStudyAddress = workOrStudyAddress;
-        this.organisation = organisation;
-        this.workPosition = workPosition;
-        this.user = user;
     }
 
     protected LibraryCard() {}
 
     public String toString() {
-        String maskedEmail = email.replaceAll("(^.).*(@.*$)", "$1***$2");
+        int at = email.lastIndexOf('@');
+        String maskedEmail = at > 0 ? email.charAt(0) + "***" + email.substring(at) : email;
         String maskedPostCode = postCode.replaceAll("\\S", "*");
         String maskedLivingAddress = livingAddress.split(" ")[0] + "*****";
         String workAddress = workOrStudyAddress == null ? "" : ", адреса роботи/навчання: " + workOrStudyAddress.split(" ")[0] + "*****";
