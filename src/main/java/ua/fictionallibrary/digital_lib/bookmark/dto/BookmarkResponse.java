@@ -6,6 +6,7 @@ import java.util.UUID;
 public record BookmarkResponse(
         UUID userId,
         UUID bookId,
-        int pageNumber
+        int pageNumber,
+        String bookName
 ) {
 }

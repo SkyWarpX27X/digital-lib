@@ -13,6 +13,10 @@ import ua.fictionallibrary.digital_lib.bookmark.dto.BookmarkResponse;
 import ua.fictionallibrary.digital_lib.starter.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.starter.exception.DuplicateException;
 
+import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBookService;
+import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookResponse;
+
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,11 +30,29 @@ public class BookmarkServiceImplTest {
     BookmarkRepository repository;
     @Mock
     ApplicationEventPublisher eventPublisher;
+    @Mock
+    DigitizedBookService digitizedBookService;
     BookmarkService service;
 
     @BeforeEach
     void setUp() {
-        service = new BookmarkServiceImpl(repository, eventPublisher);
+        service = new BookmarkServiceImpl(repository, eventPublisher, digitizedBookService);
+    }
+
+    @Test
+    void getUserBookmarks_addsBookNamesAndSkipsDeletedBooks() {
+        UUID userId = UUID.randomUUID();
+        Bookmark kept = new Bookmark(userId, UUID.randomUUID(), 5);
+        Bookmark orphan = new Bookmark(userId, UUID.randomUUID(), 9);
+        when(repository.findByUserId(userId)).thenReturn(List.of(kept, orphan));
+        DigitizedBookResponse book = new DigitizedBookResponse(kept.getBookId(), "Кобзар", List.of(), null, null,
+                null, null, null, false, null, null, true);
+        when(digitizedBookService.getDigitizedBooks(List.of(kept.getBookId(), orphan.getBookId()), false))
+                .thenReturn(List.of(book));
+
+        List<BookmarkResponse> result = service.getUserBookmarks(userId);
+
+        assertEquals(List.of(new BookmarkResponse(userId, kept.getBookId(), 5, "Кобзар")), result);
     }
 
     private Bookmark entity() {

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import ua.fictionallibrary.digital_lib.common.BookFilter;
 
 import java.time.Year;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -35,6 +36,9 @@ public interface DigitizedBookRepository extends JpaRepository<DigitizedBook, UU
             """)
     List<DigitizedBook> search(String name, String author, String topic, Year yearFrom, Year yearTo,
                                String language, String resourceType);
+
+    @Query("SELECT DISTINCT b FROM DigitizedBook b LEFT JOIN FETCH b.authors WHERE b.id IN :ids")
+    List<DigitizedBook> findAllWithAuthorsByIdIn(Collection<UUID> ids);
 
     @Query("SELECT b.pdfKey FROM DigitizedBook b")
     List<String> findAllPdfKeys();

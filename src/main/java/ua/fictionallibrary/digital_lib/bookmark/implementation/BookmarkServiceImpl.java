@@ -3,23 +3,50 @@ package ua.fictionallibrary.digital_lib.bookmark.implementation;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ua.fictionallibrary.digital_lib.audit.AuditAction;
 import ua.fictionallibrary.digital_lib.bookmark.*;
 import ua.fictionallibrary.digital_lib.bookmark.dto.BookmarkResponse;
 import ua.fictionallibrary.digital_lib.starter.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.starter.exception.DuplicateException;
 
+import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBookService;
+import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookResponse;
+
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class BookmarkServiceImpl implements BookmarkService {
 
     private final BookmarkRepository repository;
     private final ApplicationEventPublisher publisher;
+    private final DigitizedBookService digitizedBookService;
 
-    public BookmarkServiceImpl(BookmarkRepository repository, ApplicationEventPublisher publisher) {
+    public BookmarkServiceImpl(BookmarkRepository repository, ApplicationEventPublisher publisher,
+                               DigitizedBookService digitizedBookService) {
         this.repository = repository;
         this.publisher = publisher;
+        this.digitizedBookService = digitizedBookService;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BookmarkResponse> getUserBookmarks(UUID userId) {
+        List<Bookmark> bookmarks = repository.findByUserId(userId);
+        Map<UUID, String> names = digitizedBookService
+                .getDigitizedBooks(bookmarks.stream().map(Bookmark::getBookId).toList(), false).stream()
+                .collect(Collectors.toMap(DigitizedBookResponse::id, DigitizedBookResponse::name));
+        return bookmarks.stream()
+                .filter(b -> names.containsKey(b.getBookId()))
+                .map(b -> new BookmarkResponse(b.getUserId(), b.getBookId(), b.getPageNumber(), names.get(b.getBookId())))
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public void deleteBookmarksForBook(UUID bookId) {
+        repository.deleteByBookId(bookId);
     }
 
     @Override
@@ -66,7 +93,7 @@ public class BookmarkServiceImpl implements BookmarkService {
     }
 
     private BookmarkResponse toResponse(Bookmark bookmark) {
-        return new BookmarkResponse(bookmark.getUserId(), bookmark.getBookId(), bookmark.getPageNumber());
+        return new BookmarkResponse(bookmark.getUserId(), bookmark.getBookId(), bookmark.getPageNumber(), null);
     }
 
     private BookmarkId toId(UUID userId, UUID bookId) {

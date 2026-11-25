@@ -23,6 +23,7 @@ import ua.fictionallibrary.digital_lib.filestorage.FileStorageService;
 import ua.fictionallibrary.digital_lib.filestorage.FileValidator;
 import ua.fictionallibrary.digital_lib.starter.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.digitizedbook.BookDigitizedEvent;
+import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBookDeletedEvent;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookResponse;
 
 import java.time.Year;
@@ -334,6 +335,7 @@ public class DigitizedBookServiceImplTest {
         fireCommit();
 
         verify(repository).deleteById(id);
+        verify(eventPublisher).publishEvent(new DigitizedBookDeletedEvent(id));
         verify(fileStorageService).delete("digitized-books/abc/book.pdf");
         verify(fileStorageService).delete("digitized-books/abc/cover.png");
     }

@@ -1,5 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { api, ApiError } from '../api'
+import type { Bookmark, DigitizedBook } from '../digitizedBooks'
 import { useAuth, type Role } from '../auth/AuthContext'
 import Layout from '../components/Layout'
 import { useTitle } from '../useTitle'
@@ -76,8 +78,94 @@ export default function ProfilePage() {
         </dl>
       </section>
 
-      {hasAnyRole('READER') && <LibraryCardSection userId={user!.id} />}
+      {hasAnyRole('READER') && (
+        <>
+          <LibraryCardSection userId={user!.id} />
+          <FavoritesSection />
+          <BookmarksSection />
+        </>
+      )}
     </Layout>
+  )
+}
+
+function FavoritesSection() {
+  const [books, setBooks] = useState<DigitizedBook[]>()
+
+  useEffect(() => {
+    api<DigitizedBook[]>('/api/v1/favorites').then(setBooks)
+  }, [])
+
+  const remove = async (id: string) => {
+    await api(`/api/v1/favorites/${id}`, { method: 'DELETE' })
+    setBooks(current => current?.filter(b => b.id !== id))
+  }
+
+  return (
+    <section className="card page-note">
+      <div className="form-card__body">
+        <h2 className="form-section">Улюблене</h2>
+        {books?.length === 0 && <p className="field__hint">Ви ще не додали жодної книги в улюблене.</p>}
+      </div>
+      {books && books.length > 0 && (
+        <table className="table">
+          <tbody>
+          {books.map(book => (
+            <tr key={book.id}>
+              <td>
+                <Link className="table__primary" to={`/digitized-books/${book.id}`}>{book.name}</Link>
+                <div className="field__hint">{book.authors.join(', ')}</div>
+              </td>
+              <td className="table__actions">
+                <button className="btn btn--secondary" type="button" onClick={() => remove(book.id)}>Прибрати</button>
+              </td>
+            </tr>
+          ))}
+          </tbody>
+        </table>
+      )}
+    </section>
+  )
+}
+
+function BookmarksSection() {
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>()
+
+  useEffect(() => {
+    api<Bookmark[]>('/api/v1/bookmark').then(setBookmarks)
+  }, [])
+
+  const remove = async (bookmark: Bookmark) => {
+    await api(`/api/v1/bookmark/${bookmark.userId}/${bookmark.bookId}`, { method: 'DELETE' })
+    setBookmarks(current => current?.filter(b => b.bookId !== bookmark.bookId))
+  }
+
+  return (
+    <section className="card page-note">
+      <div className="form-card__body">
+        <h2 className="form-section">Закладки</h2>
+        {bookmarks?.length === 0 && <p className="field__hint">Закладок поки немає. Збережіть її під час читання книги.</p>}
+      </div>
+      {bookmarks && bookmarks.length > 0 && (
+        <table className="table">
+          <tbody>
+          {bookmarks.map(bookmark => (
+            <tr key={bookmark.bookId}>
+              <td>
+                <Link className="table__primary" to={`/digitized-books/${bookmark.bookId}?page=${bookmark.pageNumber}`}>
+                  {bookmark.bookName}
+                </Link>
+                <div className="field__hint">стор. {bookmark.pageNumber}</div>
+              </td>
+              <td className="table__actions">
+                <button className="btn btn--secondary" type="button" onClick={() => remove(bookmark)}>Видалити</button>
+              </td>
+            </tr>
+          ))}
+          </tbody>
+        </table>
+      )}
+    </section>
   )
 }
 

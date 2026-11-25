@@ -179,6 +179,41 @@ public class BookmarkCRUDTest extends AbstractIT {
         assertThat(count(readerId, bookId)).isZero();
     }
 
+    @Test
+    void list_shouldReturnOwnBookmarksWithBookName() throws Exception {
+        UUID book = insertDigitizedBook("Книга із закладкою");
+        insertBookmark(readerId, book, 12);
+        insertBookmark(userId(createUser(UserRole.READER)), book, 3);
+
+        mockMvc.perform(get(URL).with(bearerFor(readerUsername)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].bookId").value(book.toString()))
+                .andExpect(jsonPath("$[0].pageNumber").value(12))
+                .andExpect(jsonPath("$[0].bookName").value("Книга із закладкою"));
+    }
+
+    @Test
+    void delete_ownBookmark_shouldRemoveRow() throws Exception {
+        insertBookmark(readerId, bookId, 10);
+
+        mockMvc.perform(delete(URL + "/{userId}/{bookId}", readerId, bookId).with(bearerFor(readerUsername)))
+                .andExpect(status().isNoContent());
+        flush();
+
+        assertThat(count(readerId, bookId)).isZero();
+    }
+
+    @Test
+    void delete_otherReadersBookmark_shouldReturn403AndKeepRow() throws Exception {
+        insertBookmark(readerId, bookId, 10);
+
+        mockMvc.perform(delete(URL + "/{userId}/{bookId}", readerId, bookId).with(asReader()))
+                .andExpect(status().isForbidden());
+
+        assertThat(count(readerId, bookId)).isOne();
+    }
+
     private String bookmarkJson(UUID bookId, int pageNumber) {
         return objectMapper.writeValueAsString(new BookmarkRequest(bookId, pageNumber));
     }

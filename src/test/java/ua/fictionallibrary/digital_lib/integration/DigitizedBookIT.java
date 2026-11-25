@@ -321,23 +321,6 @@ public class DigitizedBookIT extends AbstractIT {
                 .query(Integer.class).single();
     }
 
-    private UUID insertDigitizedBook(String name) {
-        return insertDigitizedBook(name, false);
-    }
-
-    private UUID insertDigitizedBook(String name, boolean copyrighted) {
-        UUID id = UUID.randomUUID();
-        jdbc.sql("""
-            INSERT INTO digitized_books
-              (id, name, description, topic, publishing_year, language, resource_type, is_copyrighted, pdf_key)
-            VALUES (:id, :name, 'desc', 'Історична', 1850, 'eng', 'Стародрук', :copyrighted, :pdfKey)
-            """)
-                .param("id", id).param("name", name).param("copyrighted", copyrighted)
-                .param("pdfKey", "digitized-books/" + id + "/book.pdf")
-                .update();
-        return id;
-    }
-
     private UUID insertPhysicalBook() {
         UUID id = UUID.randomUUID();
         jdbc.sql("""

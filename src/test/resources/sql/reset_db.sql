@@ -1,4 +1,5 @@
 DELETE FROM bookmarks;
+DELETE FROM favorites;
 DELETE FROM book_orders;
 DELETE FROM library_cards;
 DELETE FROM digitized_book_author;

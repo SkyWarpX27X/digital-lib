@@ -12,12 +12,9 @@ import tools.jackson.databind.ObjectMapper;
 import ua.fictionallibrary.digital_lib.filestorage.FileStorageService;
 import ua.fictionallibrary.digital_lib.security.UserDetailsService;
 import ua.fictionallibrary.digital_lib.security.jwt.JwtService;
-import ua.fictionallibrary.digital_lib.support.IntegrationTest;
 import ua.fictionallibrary.digital_lib.user.UserRole;
 
 import java.util.UUID;
-
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
 public abstract class AbstractITSupport {
     @Autowired
@@ -87,6 +84,28 @@ public abstract class AbstractITSupport {
 
     protected RequestPostProcessor asBookDeliveryDepartment() {
         return bearer(UserRole.BOOK_DELIVERY_DEPARTMENT);
+    }
+
+    protected UUID userId(String username) {
+        return jdbc.sql("SELECT id FROM users WHERE username = :username").param("username", username)
+                .query(UUID.class).single();
+    }
+
+    protected UUID insertDigitizedBook(String name) {
+        return insertDigitizedBook(name, false);
+    }
+
+    protected UUID insertDigitizedBook(String name, boolean copyrighted) {
+        UUID id = UUID.randomUUID();
+        jdbc.sql("""
+            INSERT INTO digitized_books
+              (id, name, description, topic, publishing_year, language, resource_type, is_copyrighted, pdf_key)
+            VALUES (:id, :name, 'desc', 'Історична', 1850, 'eng', 'Стародрук', :copyrighted, :pdfKey)
+            """)
+                .param("id", id).param("name", name).param("copyrighted", copyrighted)
+                .param("pdfKey", "digitized-books/" + id + "/book.pdf")
+                .update();
+        return id;
     }
 
     protected void flush() {

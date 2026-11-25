@@ -9,7 +9,16 @@ const MIN_ZOOM = 50
 const MAX_ZOOM = 300
 const ZOOM_STEP = 25
 
-export default function PdfViewer({ url }: { url: string }) {
+interface Props {
+  url: string
+  initialPage?: number
+  // bookmark controls are shown only when onSaveBookmark is passed
+  bookmarkPage?: number | null
+  onSaveBookmark?: (page: number) => void
+  onRemoveBookmark?: () => void
+}
+
+export default function PdfViewer({ url, initialPage = 1, bookmarkPage, onSaveBookmark, onRemoveBookmark }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [pdf, setPdf] = useState<PDFDocumentProxy | null>(null)
@@ -24,9 +33,12 @@ export default function PdfViewer({ url }: { url: string }) {
     setPage(1)
     const token = tokenStore.get()
     const task = getDocument({ url, httpHeaders: token ? { Authorization: `Bearer ${token}` } : undefined })
-    task.promise.then(setPdf, () => setError(true))
+    task.promise.then(doc => {
+      setPdf(doc)
+      setPage(Math.min(Math.max(1, Math.floor(initialPage) || 1), doc.numPages))
+    }, () => setError(true))
     return () => { task.destroy() }
-  }, [url])
+  }, [url, initialPage])
 
   useEffect(() => {
     if (!pdf || !canvasRef.current) return
@@ -79,6 +91,25 @@ export default function PdfViewer({ url }: { url: string }) {
           <button className="icon-btn" type="button" onClick={() => goTo(page + 1)} disabled={page >= total}
                   aria-label="Наступна сторінка">›</button>
         </div>
+        {onSaveBookmark && (
+          <div className="pdf__group">
+            <button className="btn btn--secondary" type="button" onClick={() => onSaveBookmark(page)} disabled={!pdf}>
+              🔖 Зберегти закладку
+            </button>
+            {bookmarkPage != null && (
+              <>
+                <button className="btn btn--secondary" type="button" onClick={() => goTo(bookmarkPage)} disabled={!pdf}>
+                  До закладки (стор. {bookmarkPage})
+                </button>
+                {onRemoveBookmark && (
+                  <button className="btn btn--secondary" type="button" onClick={onRemoveBookmark}>
+                    ✕ Видалити закладку
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        )}
         <div className="pdf__group">
           <button className="icon-btn" type="button" onClick={() => setZoom(Math.max(MIN_ZOOM, zoom - ZOOM_STEP))}
                   disabled={zoom <= MIN_ZOOM} aria-label="Зменшити">−</button>

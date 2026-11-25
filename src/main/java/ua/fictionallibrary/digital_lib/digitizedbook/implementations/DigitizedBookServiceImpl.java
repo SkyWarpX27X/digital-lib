@@ -13,6 +13,7 @@ import ua.fictionallibrary.digital_lib.author.Author;
 import ua.fictionallibrary.digital_lib.author.AuthorService;
 import ua.fictionallibrary.digital_lib.common.BookFilter;
 import ua.fictionallibrary.digital_lib.digitizedbook.BookDigitizedEvent;
+import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBookDeletedEvent;
 import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBook;
 import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBookRepository;
 import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBookService;
@@ -32,6 +33,7 @@ import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -70,6 +72,14 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
     @Transactional(readOnly = true)
     public List<DigitizedBookResponse> getAllDigitizedBooks(BookFilter filter, boolean canReadCopyrighted) {
         return repository.search(filter).stream().map(book -> toResponse(book, canReadCopyrighted)).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DigitizedBookResponse> getDigitizedBooks(Collection<UUID> ids, boolean canReadCopyrighted) {
+        if (ids.isEmpty())
+            return List.of();
+        return repository.findAllWithAuthorsByIdIn(ids).stream().map(book -> toResponse(book, canReadCopyrighted)).toList();
     }
 
     @Override
@@ -149,6 +159,7 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
         List<String> keys = Stream.of(book.getPdfKey(), book.getCoverKey()).filter(Objects::nonNull).toList();
 
         repository.deleteById(id);
+        publisher.publishEvent(new DigitizedBookDeletedEvent(id));
 
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override

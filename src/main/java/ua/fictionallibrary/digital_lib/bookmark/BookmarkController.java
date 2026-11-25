@@ -19,11 +19,12 @@ import ua.fictionallibrary.digital_lib.bookmark.dto.BookmarkResponse;
 import ua.fictionallibrary.digital_lib.common.OnCreate;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/bookmark")
-@Tag(name = "Закладки", description = "Керування створенням, редагуванням та отриманням закладок (видалення не підтримується)")
+@Tag(name = "Закладки", description = "Керування створенням, редагуванням, видаленням та отриманням закладок")
 public class BookmarkController {
     private final BookmarkService service;
 
@@ -45,6 +46,26 @@ public class BookmarkController {
         UUID bookId = request.bookId();
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{userId}/{bookId}").buildAndExpand(userId, bookId).toUri();
         return ResponseEntity.created(location).body(response);
+    }
+
+    @GetMapping
+    @Operation(summary = "Отримати закладки поточного користувача", description = "Кожна закладка містить назву книги")
+    @ApiResponse(responseCode = "200", description = "Список закладок успішно отримано")
+    public ResponseEntity<List<BookmarkResponse>> getMyBookmarks(@AuthenticationPrincipal AppUserDetails user){
+        return ResponseEntity.ok(service.getUserBookmarks(user.getId()));
+    }
+
+    @DeleteMapping("/{userId}/{bookId}")
+    @PreAuthorize("hasRole('ADMIN') or @userAccess.isSelf(#userId, authentication)")
+    @Operation(summary = "Видалити закладку за ID користувача та книги")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Закладку видалено"),
+            @ApiResponse(responseCode = "403", description = "Видаляти чужі закладки може тільки адміністратор", content = @Content(schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "404", description = "Закладку з вказаним ID користувача та книги не знайдено", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
+    })
+    public ResponseEntity<Void> deleteBookmark(@PathVariable UUID userId, @PathVariable UUID bookId){
+        service.deleteBookmark(userId, bookId);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{userId}/{bookId}")

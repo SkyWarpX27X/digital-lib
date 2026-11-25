@@ -16,6 +16,14 @@ export interface DigitizedBook {
 
 export type DigitizedBookRequest = Omit<DigitizedBook, 'id' | 'coverUrl' | 'pdfUrl' | 'canRead'> & { physicalBookId?: string }
 
+export interface Bookmark {
+  userId: string
+  bookId: string
+  pageNumber: number
+  // only in the current user's bookmark list
+  bookName?: string
+}
+
 export const RESOURCE_TYPES = ['Книга', 'Стародрук']
 
 export const LANGUAGES = ['Українська', 'Англійська', 'Німецька', 'Польська', 'Французька', 'Латинська', 'Інша']
