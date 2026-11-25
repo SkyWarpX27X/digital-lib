@@ -1,6 +1,8 @@
 package ua.fictionallibrary.digital_lib.filestorage;
 
 import java.io.InputStream;
+import java.net.URL;
+import java.time.Duration;
 import java.util.List;
 
 public interface FileStorageService {
@@ -9,4 +11,5 @@ public interface FileStorageService {
     void delete(String key);
     List<StoredObject> list(String prefix);
     boolean exists(String key);
+    URL presignedUrl(String key, Duration ttl);
 }

@@ -28,6 +28,7 @@ import ua.fictionallibrary.digital_lib.starter.exception.DataNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -91,7 +92,8 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
         DigitizedBook digitizedBook = repository.save(entity);
         publisher.publishEvent(new BookDigitizedEvent(
                 digitizedBook.getId(),
-                physicalBookId
+                physicalBookId,
+                digitizedBook.getName()
         ));
         return toResponse(digitizedBook, true);
     }
@@ -168,6 +170,13 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
         DigitizedBook book = repository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("Not found digitized book with id " + id));
         return new StoredFile(fileStorageService.load(book.getPdfKey()), "application/pdf");
+    }
+
+    @Override
+    public URL getPdfDownloadUrl(UUID id, Duration ttl) {
+        DigitizedBook book = repository.findById(id)
+                .orElseThrow(() -> new DataNotFoundException("Not found digitized book with id " + id));
+        return fileStorageService.presignedUrl(book.getPdfKey(), ttl);
     }
 
     @Override

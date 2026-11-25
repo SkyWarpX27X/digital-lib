@@ -7,6 +7,7 @@ import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookResponse;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.MissingStorageFile;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.StoredFile;
 
+import java.net.URL;
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
@@ -20,6 +21,7 @@ public interface DigitizedBookService {
     void deleteDigitizedBook(UUID id);
     StoredFile getPdf(UUID id);
     StoredFile getCover(UUID id);
+    URL getPdfDownloadUrl(UUID id, Duration ttl);
     boolean exists(UUID id);
     void cleanupOrphanedFiles(Duration minAge);
     List<MissingStorageFile> checkStorageIntegrity();

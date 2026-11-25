@@ -145,6 +145,7 @@ public class DigitizedBookServiceImplTest {
         verify(eventPublisher).publishEvent(eventCaptor.capture());
         assertEquals(response.id(), eventCaptor.getValue().digitizedId());
         assertEquals(request.physicalBookId(), eventCaptor.getValue().physicalId());
+        assertEquals(request.name(), eventCaptor.getValue().bookName());
 
         fireSynchronizations(TransactionSynchronization.STATUS_COMMITTED);
         verify(fileStorageService, never()).delete(anyString());

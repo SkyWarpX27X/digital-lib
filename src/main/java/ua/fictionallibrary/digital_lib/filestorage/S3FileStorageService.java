@@ -8,6 +8,8 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.time.Duration;
 import java.util.List;
 
 @Service
@@ -53,5 +55,10 @@ public class S3FileStorageService implements FileStorageService {
     @Override
     public boolean exists(String key) {
         return s3template.objectExists(bucket, key);
+    }
+
+    @Override
+    public URL presignedUrl(String key, Duration ttl) {
+        return s3template.createSignedGetURL(bucket, key, ttl);
     }
 }

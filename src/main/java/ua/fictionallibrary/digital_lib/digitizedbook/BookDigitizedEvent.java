@@ -4,6 +4,7 @@ import java.util.UUID;
 
 public record BookDigitizedEvent(
     UUID digitizedId,
-    UUID physicalId
+    UUID physicalId,
+    String bookName
 ) {
 }
