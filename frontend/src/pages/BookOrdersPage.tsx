@@ -36,7 +36,7 @@ export default function BookOrdersPage() {
       const updated = await api<BookOrder>(`/api/v1/book-orders/${order.id}`,
         { method: 'PATCH', body: JSON.stringify({ isOpen: false }) })
       setOrders(current => current?.map(o => o.id === updated.id ? updated : o) ?? null)
-      setMessage(staff ? 'Замовлення закрито' : 'Замовлення скасовано')
+      setMessage('Замовлення скасовано')
       setError(undefined)
     } catch (e) {
       if (!(e instanceof ApiError)) throw e
@@ -96,9 +96,14 @@ export default function BookOrdersPage() {
                 </span>
               </td>
               <td className="table__actions">
-                {order.isOpen && (
+                {order.isOpen && staff && (
+                  <Link className="btn btn--primary" to={`/digitized-books/new?physicalBookId=${order.book}`}>
+                    ⇪ Оцифрувати
+                  </Link>
+                )}
+                {order.isOpen && !staff && (
                   <button className="btn btn--secondary" type="button" onClick={() => handleClose(order)}>
-                    {staff ? '✓ Закрити' : '✕ Скасувати'}
+                    ✕ Скасувати
                   </button>
                 )}
               </td>
@@ -115,7 +120,7 @@ export default function BookOrdersPage() {
 
       <p className="field__hint page-note">
         {staff
-          ? 'Закрите замовлення не можна відкрити знову. Замовлення закривається автоматично, коли книгу оцифровано.'
+          ? 'Замовлення закривається автоматично, коли книгу оцифровано, а замовник отримує лист із посиланням.'
           : 'Скасоване замовлення стає закритим і більше не відкривається. Замовлення також закривається автоматично, коли книгу оцифровано.'}
       </p>
     </Layout>

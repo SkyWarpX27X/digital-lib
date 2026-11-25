@@ -1,5 +1,5 @@
 import { useEffect, useState, type ChangeEvent, type DragEvent, type FormEvent } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { api, ApiError } from '../api'
 import Layout from '../components/Layout'
 import { LANGUAGES, RESOURCE_TYPES, type DigitizedBook, type DigitizedBookRequest } from '../digitizedBooks'
@@ -21,6 +21,14 @@ const EMPTY_FORM: Form = {
 
 function splitAuthors(authors: string) {
   return authors.split(',').map(author => author.trim()).filter(author => author !== '')
+}
+
+function fromPhysical(book: PhysicalBook): Partial<Form> {
+  return {
+    physicalBookId: book.id, name: book.name, authors: book.authors.join(', '),
+    publishingYear: book.publishingYear, language: book.language, resourceType: book.resourceType,
+    description: book.description, topic: book.topic,
+  }
 }
 
 function validate(form: Form, pdf: File | null, creating: boolean): Errors {
@@ -45,6 +53,8 @@ export default function DigitizedBookFormPage() {
   const creating = id === undefined
   useTitle(creating ? 'Додати оцифровану книгу' : 'Редагувати оцифровану книгу')
   const navigate = useNavigate()
+  // set when coming from an order on /book-orders
+  const preselected = useSearchParams()[0].get('physicalBookId')
   const [form, setForm] = useState<Form>(EMPTY_FORM)
   const [errors, setErrors] = useState<Errors>({})
   const [physicalBooks, setPhysicalBooks] = useState<PhysicalBook[]>([])
@@ -62,25 +72,24 @@ export default function DigitizedBookFormPage() {
 
   useEffect(() => {
     if (creating) {
-      api<PhysicalBook[]>('/api/v1/physical-books').then(setPhysicalBooks)
+      api<PhysicalBook[]>('/api/v1/physical-books').then(books => {
+        setPhysicalBooks(books)
+        const book = books.find(b => b.id === preselected)
+        if (book) setForm(current => ({ ...current, ...fromPhysical(book) }))
+      })
     } else {
       api<DigitizedBook>(`/api/v1/digitized-books/${id}`).then(({ coverUrl, pdfUrl: _, canRead: __, ...book }) => {
         setForm({ ...EMPTY_FORM, ...book, authors: book.authors.join(', ') })
         setCoverPreview(coverUrl)
       })
     }
-  }, [creating, id])
+  }, [creating, id, preselected])
 
   const set = (patch: Partial<Form>) => setForm(current => ({ ...current, ...patch }))
 
   const choosePhysicalBook = (bookId: string) => {
     const book = physicalBooks.find(b => b.id === bookId)
-    if (!book) return set({ physicalBookId: '' })
-    set({
-      physicalBookId: book.id, name: book.name, authors: book.authors.join(', '),
-      publishingYear: book.publishingYear, language: book.language, resourceType: book.resourceType,
-      description: book.description, topic: book.topic,
-    })
+    set(book ? fromPhysical(book) : { physicalBookId: '' })
   }
 
   const handleSubmit = async (event: FormEvent) => {
