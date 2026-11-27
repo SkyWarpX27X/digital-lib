@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,6 +77,17 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
     @Transactional(readOnly = true)
     @Cacheable(value = FILTER_OPTIONS_CACHE)
     public BookFilterOptions getFilterOptions() {
+        return loadFilterOptions();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @CachePut(value = FILTER_OPTIONS_CACHE)
+    public void refreshFilterOptions() {
+        loadFilterOptions();
+    }
+
+    private BookFilterOptions loadFilterOptions() {
         return new BookFilterOptions(repository.findDistinctTopics(), repository.findDistinctLanguages(),
                 repository.findDistinctResourceTypes());
     }

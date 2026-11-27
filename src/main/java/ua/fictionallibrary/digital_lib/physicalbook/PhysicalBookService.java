@@ -15,5 +15,6 @@ public interface PhysicalBookService {
     List<PhysicalBookResponse> getAllPhysicalBooks(BookFilter filter);
     void deletePhysicalBook(UUID id);
     BookFilterOptions getFilterOptions();
+    BookFilterOptions refreshFilterOptions();
     boolean exists(UUID id);
 }

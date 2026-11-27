@@ -17,7 +17,10 @@ import java.lang.annotation.Target;
 @SpringBootTest(properties = {
         "app.scheduling.storage-orphans.cron=-",
         "app.scheduling.audit-retention.cron=-",
-        "app.scheduling.storage-integrity.cron=-"})
+        "app.scheduling.storage-integrity.cron=-",
+        "app.scheduling.resource-monitor.cron=-",
+        "app.scheduling.log-level-reset.cron=-",
+        "app.scheduling.filter-options-refresh.cron=-"})
 @AutoConfigureMockMvc
 @Sql(scripts = "/sql/reset_db.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 @Import(TestcontainersConfiguration.class)

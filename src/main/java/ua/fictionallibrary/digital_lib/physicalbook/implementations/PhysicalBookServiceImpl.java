@@ -2,6 +2,7 @@ package ua.fictionallibrary.digital_lib.physicalbook.implementations;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -92,6 +93,17 @@ public class PhysicalBookServiceImpl implements PhysicalBookService {
     @Transactional(readOnly = true)
     @Cacheable(value = FILTER_OPTIONS_CACHE)
     public BookFilterOptions getFilterOptions() {
+        return loadFilterOptions();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @CachePut(value = FILTER_OPTIONS_CACHE)
+    public BookFilterOptions refreshFilterOptions() {
+        return loadFilterOptions();
+    }
+
+    private BookFilterOptions loadFilterOptions() {
         return new BookFilterOptions(repository.findDistinctTopics(), repository.findDistinctLanguages(),
                 repository.findDistinctResourceTypes());
     }

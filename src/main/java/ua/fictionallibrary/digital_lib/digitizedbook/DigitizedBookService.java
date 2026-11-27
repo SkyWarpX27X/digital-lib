@@ -26,6 +26,7 @@ public interface DigitizedBookService {
     StoredFile getCover(UUID id);
     URL getPdfDownloadUrl(UUID id, Duration ttl);
     BookFilterOptions getFilterOptions();
+    void refreshFilterOptions();
     boolean exists(UUID id);
     void cleanupOrphanedFiles(Duration minAge);
     List<MissingStorageFile> checkStorageIntegrity();
