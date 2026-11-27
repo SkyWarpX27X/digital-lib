@@ -6,12 +6,12 @@ import { HOME, takeRedirect } from '../auth/guards'
 import Brand from '../components/Brand'
 import { useTitle } from '../useTitle'
 
-type Field = 'username' | 'password' | 'name' | 'surname' | 'patronymic'
-type Form = Record<Field, string>
+export type Field = 'username' | 'password' | 'name' | 'surname' | 'patronymic'
+export type Form = Record<Field, string>
 type Errors = Partial<Record<Field, string>>
 
 // max lengths mirror the column sizes in user/User.java
-const FIELDS: { id: Field; label: string; type: string; autoComplete: string; max: number; required: boolean }[] = [
+export const FIELDS: { id: Field; label: string; type: string; autoComplete: string; max: number; required: boolean }[] = [
   { id: 'username', label: 'Логін', type: 'text', autoComplete: 'username', max: 50, required: true },
   { id: 'password', label: 'Пароль', type: 'password', autoComplete: 'new-password', max: 100, required: true },
   { id: 'surname', label: 'Прізвище', type: 'text', autoComplete: 'family-name', max: 30, required: true },
@@ -19,7 +19,7 @@ const FIELDS: { id: Field; label: string; type: string; autoComplete: string; ma
   { id: 'patronymic', label: 'По батькові', type: 'text', autoComplete: 'additional-name', max: 30, required: false },
 ]
 
-function validate(form: Form): Errors {
+export function validate(form: Form): Errors {
   const errors: Errors = {}
   for (const { id, label, max, required } of FIELDS) {
     const value = form[id].trim()

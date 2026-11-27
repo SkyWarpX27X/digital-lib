@@ -13,14 +13,16 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ua.fictionallibrary.digital_lib.common.OnCreate;
 import ua.fictionallibrary.digital_lib.common.OnUpdate;
+import ua.fictionallibrary.digital_lib.user.dto.LibraryCardOverviewResponse;
 import ua.fictionallibrary.digital_lib.user.dto.LibraryCardRequest;
 import ua.fictionallibrary.digital_lib.user.dto.LibraryCardResponse;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/users/{userId}/library-card")
+@RequestMapping("/api/v1")
 @Tag(name = "Картки читачів", description = "Керування створенням, редагуванням та отриманням карток читачів (видалення не підтримується)")
 public class LibraryCardController {
 
@@ -30,7 +32,16 @@ public class LibraryCardController {
         this.libraryCardService = libraryCardService;
     }
 
-    @PostMapping
+    @GetMapping("/library-cards")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Отримати всі картки читачів", description = "Повертає картки читачів разом із ПІБ власника, за прізвищем. Лише для адміністратора")
+    @ApiResponse(responseCode = "200", description = "Список карток успішно отримано")
+    @ApiResponse(responseCode = "403", description = "Переглядати всі картки може тільки адміністратор", content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
+    public ResponseEntity<List<LibraryCardOverviewResponse>> getAllLibraryCards() {
+        return ResponseEntity.ok(libraryCardService.getAllLibraryCards());
+    }
+
+    @PostMapping("/users/{userId}/library-card")
     @PreAuthorize("hasRole('ADMIN') or @userAccess.isSelf(#userId, authentication)")
     @Operation(summary = "Створити нову картку читача", description = "Створення новох картки читача на основі існуючого запису про користувача")
     @ApiResponse(responseCode = "201", description = "Картку читача успішно створено")
@@ -43,7 +54,7 @@ public class LibraryCardController {
         return ResponseEntity.created(location).body(response);
     }
 
-    @GetMapping
+    @GetMapping("/users/{userId}/library-card")
     @PreAuthorize("hasRole('ADMIN') or @userAccess.isSelf(#userId, authentication)")
     @Operation(summary = "Отримати картку читача за ID користувача", description = "Повертає повні не конфіденційні дані картки читача")
     @ApiResponse(responseCode = "200", description = "Картку читача знайдено")
@@ -53,7 +64,7 @@ public class LibraryCardController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping
+    @PutMapping("/users/{userId}/library-card")
     @PreAuthorize("hasRole('ADMIN') or @userAccess.isSelf(#userId, authentication)")
     @Operation(summary = "Оновити дані картки читача за ID користувача")
     @ApiResponse(responseCode = "200", description = "Картку читача успішно оновлено")

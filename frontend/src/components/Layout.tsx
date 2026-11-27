@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { startTransition, type ReactNode } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { REDIRECT_KEY } from '../auth/guards'
@@ -13,8 +13,12 @@ export default function Layout({ children, narrow = false }: { children: ReactNo
   const location = useLocation()
 
   const handleLogout = () => {
-    logout()
-    navigate('/login')
+    // the router navigates in a transition; logging out in the same one commits both together, otherwise
+    // RequireAuth re-renders the current page without a user and saves it as the next user's redirect
+    startTransition(() => {
+      navigate('/login')
+      logout()
+    })
   }
 
   // come back to the page the visitor was browsing after login

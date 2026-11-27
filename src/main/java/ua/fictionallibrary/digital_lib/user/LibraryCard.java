@@ -29,7 +29,6 @@ public class LibraryCard {
     @MapsId
     private User user;
 
-    // ownerId is filled from user via @MapsId; optional fields are set through setters
     public LibraryCard(User user, String email, String postCode, Year birthYear, String livingAddress) {
         this.user = user;
         this.email = email;
@@ -50,6 +49,10 @@ public class LibraryCard {
         String workPositionInfo = workPosition == null ? "" : ", посада: " + workPosition;
         return "Id власника: "+ownerId+", email: "+maskedEmail+", індекс: "+maskedPostCode+", рік народження: "+birthYear
                 +", адреса проживання: "+maskedLivingAddress+workAddress+organisationInfo+workPositionInfo;
+    }
+
+    public User getUser() {
+        return user;
     }
 
     public UUID getOwnerId() {

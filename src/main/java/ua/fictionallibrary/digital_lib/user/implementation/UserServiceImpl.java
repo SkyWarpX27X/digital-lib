@@ -116,6 +116,6 @@ public class UserServiceImpl implements UserService {
 
 
     private UserResponse toResponse(User entity) {
-        return new UserResponse(entity.getId(), entity.getName(), entity.getSurname(), entity.getPatronymic(), entity.getRole(), entity.isActive());
+        return new UserResponse(entity.getId(), entity.getUsername(), entity.getName(), entity.getSurname(), entity.getPatronymic(), entity.getRole(), entity.isActive());
     }
 }

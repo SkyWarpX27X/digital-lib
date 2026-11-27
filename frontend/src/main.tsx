@@ -15,6 +15,9 @@ import NotFoundPage from './pages/NotFoundPage'
 import PhysicalBooksPage from './pages/PhysicalBooksPage'
 import ProfilePage from './pages/ProfilePage'
 import RegisterPage from './pages/RegisterPage'
+import LibraryCardsPage from './pages/LibraryCardsPage'
+import UserFormPage from './pages/UserFormPage'
+import UsersPage from './pages/UsersPage'
 import './app.css'
 
 createRoot(document.getElementById('root')!).render(
@@ -50,6 +53,21 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/book-orders/new" element={
             <RequireAuth>
               <RequireRole roles={['READER']}><NewBookOrderPage /></RequireRole>
+            </RequireAuth>
+          } />
+          <Route path="/users" element={
+            <RequireAuth>
+              <RequireRole roles={['ADMIN']}><UsersPage /></RequireRole>
+            </RequireAuth>
+          } />
+          <Route path="/users/new" element={
+            <RequireAuth>
+              <RequireRole roles={['ADMIN']}><UserFormPage /></RequireRole>
+            </RequireAuth>
+          } />
+          <Route path="/library-cards" element={
+            <RequireAuth>
+              <RequireRole roles={['ADMIN']}><LibraryCardsPage /></RequireRole>
             </RequireAuth>
           } />
           <Route path="*" element={<NotFoundPage />} />

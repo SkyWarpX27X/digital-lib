@@ -1,7 +1,14 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { api, setUnauthorizedHandler, tokenStore } from '../api'
 
 export type Role = 'READER' | 'DIGITAL_ARCHIVE_DEPARTMENT' | 'BOOK_DELIVERY_DEPARTMENT' | 'ADMIN'
+
+export const ROLE_LABELS: Record<Role, string> = {
+  READER: 'Читач',
+  DIGITAL_ARCHIVE_DEPARTMENT: 'Відділ цифрового архіву',
+  BOOK_DELIVERY_DEPARTMENT: 'Відділ доставки книг',
+  ADMIN: 'Адміністратор',
+}
 
 export interface CurrentUser {
   id: string
@@ -25,7 +32,7 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [user, setUser] = useState<CurrentUser | null>(null)
   const [loading, setLoading] = useState(() => tokenStore.get() !== null)
 
@@ -54,14 +61,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const hasAnyRole = useCallback(
-    (...roles: Role[]) => user !== null && user.roles.some(role => roles.includes(role)),
+    (...roles: Role[]) => user?.roles.some(role => roles.includes(role)) ?? false,
     [user],
   )
+
+  const value = useMemo(() => ({ user, login, logout, hasAnyRole }), [user, login, logout, hasAnyRole])
 
   if (loading) return null
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, hasAnyRole }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   )

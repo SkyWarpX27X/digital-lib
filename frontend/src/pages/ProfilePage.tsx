@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { api, ApiError } from '../api'
 import type { Bookmark, DigitizedBook } from '../digitizedBooks'
-import { useAuth, type Role } from '../auth/AuthContext'
+import { ROLE_LABELS, useAuth, type Role } from '../auth/AuthContext'
 import Layout from '../components/Layout'
 import { useTitle } from '../useTitle'
 
@@ -19,13 +19,6 @@ type CardField = 'email' | 'postcode' | 'birthYear' | 'livingAddress' | 'workOrS
 type LibraryCard = Partial<Record<CardField, string | null>>
 type CardForm = Record<CardField, string>
 type Errors = Partial<Record<CardField, string>>
-
-const ROLE_LABELS: Record<Role, string> = {
-  READER: 'Читач',
-  DIGITAL_ARCHIVE_DEPARTMENT: 'Відділ цифрового архіву',
-  BOOK_DELIVERY_DEPARTMENT: 'Відділ доставки книг',
-  ADMIN: 'Адміністратор',
-}
 
 const CARD_FIELDS: { id: CardField; label: string; required: boolean }[] = [
   { id: 'email', label: 'Електронна пошта', required: true },

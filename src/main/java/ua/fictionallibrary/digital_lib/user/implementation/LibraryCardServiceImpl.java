@@ -7,9 +7,11 @@ import ua.fictionallibrary.digital_lib.audit.AuditAction;
 import ua.fictionallibrary.digital_lib.starter.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.starter.exception.DuplicateException;
 import ua.fictionallibrary.digital_lib.user.*;
+import ua.fictionallibrary.digital_lib.user.dto.LibraryCardOverviewResponse;
 import ua.fictionallibrary.digital_lib.user.dto.LibraryCardRequest;
 import ua.fictionallibrary.digital_lib.user.dto.LibraryCardResponse;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -31,6 +33,17 @@ public class LibraryCardServiceImpl implements LibraryCardService {
         return libraryCardRepository.findByOwnerId(userId)
                 .map(this::toResponse)
                 .orElseThrow(() -> new DataNotFoundException("Library card for user id " + userId + " doesn't exist"));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<LibraryCardOverviewResponse> getAllLibraryCards() {
+        return libraryCardRepository.findAllWithOwner().stream().map(card -> {
+            User owner = card.getUser();
+            return new LibraryCardOverviewResponse(card.getOwnerId(), owner.getSurname(), owner.getName(),
+                    owner.getPatronymic(), card.getEmail(), card.getBirthYear(), card.getLivingAddress(),
+                    card.getWorkOrStudyAddress());
+        }).toList();
     }
 
     @Override
