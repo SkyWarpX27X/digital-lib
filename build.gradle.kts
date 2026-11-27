@@ -36,6 +36,8 @@ dependencies {
 	implementation("io.awspring.cloud:spring-cloud-aws-starter-s3")
 	implementation("org.apache.pdfbox:pdfbox:3.0.8")
 	implementation("org.springframework.boot:spring-boot-starter-mail")
+	implementation("org.springframework.boot:spring-boot-starter-cache")
+	implementation("com.github.ben-manes.caffeine:caffeine")
 	implementation("net.javacrumbs.shedlock:shedlock-spring:7.11.0")
 	implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:7.11.0")
 	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")

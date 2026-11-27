@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { api, ApiError } from '../api'
 import { useAuth } from '../auth/AuthContext'
 import BookCover from '../components/BookCover'
-import BookFilters, { resourceTypesOf } from '../components/BookFilters'
+import BookFilters from '../components/BookFilters'
 import Layout from '../components/Layout'
 import type { DigitizedBook } from '../digitizedBooks'
 import { useTitle } from '../useTitle'
@@ -26,7 +26,6 @@ export default function DigitizedBooksPage() {
   const [error, setError] = useState<string>()
   const [books, setBooks] = useState<DigitizedBook[] | null>(null)
   const [query, setQuery] = useState('')
-  const [resourceTypes, setResourceTypes] = useState<string[]>([])
   const [newestFirst, setNewestFirst] = useState(true)
 
   useEffect(() => {
@@ -34,7 +33,6 @@ export default function DigitizedBooksPage() {
     api<DigitizedBook[]>(`/api/v1/digitized-books?${query}`).then(result => {
       if (stale) return
       setBooks(result)
-      if (!query) setResourceTypes(resourceTypesOf(result))
     })
     return () => { stale = true }
   }, [query])
@@ -71,7 +69,7 @@ export default function DigitizedBooksPage() {
       {message && <div className="alert alert--success" role="status">{message}</div>}
       {error && <div className="alert alert--error" role="alert">{error}</div>}
 
-      <BookFilters onChange={setQuery} resourceTypes={resourceTypes}>
+      <BookFilters onChange={setQuery} optionsUrl="/api/v1/digitized-books/filter-options">
         <select className="input filters__select" aria-label="Сортування" value={newestFirst ? 'new' : 'old'}
                 onChange={e => setNewestFirst(e.target.value === 'new')}>
           <option value="new">Спочатку нові</option>

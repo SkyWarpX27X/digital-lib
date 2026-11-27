@@ -1,12 +1,15 @@
 package ua.fictionallibrary.digital_lib.physicalbook.implementations;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ua.fictionallibrary.digital_lib.audit.AuditAction;
 import ua.fictionallibrary.digital_lib.author.Author;
 import ua.fictionallibrary.digital_lib.author.AuthorService;
 import ua.fictionallibrary.digital_lib.common.BookFilter;
+import ua.fictionallibrary.digital_lib.common.BookFilterOptions;
 import ua.fictionallibrary.digital_lib.starter.exception.DataNotFoundException;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookAddedEvent;
 import ua.fictionallibrary.digital_lib.physicalbook.PhysicalBookRepository;
@@ -24,6 +27,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class PhysicalBookServiceImpl implements PhysicalBookService {
+    private static final String FILTER_OPTIONS_CACHE = "physical-book-filter-options";
 
     private final PhysicalBookRepository repository;
     private final ApplicationEventPublisher eventPublisher;
@@ -41,6 +45,7 @@ public class PhysicalBookServiceImpl implements PhysicalBookService {
     @Override
     @Transactional
     @AuditAction
+    @CacheEvict(cacheNames = FILTER_OPTIONS_CACHE, allEntries = true)
     public PhysicalBookResponse addPhysicalBook(PhysicalBookRequest request) {
         PhysicalBook book = toEntity(request);
         ResourceTypeValidationStrategy strategy = strategies.get(book.getResourceType());
@@ -60,6 +65,7 @@ public class PhysicalBookServiceImpl implements PhysicalBookService {
     @Override
     @Transactional
     @AuditAction
+    @CacheEvict(cacheNames = FILTER_OPTIONS_CACHE, allEntries = true)
     public PhysicalBookResponse updatePhysicalBook(UUID id, PhysicalBookRequest request) {
         PhysicalBook book = repository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("Failed to update, not found physical book with id " + id));
@@ -84,6 +90,14 @@ public class PhysicalBookServiceImpl implements PhysicalBookService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = FILTER_OPTIONS_CACHE)
+    public BookFilterOptions getFilterOptions() {
+        return new BookFilterOptions(repository.findDistinctTopics(), repository.findDistinctLanguages(),
+                repository.findDistinctResourceTypes());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<PhysicalBookResponse> getAllPhysicalBooks(BookFilter filter) {
         return repository.search(filter).stream().map(this::toResponse).toList();
     }
@@ -91,6 +105,7 @@ public class PhysicalBookServiceImpl implements PhysicalBookService {
     @Override
     @Transactional
     @AuditAction
+    @CacheEvict(cacheNames = FILTER_OPTIONS_CACHE, allEntries = true)
     public void deletePhysicalBook(UUID id) {
         if (!repository.existsById(id))
             throw new DataNotFoundException("Failed to delete, not found physical book with id " + id);

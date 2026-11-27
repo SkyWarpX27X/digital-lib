@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { api } from '../api'
 import { useAuth } from '../auth/AuthContext'
-import BookFilters, { resourceTypesOf } from '../components/BookFilters'
+import BookFilters from '../components/BookFilters'
 import Layout from '../components/Layout'
 import type { PhysicalBook } from '../physicalBooks'
 import { useTitle } from '../useTitle'
@@ -14,14 +14,12 @@ export default function PhysicalBooksPage() {
   const message: string | undefined = location.state?.message
   const [books, setBooks] = useState<PhysicalBook[] | null>(null)
   const [query, setQuery] = useState('')
-  const [resourceTypes, setResourceTypes] = useState<string[]>([])
 
   useEffect(() => {
     let stale = false
     api<PhysicalBook[]>(`/api/v1/physical-books?${query}`).then(result => {
       if (stale) return
       setBooks(result)
-      if (!query) setResourceTypes(resourceTypesOf(result))
     })
     return () => { stale = true }
   }, [query])
@@ -36,7 +34,7 @@ export default function PhysicalBooksPage() {
           <Link className="btn btn--primary" to="/physical-books/new">Додати фізичну книгу</Link>}
       </div>
       {message && <div className="alert alert--success" role="status">{message}</div>}
-      <BookFilters onChange={setQuery} resourceTypes={resourceTypes} />
+      <BookFilters onChange={setQuery} optionsUrl="/api/v1/physical-books/filter-options" />
       <div className="card">
         <table className="table">
           <thead>

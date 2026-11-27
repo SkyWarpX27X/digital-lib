@@ -2,6 +2,7 @@ package ua.fictionallibrary.digital_lib.digitizedbook;
 
 import org.springframework.web.multipart.MultipartFile;
 import ua.fictionallibrary.digital_lib.common.BookFilter;
+import ua.fictionallibrary.digital_lib.common.BookFilterOptions;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookRequest;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookResponse;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.MissingStorageFile;
@@ -24,6 +25,7 @@ public interface DigitizedBookService {
     StoredFile getPdf(UUID id);
     StoredFile getCover(UUID id);
     URL getPdfDownloadUrl(UUID id, Duration ttl);
+    BookFilterOptions getFilterOptions();
     boolean exists(UUID id);
     void cleanupOrphanedFiles(Duration minAge);
     List<MissingStorageFile> checkStorageIntegrity();

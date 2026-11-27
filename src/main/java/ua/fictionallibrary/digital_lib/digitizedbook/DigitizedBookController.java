@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ua.fictionallibrary.digital_lib.common.BookFilter;
+import ua.fictionallibrary.digital_lib.common.BookFilterOptions;
 import ua.fictionallibrary.digital_lib.common.OnCreate;
 import ua.fictionallibrary.digital_lib.common.OnUpdate;
 import ua.fictionallibrary.digital_lib.digitizedbook.dto.DigitizedBookRequest;
@@ -89,6 +90,14 @@ public class DigitizedBookController {
                 .contentType(MediaType.parseMediaType(file.contentType()))
                 .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.inline().build().toString())
                 .body(new InputStreamResource(file.data()));
+    }
+
+    @GetMapping("/filter-options")
+    @Operation(summary = "Отримати значення для фільтрів каталогу",
+            description = "Унікальні теми, мови та види ресурсів, наявні серед оцифрованих книг, за абеткою")
+    @ApiResponse(responseCode = "200", description = "Значення фільтрів успішно отримано")
+    public ResponseEntity<BookFilterOptions> getFilterOptions() {
+        return ResponseEntity.ok(service.getFilterOptions());
     }
 
     @GetMapping

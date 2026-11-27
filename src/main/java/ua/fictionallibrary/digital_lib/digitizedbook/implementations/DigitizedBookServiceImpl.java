@@ -3,6 +3,8 @@ package ua.fictionallibrary.digital_lib.digitizedbook.implementations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -12,6 +14,7 @@ import ua.fictionallibrary.digital_lib.audit.AuditAction;
 import ua.fictionallibrary.digital_lib.author.Author;
 import ua.fictionallibrary.digital_lib.author.AuthorService;
 import ua.fictionallibrary.digital_lib.common.BookFilter;
+import ua.fictionallibrary.digital_lib.common.BookFilterOptions;
 import ua.fictionallibrary.digital_lib.digitizedbook.BookDigitizedEvent;
 import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBookDeletedEvent;
 import ua.fictionallibrary.digital_lib.digitizedbook.DigitizedBook;
@@ -43,6 +46,7 @@ import java.util.stream.Stream;
 
 @Service
 public class DigitizedBookServiceImpl implements DigitizedBookService {
+    private static final String FILTER_OPTIONS_CACHE = "digitized-book-filter-options";
     private static final String STORAGE_PREFIX = "digitized-books/";
 
     private final DigitizedBookRepository repository;
@@ -70,6 +74,14 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = FILTER_OPTIONS_CACHE)
+    public BookFilterOptions getFilterOptions() {
+        return new BookFilterOptions(repository.findDistinctTopics(), repository.findDistinctLanguages(),
+                repository.findDistinctResourceTypes());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<DigitizedBookResponse> getAllDigitizedBooks(BookFilter filter, boolean canReadCopyrighted) {
         return repository.search(filter).stream().map(book -> toResponse(book, canReadCopyrighted)).toList();
     }
@@ -85,6 +97,7 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
     @Override
     @Transactional
     @AuditAction
+    @CacheEvict(cacheNames = FILTER_OPTIONS_CACHE, allEntries = true)
     public DigitizedBookResponse addDigitizedBook(DigitizedBookRequest request, UUID physicalBookId, MultipartFile pdf,
                                                   MultipartFile cover) {
         fileValidator.validatePdf(pdf);
@@ -137,6 +150,7 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
     @Override
     @Transactional
     @AuditAction
+    @CacheEvict(cacheNames = FILTER_OPTIONS_CACHE, allEntries = true)
     public DigitizedBookResponse updateDigitizedBook(UUID id, DigitizedBookRequest request) {
         DigitizedBook book = repository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("Failed to update, not found digitized book with id " + id));
@@ -154,6 +168,7 @@ public class DigitizedBookServiceImpl implements DigitizedBookService {
     @Override
     @Transactional
     @AuditAction
+    @CacheEvict(cacheNames = FILTER_OPTIONS_CACHE, allEntries = true)
     public void deleteDigitizedBook(UUID id) {
         DigitizedBook book = repository.findById(id).orElseThrow(() -> new DataNotFoundException("Failed to delete, not found digitized book with id " + id));
         List<String> keys = Stream.of(book.getPdfKey(), book.getCoverKey()).filter(Objects::nonNull).toList();

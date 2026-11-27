@@ -12,6 +12,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import ua.fictionallibrary.digital_lib.common.BookFilter;
+import ua.fictionallibrary.digital_lib.common.BookFilterOptions;
 import ua.fictionallibrary.digital_lib.common.OnCreate;
 import ua.fictionallibrary.digital_lib.common.OnUpdate;
 import ua.fictionallibrary.digital_lib.physicalbook.dto.PhysicalBookRequest;
@@ -37,6 +38,14 @@ public class PhysicalBookController {
     public ResponseEntity<PhysicalBookResponse> getBookById(@PathVariable UUID id) {
         PhysicalBookResponse book = service.getPhysicalBook(id);
         return ResponseEntity.ok(book);
+    }
+
+    @GetMapping("/filter-options")
+    @Operation(summary = "Отримати значення для фільтрів каталогу",
+            description = "Унікальні теми, мови та види ресурсів, наявні серед фізичних книг, за абеткою")
+    @ApiResponse(responseCode = "200", description = "Значення фільтрів успішно отримано")
+    public ResponseEntity<BookFilterOptions> getFilterOptions() {
+        return ResponseEntity.ok(service.getFilterOptions());
     }
 
     @GetMapping

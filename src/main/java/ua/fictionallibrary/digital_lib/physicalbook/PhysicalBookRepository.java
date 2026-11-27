@@ -35,6 +35,15 @@ public interface PhysicalBookRepository extends JpaRepository<PhysicalBook, UUID
     List<PhysicalBook> search(String name, String author, String topic, Year yearFrom, Year yearTo,
                               String language, String resourceType);
 
+    @Query("SELECT DISTINCT b.topic FROM PhysicalBook b ORDER BY b.topic")
+    List<String> findDistinctTopics();
+
+    @Query("SELECT DISTINCT b.language FROM PhysicalBook b ORDER BY b.language")
+    List<String> findDistinctLanguages();
+
+    @Query("SELECT DISTINCT b.resourceType FROM PhysicalBook b ORDER BY b.resourceType")
+    List<String> findDistinctResourceTypes();
+
     default List<PhysicalBook> search(BookFilter f) {
         return search(f.name(), f.author(), f.topic(), f.yearFrom(), f.yearTo(), f.language(), f.resourceType());
     }

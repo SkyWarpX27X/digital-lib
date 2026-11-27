@@ -1,6 +1,7 @@
 package ua.fictionallibrary.digital_lib.physicalbook;
 
 import ua.fictionallibrary.digital_lib.common.BookFilter;
+import ua.fictionallibrary.digital_lib.common.BookFilterOptions;
 import ua.fictionallibrary.digital_lib.physicalbook.dto.PhysicalBookRequest;
 import ua.fictionallibrary.digital_lib.physicalbook.dto.PhysicalBookResponse;
 
@@ -13,5 +14,6 @@ public interface PhysicalBookService {
     PhysicalBookResponse getPhysicalBook(UUID id);
     List<PhysicalBookResponse> getAllPhysicalBooks(BookFilter filter);
     void deletePhysicalBook(UUID id);
+    BookFilterOptions getFilterOptions();
     boolean exists(UUID id);
 }
